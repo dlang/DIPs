@@ -1,0 +1,6 @@
+name "dwikiquery"
+description "Wrapper for Mediawiki API backing wiki.dlang.org"
+authors "Михаил Страшун"
+copyright "Copyright © 2016, Михаил Страшун"
+license "Boost"
+dependency "vibe-d" version="==0.7.30-alpha.2"

@@ -1,0 +1,3 @@
+name "genoverview"
+description "Overview page generator for DIPs"
+license "Boost"
