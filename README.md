@@ -1,8 +1,8 @@
 # D Improvement Proposals (DIPs)
 
-[List of submitted DIPs](https://github.com/Dicebot/DIPs/blob/master/DIPs/README.md)
+[List of submitted DIPs](https://github.com/dlang/DIPs/blob/master/DIPs/README.md)
 
-[List of old DIPs approved before this repo existed](https://github.com/Dicebot/DIPs/blob/master/DIPs/archive/README.md)
+[List of old DIPs approved before this repo existed](https://github.com/dlang/DIPs/blob/master/DIPs/archive/README.md)
 
 ## Purpose
 
@@ -17,7 +17,7 @@ approved by language authors and community feedback must be managed as a DIP.
 ### Submitting new D Improvement proposal
 
 1. Write a document for new improvement proposal based on
-   [the template](https://github.com/Dicebot/DIPs/blob/master/Template.md). All
+   [the template](https://github.com/dlang/DIPs/blob/master/Template.md). All
    sections mentiond in the template are important - for example, change
    implying breaking changes has almost no chance to be accepted if it doesn't
    describe in great details migration path to mitigate it.

@@ -14,7 +14,7 @@ void main ( string[] args )
 
     import std.format;
 
-    string urlBase = format("https://github.com/Dicebot/DIPs/tree/master/%s", dipFolder);
+    string urlBase = format("https://github.com/dlang/DIPs/tree/master/%s", dipFolder);
 
     import std.path, std.file, std.utf;
 
