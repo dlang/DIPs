@@ -18,7 +18,7 @@ approved by language authors and community feedback must be managed as a DIP.
 
 1. Write a document for new improvement proposal based on
    [the template](https://github.com/dlang/DIPs/blob/master/Template.md). All
-   sections mentiond in the template are important - for example, change
+   sections mentioned in the template are important - for example, change
    implying breaking changes has almost no chance to be accepted if it doesn't
    describe in great details migration path to mitigate it.
 
@@ -35,7 +35,7 @@ approved by language authors and community feedback must be managed as a DIP.
 3. Once DIP manager considers proposal has all necessary details and is ready
    for evaluation by language authors, pull request gets merged with DIP
    being in `Draft` status. DIP pull request should not be merged faster than
-   one month from newsgrouo announcement to ensure everyone had a chance to
+   one month from newsgroup announcement to ensure everyone had a chance to
    comment on it.
 
 ### Getting DIP approved
@@ -62,8 +62,8 @@ approved by language authors and community feedback must be managed as a DIP.
 2. On point discussion regarding DIP text is welcome in pul requests - everyone
    is welcome to participate in the review.
 
-3. If there are many uncertainities about the proposal, consider first publishing
-   document somewhere else and dicussing it via forum or e-mails. That will
+3. If there are many uncertainties about the proposal, consider first publishing
+   document somewhere else and discussing it via forum or e-mails. That will
    greatly reduce amount of back-and-forth changes in DIP pull request later.
 
 ## DIPs by language authors
