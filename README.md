@@ -68,7 +68,7 @@ approved by language authors and community feedback must be managed as a DIP.
 
 ## DIPs by language authors
 
-Languages changes initiated by language authors are also supposed to go thorugh
+Language changes initiated by language authors are also supposed to go through
 DIP queue but those are processed slightly differently and with a different
 purpose. By their very nature formal approval is not needed and instead
 increased focus is put into bringing community attention and feedback.
