@@ -1,20 +1,20 @@
-# (your DIP title)
+# (Your DIP title)
 
-| Section         | Value                                                           |
+| Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id)                                                     |
 | Author:         | (your name and contact data)                                    |
 | Implementation: | (links to implementation PR if any)                             |
-| Status:         | Set by DIP manager (e.g. "Approved" or "Rejected")              |
+| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
 
-Short description of the idea fitting into few lines.
+Short and concise description of the idea in a few lines.
 
 ### Links
 
 Optional sections containing links to existing discussions, research papers or any
-other supplemental materials.
+other supplementary materials.
 
 ## Description
 
@@ -22,24 +22,25 @@ Detailed technical description of new semantics / changes.
 
 ### Rationale
 
-Explanation of why the proposed change is important and worth being
-implemented. Referencing existing projects and showing how their issues can be
-solved by the proposal greatly increases chance of DIP being understood and
-carefully evaluated.
+State a short motivation about the importance and benefits of the proposed
+change.  An existing, well-known issue or a use case for an existing projects
+can greatly increase the chances of the DIP being understood and carefully
+evaluated.
 
 ### Breaking changes / deprecation process
 
-Detailed analysis on how proposed changes may affect existing user code and
-step-by-step explanation of deprecation process which is supposed to handle
-that in non-intrusive manner. Changes that may break user code and have no
-well-defined deprecation process have a minimal chance of being approved.
+Provide a detailed analysis on how the proposed changes may affect existing
+user code and a step-by-step explanation of the deprecation process which is
+supposed to handle breakage in a non-intrusive manner. Changes that may break
+user code and have no well-defined deprecation process have a minimal chance of
+being approved.
 
 ### Examples
 
-More practical explanation of DIP semantics using several examples of its
-idiomatic application. It is usually much easier to quick evaluate value
-of the proposal by looking at how it affects non-synthetic code than by try
-to reason about abstract description.
+A more practical explanation of DIP semantics should be given by showing
+several examples of its idiomatic application. Inspecting vivid code examples
+is usually an easier & quicker way to evaluate the value of a proposal than
+trying to reason about its abstract description.
 
 ## Copyright & License
 
@@ -50,5 +51,5 @@ Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdom
 ### Reviews
 
 Will contain comments / requests from language authors once review is complete,
-filled out by the DIP manager - can be both inline and linking to external
+f        illed out by the DIP manager - can be both inline and linking to external
 document.
