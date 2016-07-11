@@ -28,9 +28,9 @@ community.
    provide feedback about what information needs to be added for DIP to be of expected
    quality. The DIP document must be named "DIP<id>.md".
 
-3. After addressing initial feedback, announce the new DIP in the official
-   [D newsgroup](http://forum.dlang.org/group/announce) for community feedback. This
-   will allow to evaluate strong and weak points of the proposal before it gets to
+3. After initial feedback has been addressed, the DIP manager will announce the new DIP
+   in the official [D newsgroup](http://forum.dlang.org/group/announce) for community feedback.
+   This will allow to evaluate strong and weak points of the proposal before it gets to
    the language author's attention.
 
 3. Once a proposal has all necessary details and the DIP manager considers it
