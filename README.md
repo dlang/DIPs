@@ -22,6 +22,8 @@ community.
    All sections mentioned in the template are important - for example, a change
    implying breaking changes has almost no chance to be accepted if it
    doesn't describe a migration path to mitigate breakage in great details.
+   Please put great care in drafting the proposal - the proposal needs to
+   convince the language authors and D community of the added value through the change.
 
 2. Create a new pull request against this repository by adding a new document to
    the `DIPs` folder picking up the next spare ID (>= 1000). The DIP manager will
