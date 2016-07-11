@@ -23,9 +23,16 @@ Detailed technical description of new semantics / changes.
 ### Rationale
 
 State a short motivation about the importance and benefits of the proposed
-change.  An existing, well-known issue or a use case for an existing projects
+change. An existing, well-known issue or a use case for an existing projects
 can greatly increase the chances of the DIP being understood and carefully
-evaluated.
+evaluated. A summary of previous discussions on the NG (status quo) and
+an overview of other work in this area (e.g. other languages, scientific research)
+should be provided.
+
+Consider in your analysis that you need to convince the entire D community
+and language authors of the added value of the change.
+Play the devil's advocate: argue against the proposal and search for
+potential problems or shortcoming.
 
 ### Breaking changes / deprecation process
 
@@ -51,5 +58,5 @@ Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdom
 ### Reviews
 
 Will contain comments / requests from language authors once review is complete,
-f        illed out by the DIP manager - can be both inline and linking to external
+filled out by the DIP manager - can be both inline and linking to external
 document.
