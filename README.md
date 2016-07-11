@@ -52,8 +52,9 @@ community.
 3. Review should result in the DIP either being moved to `Approved` status or
    modified with a list of issues that need to be worked on before a final
    decision can be made. In case the DIP topic seems important but language
-   authors decide it needs more research, a new topic in dlang-study@puremagic.com
-   mail list may be initiated.
+   authors decide it needs more research, a new topic on the
+   [Dlang-study](http://lists.puremagic.com/cgi-bin/mailman/listinfo/dlang-study)
+   mailing list may be initiated.
 
 ### Collaborating on DIPs
 
@@ -64,17 +65,21 @@ community.
    is welcome to participate in the review.
 
 3. If there are many uncertainties about the proposal, consider first publishing
-   document somewhere else and discussing it via forum or e-mails. That will
-   greatly reduce amount of back-and-forth changes in the DIP pull request later.
+   document somewhere else and discussing it via the [NG](http://forum.dlang.org/group/general)
+   or e-mails. That will greatly reduce amount of back-and-forth changes in the
+   DIP pull request later.
 
-## DIPs by language authors
+## DIPs by the D language authors
 
 Language changes initiated by language authors are also supposed to go through
-the DIP queue. Hence they are processed slightly differently and with a different
-purpose. By their very nature formal approval is not needed and instead
+the DIP queue. By their very nature formal approval is not needed.
+Hence they are processed slightly different and an
 increased focus is put into bringing community attention and feedback.
 
-## Role of DIP manager
+At the time of writing this document only Walter Bright and Andrei Alexandrescu
+are meant as a language authors here.
+
+## The DIP manager responsibilities
 
 The idea behind the role of the DIP manager is to have a person who will do
 minimal initial research and quality control saving time for language authors
