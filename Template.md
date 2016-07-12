@@ -51,5 +51,5 @@ Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdom
 ### Reviews
 
 Will contain comments / requests from language authors once review is complete,
-f        illed out by the DIP manager - can be both inline and linking to external
+filled out by the DIP manager - can be both inline and linking to external
 document.
