@@ -69,6 +69,39 @@ community.
    or e-mails. That will greatly reduce amount of back-and-forth changes in the
    DIP pull request later.
 
+## Advices for writing great DIPs
+
+Writing good informative DIP with solid chances to get approved is very
+hard work - it is often underestimated how much effort is expected to be put
+into writing one.
+
+1. Focus on answering "why" question as much as explain "what". At this stage
+   of language development a change has to bring a great value and any doubt
+   will be likely be treated in favor of rejecting.
+
+2. Be very pedantic and formal in describing required language/compiler
+   changes. For example, make separate sections for grammar changes, semantic
+   changes, expected compiler error messages and so on. DIP should provide
+   a detailed design documentation for compile developer willing to implement
+   it.
+
+3. Research any alternative approaches to solving same problem and explain
+   your choice. If there are any relevant success or failure stories in
+   other programming languages, consider referring to them with explanation
+   of how it applies to D.
+
+4. Showing example of real-world project that could benefit from the
+   improvement can greatly improve its chances to be accepted. D is intended
+   to be a practical language and one of recurring questions when new
+   changes are considered is "does it really make real projects better?". If
+   that is not possible, try designing code examples with intention to answer
+   the very same question.
+
+5. Be prepared for a lot of work. There are always many ideas proposed but
+   much less developers commited to pursuing the idea to final stages of
+   evaluation. DIP system is _not_ for submitting ideas but for formal approval
+   of language changes.
+
 ## DIPs by the D language authors
 
 Language changes initiated by language authors are also supposed to go through
