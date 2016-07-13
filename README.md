@@ -7,48 +7,48 @@
 ## Purpose
 
 This repository stores and manages improvement proposals for the D programming
-language. Common examples include the change of existing language semantics,
-addition of new major features to compiler or enforcement of new process as a
+language. Common examples include a change to existing language semantics,
+the addition of a new major features to the compiler or enforcement of new process as a
 standard. In general, any controversial change must be managed as a DIP and
 thus requires approval by the language authors and feedback from the D
 community.
 
 ## Procedure
 
-### Submitting new D Improvement proposal
+### Submitting a new D Improvement proposal
 
-1. Write a document for new improvement proposal based on
+1. Write a document for the new improvement proposal based on
    [the template](https://github.com/dlang/DIPs/blob/master/Template.md).
    All sections mentioned in the template are important - for example, a change
    implying breaking changes has almost no chance to be accepted if it
-   doesn't describe a migration path to mitigate breakage in great details.
+   doesn't describe a migration path to mitigate breakage.
 
 2. Create a new pull request against this repository by adding a new document to
-   the `DIPs` folder picking up the next spare ID (>= 1000). The DIP manager will
-   provide feedback about what information needs to be added for DIP to be of expected
-   quality. The DIP document must be named "DIP<id>.md".
+   the `DIPs` folder, using the next spare ID (>= 1000). The DIP manager will
+   provide feedback about what information needs to be added for the DIP to reach the required
+   quality for further consideration. The DIP document must be named "DIP<id>.md".
 
-3. After initial feedback has been addressed, the DIP manager will announce the new DIP
+3. After any initial feedback has been addressed, the DIP manager will announce the new DIP
    in the official [D newsgroup](http://forum.dlang.org/group/announce) for community feedback.
-   This will allow to evaluate strong and weak points of the proposal before it gets to
+   This will help evaluate stronger and weaker points of the proposal before it gets to
    the language author's attention.
 
-3. Once a proposal has all necessary details and the DIP manager considers it
-   to be ready for evaluation by language authors, the pull request gets merged
+3. Once a proposal includes all necessary details and the DIP manager considers it
+   to be ready for evaluation by the language authors, the pull request gets merged
    with the DIP status being `Draft`. A DIP pull request should not be merged
-   faster than one month from newsgroup announcement to ensure everyone had a
+   earlier than one month after the newsgroup announcement to ensure everyone has a
    chance to comment on it.
 
-### Getting DIP approved
+### Getting a DIP approved
 
-1. Once in a few months the DIP manager has to pick one DIP from those
-   that are currently in `Draft` status. Proposals with more detailed
-   descriptions and/or proof of concept implementation should have a higher
+1. Once every few months the DIP manager has to pick one DIP from those
+   that currently have `Draft` status. Proposals with more detailed
+   descriptions and/or proof of concept implementations should have a higher
    priority.
 2. The DIP is brought to the language authors for review. The DIP manager's
    responsibility is to gather and provide information about the proposal
    at their request. After each round of review the DIP manager must publish
-   its short summary and outcome to the mailing list.
+   to the mailing list the outcome of the review along with a small summary.
 3. Review should result in the DIP either being moved to `Approved` status or
    modified with a list of issues that need to be worked on before a final
    decision can be made. In case the DIP topic seems important but language
@@ -59,48 +59,46 @@ community.
 ### Collaborating on DIPs
 
 1. Anyone can submit new pull requests with updates to merged DIP document as
-   long as original author gets notified about it.
+   long as the original author is notified.
 
-2. Discussion regarding the DIP's text is welcome in pull requests - everyone
+2. Discussion regarding the DIP's content is welcome in pull requests - everyone
    is welcome to participate in the review.
 
 3. If there are many uncertainties about the proposal, consider first publishing
    document somewhere else and discussing it via the [NG](http://forum.dlang.org/group/general)
-   or e-mails. That will greatly reduce amount of back-and-forth changes in the
+   or e-mails. That will greatly reduce the number of back-and-forth changes in the
    DIP pull request later.
 
 ## Advices for writing great DIPs
 
-Writing good informative DIP with solid chances to get approved is very
-hard work - it is often underestimated how much effort is expected to be put
-into writing one.
+Writing a good informative DIP with solid chances to get approved is very
+hard work - it is often underestimated how much effort is required.
 
-1. Focus on answering "why" question as much as explain "what". At this stage
-   of language development a change has to bring a great value and any doubt
-   will be likely be treated in favor of rejecting.
+1. Focus on "why" as much as "what". At this stage of the D language development
+   changes need to justify their existence with great value. Doubt about the
+   necessity or value of a change will be a strong motivator for rejection.
 
-2. Be very pedantic and formal in describing required language/compiler
+2. Be very pedantic and formal in describing any required language/compiler
    changes. For example, make separate sections for grammar changes, semantic
-   changes, expected compiler error messages and so on. DIP should provide
-   a detailed design documentation for compile developer willing to implement
-   it.
+   changes, expected compiler error messages and so on. A DIP should provide
+   a detailed design documentation for a compiler developer to implement it.
 
-3. Research any alternative approaches to solving same problem and explain
+3. Research any alternative approaches to solving the same problem and explain
    your choice. If there are any relevant success or failure stories in
    other programming languages, consider referring to them with explanation
-   of how it applies to D.
+   of how they might apply to D.
 
-4. Showing example of real-world project that could benefit from the
-   improvement can greatly improve its chances to be accepted. D is intended
-   to be a practical language and one of recurring questions when new
+4. Showing example of real-world project that could benefit from an
+   improvement can greatly improve its chances of being accepted. D is intended
+   to be a practical language and a recurring questions when new
    changes are considered is "does it really make real projects better?". If
    that is not possible, try designing code examples with intention to answer
    the very same question.
 
 5. Be prepared for a lot of work. There are always many ideas proposed but
-   much less developers commited to pursuing the idea to final stages of
-   evaluation. DIP system is _not_ for submitting ideas but for formal approval
-   of language changes.
+   many fewer developers commited to pursuing the idea to the final stages of
+   evaluation. The DIP system is _not_ for submitting undeveloped ideas, it is
+   a process for formal approval of language changes.
 
 ## DIPs by the D language authors
 
@@ -114,10 +112,10 @@ are meant as a language authors here.
 
 ## The DIP manager responsibilities
 
-The idea behind the role of the DIP manager is to have a person who will do
-minimal initial research and quality control saving time for language authors
-to focus on actual decision.  That implies gathering information, maintaining
-this repository and communicating to involved parties so that process keeps
-moving forward. Essentially the DIP manager is supposed to act as proxy between
-D users and the language authors to allow handling the growing scale of DIP
-information reliably.
+The idea behind the role of the DIP manager is to have a person who will do some
+minimal initial research and quality control, saving time for language authors
+to focus on the actual decision. That implies gathering information, maintaining
+this repository and communicating to involved parties so that the process keeps
+moving forward. Essentially the DIP manager is supposed to act as a proxy between
+D users and the language authors to help handling the growing scale of DIP
+information reliably and effectively.
