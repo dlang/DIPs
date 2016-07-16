@@ -26,7 +26,8 @@ community.
 2. Create a new pull request against this repository by adding a new document to
    the `DIPs` folder, using the next spare ID (>= 1000). The DIP manager will
    provide feedback about what information needs to be added for the DIP to reach the required
-   quality for further consideration. The DIP document must be named "DIP<id>.md".
+   quality for further consideration. The DIP document must be named "DIP<id>.md"
+   and the pull request should be named "DIP<id>: <title>".
 
 3. After any initial feedback has been addressed, the DIP manager will announce the new DIP
    in the official [D newsgroup](http://forum.dlang.org/group/announce) for community feedback.
