@@ -24,9 +24,16 @@ community.
    doesn't describe a migration path to mitigate breakage.
 
 2. Create a new pull request against this repository by adding a new document to
-   the `DIPs` folder, using the next spare ID (>= 1000). The DIP manager will
-   provide feedback about what information needs to be added for the DIP to reach the required
-   quality for further consideration. The DIP document must be named "DIP<id>.md".
+   the `DIPs` folder, using any spare ID (>= 1000). The DIP manager will
+   provide feedback about what information needs to be added for the DIP to reach
+   the required quality for further consideration.
+
+   The DIP document must be named "DIP<id>.md". The exact DIP ID used at pull
+   request stage is not important because during merging the DIP manager will
+   replace it with the next currently available ID among the merged proposals,
+   which will become the "real" ID for the DIP in future.
+
+   The pull request title should match the DIP title.
 
 3. After any initial feedback has been addressed, the DIP manager will announce the new DIP
    in the official [D newsgroup](http://forum.dlang.org/group/announce) for community feedback.
