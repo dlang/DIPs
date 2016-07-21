@@ -8,7 +8,7 @@
 |                 | <https://github.com/dlang/dmd/pull/4321>       |
 |                 | <https://github.com/dlang/druntime/pull/1111>  |
 |                 | <https://github.com/dlang/dlang.org/pull/1129> |
-| Status:         | Implemented                                    |
+| Status:         | Approved                                       |
 
 ## Abstract
 
@@ -16,9 +16,12 @@ This document is an overview of the extensions D/Objective-C brings to the D
 programming language. It assumes some prior knowledge of
 [Objective-C](http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html).
 
-*Note: Some parts of this document describe features which are not yet
-implemented and are very much subject to change. Unimplemented sections of this
-**document** are marked as such.*
+_Note: Currently only a few set of the features this document describes are
+merged upstream. These features are marked with **upstream**_.
+
+_Some other parts of this document describe features which are not yet
+implemented at all, in any branch or fork, and are very much subject to change.
+These parts are marked with **unimplemented**_.
 
 ### Links
 
@@ -34,7 +37,7 @@ Mac OS X and iOS. This proposal adds language extensions to make it
 significantly easier to interact and create libraries compatible with
 Objective-C.
 
-### Using an existing Objective-C class
+### Using an existing Objective-C class (upstream)
 
 To use an existing Objective-C class, we must first write a declaration for
 that class, and we must mark this class as coming from Objective-C. Here is an
@@ -57,7 +60,7 @@ class exists and can be used. Since `NSComboBox` derives from `NSObject`, the
 Declaring members variables of the class is important. Even if we don't plan on
 using them, they are needed to properly calculate the size of derived classes.
 
-#### Declaring Instance Methods
+#### Declaring Instance Methods (upstream)
 
 Objective-C uses a syntax that greatly differs from D when it comes to calling
 member functions -- instance methods and class methods in Objective-C parlance.
@@ -311,7 +314,7 @@ ambiguous for the parser.
 
 There is no `classinfo` property for Objective-C objects.
 
-### Class Extensions (also known as Categories) {unimplemented}
+### Class Extensions (also known as Categories) (unimplemented)
 
 With Objective-C it is possible for different compilation units, and even
 different libraries, to define new methods that will apply to existing classes.
@@ -407,7 +410,7 @@ In D, you use the `protocolof` property of the interface:
 Protocol p = NSCoding.protocolof;
 ```
 
-### Interface Builder Attributes {unimplemented}
+### Interface Builder Attributes (unimplemented)
 
 The `@IBAction` attribute forces the compiler generate a function selector
 matching the name of the function, making the function usable as an action in
@@ -472,7 +475,7 @@ void showWindow(ObjcObject obj)
 }
 ```
 
-#### Memory Management {unimplemented}
+#### Memory Management (unimplemented)
 
 Only the reference-counted variant of Objective-C is supported, but reference
 counting is automated which makes things much easier.
@@ -522,7 +525,7 @@ the garbage collector as usual.
 {Note: need to check how to implement this with Apple's Modern Objective-C
 runtime.}
 
-#### Null Objects {unimplemented}
+#### Null Objects (unimplemented)
 
 Because of the way the Objective-C runtime handle dynamic dispatch, calling a
 function on a `null` Objective-C object does nothing and return a zero value if
@@ -568,7 +571,7 @@ Objective-C is unaware of them.
 
 `extern(Objective-C)` global functions use the same ABI as C functions.
 
-#### Inner Classes {unimplemented}
+#### Inner Classes (unimplemented)
 
 Objective-C classes defined in D can contain inner classes. You can also derive
 an inner class from an Objective-C object.
@@ -602,7 +605,7 @@ take its address and simply assign it to a selector variable:
     void __selector(NSView view) sel = &NSView.addSubview;
 ```
 
-### Blocks {unimplemented}
+### Blocks (unimplemented)
 
 While not strictly speaking part of Objective-C, Apple's block extension for C
 and Objective-C is now used at many places through the Mac OS X Objective-C
