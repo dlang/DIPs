@@ -14,8 +14,6 @@ void main ( string[] args )
 
     import std.format;
 
-    string urlBase = format("https://github.com/dlang/DIPs/tree/master/%s", dipFolder);
-
     import std.path, std.file, std.utf;
 
     DIPMetadata[] DIPs;
@@ -24,7 +22,7 @@ void main ( string[] args )
     {
         auto contents = cast(string) read(entry.name);
         validate(contents);
-        DIPs ~= DIPMetadata.fromAA(parseFirstMdTable(contents), urlBase);
+        DIPs ~= DIPMetadata.fromAA(parseFirstMdTable(contents));
     }
 
     import std.algorithm : sort;
@@ -115,7 +113,7 @@ void writeSummary ( DIPMetadata[] DIPs, string fileName )
 
     foreach (dip; DIPs)
     {
-        updateMax(widths.id, format("[%s](%s)", dip.id, dip.url));
+        updateMax(widths.id, format("[%s](./DIP%1$s.md)", dip.id));
         updateMax(widths.title, dip.title);
         updateMax(widths.status, to!string(dip.status));
     }
@@ -137,6 +135,6 @@ void writeSummary ( DIPMetadata[] DIPs, string fileName )
     );
 
     foreach (dip; DIPs)
-        output.writefln(lineFormat, format("[%s](%s)", dip.id, dip.url),
+        output.writefln(lineFormat, format("[%1$s](./DIP%1$s.md)", dip.id),
             dip.title, dip.status);
 }
