@@ -8,3 +8,4 @@
 |[56](./DIP56.md)|                                       Provide pragma to control function inlining|Implemented|
 |[60](./DIP60.md)|                                                      Add @nogc Function Attribute|Implemented|
 |[61](./DIP61.md)|Add namespace scopes to support referencing external C++ symbols in C++ namespaces|Implemented|
+|[75](./DIP75.md)|                                                                   Release Process|Implemented|
