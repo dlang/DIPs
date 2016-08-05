@@ -28,7 +28,7 @@ community.
    provide feedback about what information needs to be added for the DIP to reach
    the required quality for further consideration.
 
-   The DIP document must be named "DIP<id>.md". The exact DIP ID used at pull
+   The DIP document must be named "DIP\<id\>.md". The exact DIP ID used at pull
    request stage is not important because during merging the DIP manager will
    replace it with the next currently available ID among the merged proposals,
    which will become the "real" ID for the DIP in future.
