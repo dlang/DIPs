@@ -18,7 +18,7 @@ void main ( string[] args )
 
     DIPMetadata[] DIPs;
 
-    foreach (entry; dirEntries(dipFolder, "DIP*.md", SpanMode.breadth))
+    foreach (entry; dirEntries(dipFolder, "DIP*.md", SpanMode.shallow))
     {
         auto contents = cast(string) read(entry.name);
         validate(contents);
