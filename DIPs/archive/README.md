@@ -2,6 +2,7 @@
 |----------------|----------------------------------------------------------------------------------|-----------|
 |[43](./DIP43.md)|                                                                     D/Objective-C|   Approved|
 |[20](./DIP20.md)|                                                    Volatile read/write intrinsics|Implemented|
+|[22](./DIP22.md)|                                                     Private symbol (in)visibility|Implemented|
 |[25](./DIP25.md)|                                                                 Sealed references|Implemented|
 |[37](./DIP37.md)|                                        Importing Packages as if They Were Modules|Implemented|
 |[42](./DIP42.md)|                            Add enum E(T) = expression; eponymous template support|Implemented|
