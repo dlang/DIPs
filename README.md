@@ -62,6 +62,11 @@ community.
    authors decide it needs more research, a new topic on the
    [Dlang-study](http://lists.puremagic.com/cgi-bin/mailman/listinfo/dlang-study)
    mailing list may be initiated.
+4. Distinction between `Approved` and `Pending Implementation` status is that
+   for former just the concept itself got approval while the latter means DIP
+   document can act as a final specification for implementing it upstream.
+   Usually DIP that is only `Approved` will have remarks regarding what needs
+   to be cleaned up in spec before it can be finalized.
 
 ### Collaborating on DIPs
 
