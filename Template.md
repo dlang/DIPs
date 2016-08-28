@@ -18,7 +18,9 @@ other supplementary materials.
 
 ## Description
 
-Detailed technical description of new semantics / changes.
+Detailed technical description of the new semantics.
+Language grammar changes (per https://dlang.org/spec/grammar.html)
+needed to support the new syntax (or change) must be mentioned.
 
 ### Rationale
 
