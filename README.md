@@ -46,6 +46,15 @@ community.
    earlier than one month after the newsgroup announcement to ensure everyone has a
    chance to comment on it.
 
+### Migrating an old DIP
+
+Many [DIPs][old-repo] were created before this repo existed.
+If you are interested in adopting such a drafted DIP, [`dwikiquery`][dwikiquery]
+can help with the conversion from the [DWiki][old-dips].
+
+[dwikiquery]: https://github.com/dlang/DIPs/tree/master/tools/dwikiquery
+[old-dips]: https://wiki.dlang.org/DIPs
+
 ### Getting a DIP approved
 
 1. Once every few months the DIP manager has to pick one DIP from those
