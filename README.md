@@ -99,24 +99,32 @@ hard work - it is often underestimated how much effort is required.
    changes need to justify their existence with great value. Doubt about the
    necessity or value of a change will be a strong motivator for rejection.
 
-2. Be very pedantic and formal in describing any required language/compiler
-   changes. For example, make separate sections for grammar changes, semantic
-   changes, expected compiler error messages and so on. A DIP should provide
-   a detailed design documentation for a compiler developer to implement it.
-
-3. Research any alternative approaches to solving the same problem and explain
-   your choice. If there are any relevant success or failure stories in
-   other programming languages, consider referring to them with explanation
-   of how they might apply to D.
-
-4. Showing example of real-world project that could benefit from an
+2. Showing example of real-world project that could benefit from an
    improvement can greatly improve its chances of being accepted. D is intended
    to be a practical language and a recurring questions when new
    changes are considered is "does it really make real projects better?". If
    that is not possible, try designing code examples with intention to answer
    the very same question.
 
-5. Be prepared for a lot of work. There are always many ideas proposed but
+3. The motivation section should showcase examples that currently are not
+   possible or are contorted in D, followed by their alternative implementation
+   using the proposed feature. At best, the example would be taken from existing
+   code (e.g. found in dub, phobos, etc). Next best is code that defines a
+   plausible artifact.   
+
+4. Be very pedantic and formal in describing any required language/compiler
+   changes. For example, make separate sections for grammar changes, semantic
+   changes, expected compiler error messages and so on. A DIP should provide
+   a detailed design documentation for a compiler developer to implement it.
+
+5. Stick to formal and technical language in general, avoid colloquialisms.  
+
+6. Research any alternative approaches to solving the same problem and explain
+   your choice. If there are any relevant success or failure stories in
+   other programming languages, consider referring to them with explanation
+   of how they might apply to D.
+
+7. Be prepared for a lot of work. There are always many ideas proposed but
    many fewer developers commited to pursuing the idea to the final stages of
    evaluation. The DIP system is _not_ for submitting undeveloped ideas, it is
    a process for formal approval of language changes.
