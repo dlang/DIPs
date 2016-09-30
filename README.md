@@ -99,9 +99,9 @@ hard work - it is often underestimated how much effort is required.
    changes need to justify their existence with great value. Doubt about the
    necessity or value of a change will be a strong motivator for rejection.
 
-2. Showing example of real-world project that could benefit from an
+2. Showing example of real-world projects that could benefit from an
    improvement can greatly improve its chances of being accepted. D is intended
-   to be a practical language and a recurring questions when new
+   to be a practical language and a recurring question when new
    changes are considered is "does it really make real projects better?". If
    that is not possible, try designing code examples with intention to answer
    the very same question.
@@ -117,7 +117,8 @@ hard work - it is often underestimated how much effort is required.
    changes, expected compiler error messages and so on. A DIP should provide
    a detailed design documentation for a compiler developer to implement it.
 
-5. Stick to formal and technical language in general, avoid colloquialisms.  
+5. Stick to formal and technical language in general, avoid colloquialisms. A
+   DIP should be formulated like a scientific paper, as opposed to an op-ed article
 
 6. Research any alternative approaches to solving the same problem and explain
    your choice. If there are any relevant success or failure stories in
