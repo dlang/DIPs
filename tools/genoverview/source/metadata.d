@@ -6,6 +6,7 @@ struct Status
     {
         Rejected,
         Draft,
+        InformationRequested,
         Approved,
         PendingImplementation,
         Implemented
@@ -20,6 +21,8 @@ struct Status
 
         if (value == Status.PendingImplementation)
             return "Pending Implementation";
+        else if (value == Status.InformationRequested)
+            return "Information Requested";
         else
             return std.conv.to!string(value);
     }
@@ -30,6 +33,8 @@ struct Status
 
         if (status == "Pending Implementation")
             return Status.PendingImplementation;
+        else if (status == "Information Requested")
+            return Status.InformationRequested;
         else
             return std.conv.to!StatusEnum(status);
     }
