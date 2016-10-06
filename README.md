@@ -42,9 +42,9 @@ community.
 
 3. Once a proposal includes all necessary details and the DIP manager considers it
    to be ready for evaluation by the language authors, the pull request gets merged
-   with the DIP status being `Draft`. A DIP pull request should not be merged
-   earlier than one month after the newsgroup announcement to ensure everyone has a
-   chance to comment on it.
+   with the DIP status being `Draft`. A DIP pull request should not be scheduled for
+   formal review earlier than one month after the newsgroup announcement to ensure
+   everyone has a chance to comment on it.
 
 ### Migrating an old DIP
 
