@@ -67,8 +67,9 @@ can help with the conversion from the [DWiki][old-dips].
    to the mailing list the outcome of the review along with a small summary.
 3. Review should result in the DIP either being moved to `Approved` status or
    modified with a list of issues that need to be worked on before a final
-   decision can be made. In case the DIP topic seems important but language
-   authors decide it needs more research, a new topic on the
+   decision can be made. In the latter case such DIP may be marked with
+   "Information Requested" status for ease of sorting. In case the DIP topic
+   seems important but language authors decide it needs more research, a new topic on the
    [Dlang-study](http://lists.puremagic.com/cgi-bin/mailman/listinfo/dlang-study)
    mailing list may be initiated.
 4. Distinction between `Approved` and `Pending Implementation` status is that
@@ -76,6 +77,9 @@ can help with the conversion from the [DWiki][old-dips].
    document can act as a final specification for implementing it upstream.
    Usually DIP that is only `Approved` will have remarks regarding what needs
    to be cleaned up in spec before it can be finalized.
+5. If DIP was rejected during the formal review, it can't be ressurrected
+   again. New DIP on similar topic may be submitted but it must be feature
+   different solution.
 
 ### Collaborating on DIPs
 
