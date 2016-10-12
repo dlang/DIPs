@@ -97,7 +97,7 @@ can help with the conversion from the [DWiki][old-dips].
 ## Advice for writing great DIPs
 
 There is a dedicated
-[document](https://github.com/dlang/DIPs/blob/master/DIPs/GUIDELINES.md) with
+[document](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md) with
 explanations of expected DIP content and overall writing advices. Ignoring it
 makes chance of DIP approval very low.
 
