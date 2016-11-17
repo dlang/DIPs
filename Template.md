@@ -50,7 +50,7 @@ Copyright (c) 2016 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
-### Reviews
+## Review
 
 Will contain comments / requests from language authors once review is complete,
 filled out by the DIP manager - can be both inline and linking to external
