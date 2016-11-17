@@ -4,12 +4,12 @@ struct Status
 {
     enum StatusEnum
     {
-        Rejected,
-        Draft,
-        InformationRequested,
         Approved,
         PendingImplementation,
-        Implemented
+        InformationRequested,
+        Draft,
+        Implemented,
+        Rejected,
     }
 
     StatusEnum value;
