@@ -81,6 +81,22 @@ can help with the conversion from the [DWiki][old-dips].
    again. New DIP on similar topic may be submitted but it must be feature
    different solution.
 
+#### Review Candidate Number (RC#)
+
+Each DIP document starts with RC# 0 when it is merged into the queue. The number
+is changed to `1` after preliminary NG discussion, indicating that it is ready
+for review.
+
+If more information/changes were requested, the RC number will be increased
+again once DIP document aggregates enough changes to become ready for another
+review round. Purpose of this number is to be able to easily tell amount
+of major revisions reviewed (while git history tracks each individual change).
+
+Next to actual number RC# field must also mention git commit hash that matches
+the document version that was "tagged" to that number. Using actual git tags
+for this purpose was considered but is likely to result in too much noise as
+DIP count grows.
+
 ### Collaborating on DIPs
 
 1. Anyone can submit new pull requests with updates to merged DIP document as

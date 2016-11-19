@@ -3,6 +3,7 @@
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id)                                                     |
+| RC#             | 0
 | Author:         | (your name and contact data)                                    |
 | Implementation: | (links to implementation PR if any)                             |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
