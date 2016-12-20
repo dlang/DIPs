@@ -19,7 +19,7 @@ improvement proposals should:
    by D compiler developers.
 
 Be prepared for a lot of work. There are always many ideas proposed but
-far fewer developers commited to pursuing the idea to the final stages of
+far fewer developers committed to pursuing the idea to the final stages of
 evaluation. The DIP system is _not_ for submitting undeveloped ideas, it is
 a process for formal approval of language changes.
 
@@ -52,7 +52,7 @@ concept.
 The motivation section should showcase examples that currently are not
 possible or are contorted in D, followed by their alternative implementation
 using the proposed feature. At best, the example would be taken from existing
-code (e.g. found in dub, phobos, etc). Next best is code that defines a
+code (e.g. found in dub, Phobos, etc). Next best is code that defines a
 plausible artifact.
 
 Keep in mind that without such examples to back it, any reasoning in favor of
@@ -67,7 +67,7 @@ improvement in a most obvious way.
 
 ## Technical details
 
-Anyone attemtping to propose a language change is expected to be sufficiently
+Anyone attempting to propose a language change is expected to be sufficiently
 knowledgeable in existing semantics that are affected by the proposal, as
 well as compiler technology, to provide formal explanation of required changes.
 
