@@ -34,6 +34,10 @@ ones.
 This document proposes possible new language semantics to enable solving the
 problem for those who find it important.
 
+### Links
+
+* https://dlang.org/spec/function.html#overload-sets
+
 ## Description
 
 ### Problem 1: import clash
@@ -156,17 +160,67 @@ libraries but language currently lack a way to express such semantics.
 
 ### Proposal
 
-Introduce new symbol kind concept into compiler, *future symbol*. This term does
-not refer to any language syntax and is intended to represent new concept in
-compiler internals. It has to have special treatment during semantic analysis:
+Introduce new symbol kind concept into compiler, *future symbol*. In terms of
+DMD compiler internals it can be defined simply as additional boolean field
+of `DSymbol` indicating if symbol is *future* or not.
 
-1. If any symbol resolution ends up in *future symbol* being present among
-   valid candidates, deprecation message has to be printed and symbol
-   resolution continues after that as if it didn't exist.
-2. Any form of static reflection, for example `__traits(allMembers)`, has to
-   ignore any *future symbol* completely.
-3. Detecting both *future symbol* and normal symbol with the same name at the
-   same time must result in compilation error.
+To make examples more readable, imaginary `@future` attribute will be used to
+mark such symbols. However introducing such attribute (or any other) is NOT
+part of the proposal and serves only illustration purpose.
+
+Symbol marked as *future* has to have special treatment during semantic analysis:
+
+1. Whenever compiler has to do a symbol lookup, if has to check if *future
+   symbol* is present in the result. If present, deprecation message has to be
+   printed and everything else should continue as if it wasn't present.
+
+   ```D
+   import moda; // provides foo
+   import modb; // provides @future foo
+
+   foo(); // Deprecation: upcoming adddition of modb.foo will result in a symbol
+          // clash, please disambugate
+   ```
+
+2. Whenevr compiler hasto check for presence of a symbol, if there is a match
+   which is *future symbol*, deprecation message has to be printed and
+   everything else should continue as it wasn't present.
+
+   ```D
+   class A
+   {
+       void foo() @future;
+   }
+
+   class B
+   {
+       void foo(); // Deprecation: upcoming addition of A.foo will result in a
+                   // symbol clash, please adjust
+   }
+   ```
+
+3. References to *future symbol* within the module it is declared in should not
+   result in any deprecation messages because the module can be adjusted in the
+   same time symbol is actually added.
+
+   ```D
+   void foo (long a);
+   void foo (int a) @future;
+
+   foo(42); // No point in printing deprecation here as it will keep compiling
+            // even when @future is removed
+   ```
+
+4. Any form of static reflection that provides sequence of results, for example
+   `__traits(allMembers)` or `.tupleof`, has to ignore any *future symbol*
+   completely. Such code does not normally rely on presence of any specific
+   symbol and thus addition of new one is unlikely to cause problems. On the
+   other hand, issuing deprecation in such context will result in a warning that
+   cannot be addressed by adjusting the code.
+
+5. Any form of static reflection that implies access to specific named symbol,
+   for example, `__traits(getMember)`, should still print the deprecation
+   message.
 
 As first implementation step this functionality should only be available as a
 hard list of symbols built into compiler itself and reserved for druntime
@@ -175,7 +229,7 @@ for detailed reasoning.
 
 Once concept proves itself with druntime, it should be proposed as an actual
 language feature for mass usage - by either updating this DIP or proposing new
-one.
+one. For example, one can simply expose it with new attribute, `@future`.
 
 ### Rationale
 
