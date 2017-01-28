@@ -225,6 +225,12 @@ hard list of symbols built into compiler itself and reserved for druntime
 usage. See [breaking changes section](#breaking-changes--deprecation-process)
 for a detailed rationale.
 
+It may also be advised to start with implementation only addressing two specific
+problems described in this DIP and discussing generalization later before
+turning it into the language feature. It is possible that those two cases cover
+vast majority of problems and fixing only them will simplify implementation a
+lot.
+
 Once the concept is proved with druntime, it should be proposed as an actual
 language feature - by either updating this DIP or proposing new
 one. For example, one can simply expose it with a new attribute called `@future`.
