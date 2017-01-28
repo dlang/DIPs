@@ -5,6 +5,7 @@
 | DIP:            | NNNN                                                            |
 | RC#             | 0                                                               |
 | Author:         | Mihails Strasuns (public@dicebot.lv)                            |
+| Implementation: | https://github.com/dlang/dmd/pull/6494                          |
 | Status:         | Draft                                                           |
 
 * [Abstract](#abstract)
