@@ -190,7 +190,7 @@ Symbols marked as *future* must have special treatment during semantic analysis:
        void foo() @future;
    }
 
-   class B
+   class B : A
    {
        void foo(); // Deprecation: upcoming addition of A.foo will result in a
                    // symbol clash, please adjust
