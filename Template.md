@@ -47,7 +47,7 @@ trying to reason about its abstract description.
 
 ## Copyright & License
 
-Copyright (c) 2016 by the D Language Foundation
+Copyright (c) 2017 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
