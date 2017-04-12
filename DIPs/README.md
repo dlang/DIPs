@@ -1,5 +1,6 @@
 |                  ID|                           Title|  Status|
 |--------------------|--------------------------------|--------|
+|[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|Preliminary Round 1|
 |[1000](./DIP1000.md)|                 Scoped Pointers|Draft|
 |[1003](./DIP1003.md)|      Remove `body` as a Keyword|Draft|
 |[1004](./DIP1004.md)|          Inherited Constructors|Draft|
