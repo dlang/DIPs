@@ -8,7 +8,7 @@
 
 This repository stores and manages improvement proposals for the D programming
 language. Common examples include a change to existing language semantics,
-the addition of a new major features to the compiler or enforcement of new process as a
+the addition of a new major feature to the compiler, or enforcement of a new process as a
 standard. In general, any controversial change must be managed as a DIP and
 thus requires approval by the language authors and feedback from the D
 community.
@@ -24,27 +24,37 @@ community.
    doesn't describe a migration path to mitigate breakage.
 
 2. Create a new pull request against this repository by adding a new document to
-   the `DIPs` folder, using any spare ID (>= 1000). The DIP manager will
-   provide feedback about what information needs to be added for the DIP to reach
-   the required quality for further consideration.
+   the `DIPs` folder. The DIP manager will provide feedback about what information
+   needs to be added for the DIP to reach the required quality for further
+   consideration. Other reviewers will be free to make suggestions on how to
+   improve the DIP in preparation for the preliminary review.
 
-   The DIP document must be named "DIP\<id\>.md". The exact DIP ID used at pull
-   request stage is not important because during merging the DIP manager will
-   replace it with the next currently available ID among the merged proposals,
-   which will become the "real" ID for the DIP in future.
+   The DIP document must be named "DIP1xxx-(Author Initials).md". The "xxx"
+   is a placeholder for a future ID that will be assigned by the DIP manager if and
+   when the PR is merged into the repository.
 
    The pull request title should match the DIP title.
 
-3. After any initial feedback has been addressed, the DIP manager will announce the new DIP
-   in the official [D newsgroup](http://forum.dlang.org/group/announce) for community feedback.
-   This will help evaluate stronger and weaker points of the proposal before it gets to
-   the language author's attention.
+3. After any initial feedback has been addressed, the DIP manager will merge the PR
+   and announce the new DIP in the official [D newsgroup](http://forum.dlang.org/group/announce)
+   for the first round of preliminary review. This will be a period of two weeks
+   during which the community can provide feedback on the DIP. The DIP author has full
+   discretion on whether to apply any suggestions and criticisms, but should be prepared
+   to respond to any and all feedback in the review thread. When the author chooses not
+   to apply a suggested change or addition, a justification should be provided. This is
+   intended to encourage discussion and ensure that no contributor's feedback is ignored.
+
+   At the end of the first round of preliminary reviews, the DIP manager will determine if
+   the DIP is ready to proceed to the formal review. If not, the author will be asked for
+   updates to the DIP and another preliminary review round will be scheduled once the
+   changes have been submitted.
 
 3. Once a proposal includes all necessary details and the DIP manager considers it
-   to be ready for evaluation by the language authors, the pull request gets merged
-   with the DIP status being `Draft`. A DIP pull request should not be scheduled for
-   formal review earlier than one month after the newsgroup announcement to ensure
-   everyone has a chance to comment on it.
+   to be ready for evaluation by the language authors, the pull request will be updated
+   with the status of `Draft`. At an unspecified later date, the DIP manager will
+   announce formal review in the forums, scheduled for two weeks from the date of the announcement,
+   to allow the opportunity for any last minute feedback. At the end
+   of the two weeks, the DIP will be submitted to the language authors for evaluation.
 
 ### Migrating an old DIP
 
@@ -67,35 +77,29 @@ can help with the conversion from the [DWiki][old-dips].
    to the mailing list the outcome of the review along with a small summary.
 3. Review should result in the DIP either being moved to `Approved` status or
    modified with a list of issues that need to be worked on before a final
-   decision can be made. In the latter case such DIP may be marked with
+   decision can be made. In the latter case such a DIP may be marked with
    "Information Requested" status for ease of sorting. In case the DIP topic
-   seems important but language authors decide it needs more research, a new topic on the
+   seems important, but the language authors decide it needs more research, a new topic on the
    [Dlang-study](http://lists.puremagic.com/cgi-bin/mailman/listinfo/dlang-study)
    mailing list may be initiated.
 4. Distinction between `Approved` and `Pending Implementation` status is that
-   for former just the concept itself got approval while the latter means DIP
+   for the former, only the concept itself got approval, while the latter means the DIP
    document can act as a final specification for implementing it upstream.
-   Usually DIP that is only `Approved` will have remarks regarding what needs
-   to be cleaned up in spec before it can be finalized.
-5. If DIP was rejected during the formal review, it can't be ressurrected
-   again. New DIP on similar topic may be submitted but it must be feature
-   different solution.
+   Usually. a DIP that is only `Approved` will have remarks regarding what needs
+   to be cleaned up in the spec before it can be finalized.
+5. If a DIP is rejected during the formal review, it can't be ressurrected
+   again. A new DIP on a similar topic may be submitted, but it must be distinct
+   from the original DIP.
 
 #### Review Candidate Number (RC#)
 
 Each DIP document starts with RC# 0 when it is merged into the queue. The number
-is changed to `1` after preliminary NG discussion, indicating that it is ready
-for review.
+is changed to `1` after the first preliminary review round. The number will be
+incremented after each preliminary review round is completed.
 
-If more information/changes were requested, the RC number will be increased
-again once DIP document aggregates enough changes to become ready for another
-review round. Purpose of this number is to be able to easily tell amount
-of major revisions reviewed (while git history tracks each individual change).
-
-Next to actual number RC# field must also mention git commit hash that matches
-the document version that was "tagged" to that number. Using actual git tags
-for this purpose was considered but is likely to result in too much noise as
-DIP count grows.
+Next to the `RC#` field will be a link to the git commit hash that matches the document version
+that was "tagged" to that number. Using actual git tags for this purpose was considered,
+but that is likely to result in too much noise as the DIP count grows.
 
 ### Collaborating on DIPs
 
@@ -103,9 +107,9 @@ DIP count grows.
    long as the original author is notified.
 
 2. Discussion regarding the DIP's content is welcome in pull requests - everyone
-   is welcome to participate in the review.
+   is welcome to participate in the pull request review.
 
-3. If there are many uncertainties about the proposal, consider first publishing
+3. If there are many uncertainties about the proposal, consider first publishing the
    document somewhere else and discussing it via the [NG](http://forum.dlang.org/group/general)
    or e-mails. That will greatly reduce the number of back-and-forth changes in the
    DIP pull request later.
@@ -114,8 +118,8 @@ DIP count grows.
 
 There is a dedicated
 [document](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md) with
-explanations of expected DIP content and overall writing advices. Ignoring it
-makes chance of DIP approval very low.
+explanations of expected DIP content and overall writing advice. Ignoring it
+reduce the chance of approval.
 
 ## DIPs by the D language authors
 
@@ -125,7 +129,7 @@ Hence they are processed slightly different and an
 increased focus is put into bringing community attention and feedback.
 
 At the time of writing this document only Walter Bright and Andrei Alexandrescu
-are meant as a language authors here.
+are meant as language authors here.
 
 ## The DIP manager responsibilities
 
