@@ -342,7 +342,8 @@ is a trivial task unlikely to cause subsequent bugs.
 Alternatively, if that proves to be simpler to implement, it can be added as an
 attribute with reserved double-underscore prefix (i.e. `@__future`) with
 compiler checks that it is not used outside of `core.*`/`std.*`/`object`
-modules.
+modules. If that course of action is chosen, such attribute should be defined
+in `core.attribute` module of druntime.
 
 ### Examples
 
