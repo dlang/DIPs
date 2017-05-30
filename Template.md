@@ -17,18 +17,18 @@ Short and concise description of the idea in a few lines.
 Optional sections containing links to existing discussions, research papers or any
 other supplementary materials.
 
-## Description
-
-Detailed technical description of the new semantics.
-Language grammar changes (per https://dlang.org/spec/grammar.html)
-needed to support the new syntax (or change) must be mentioned.
-
-### Rationale
+## Rationale
 
 State a short motivation about the importance and benefits of the proposed
 change.  An existing, well-known issue or a use case for an existing projects
 can greatly increase the chances of the DIP being understood and carefully
 evaluated.
+
+## Description
+
+Detailed technical description of the new semantics.
+Language grammar changes (per https://dlang.org/spec/grammar.html)
+needed to support the new syntax (or change) must be mentioned.
 
 ### Breaking changes / deprecation process
 
