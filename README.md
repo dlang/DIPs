@@ -140,3 +140,12 @@ this repository and communicating to involved parties so that the process keeps
 moving forward. Essentially the DIP manager is supposed to act as a proxy between
 D users and the language authors to help handling the growing scale of DIP
 information reliably and effectively.
+
+## Migrating an old DIP
+
+Many [DIPs][old-repo] were created before this repo existed.
+If you are interested in adopting such a drafted DIP, [`dwikiquery`][dwikiquery]
+can help with the conversion from the [DWiki][old-dips].
+
+[dwikiquery]: https://github.com/dlang/DIPs/tree/master/tools/dwikiquery
+[old-dips]: https://wiki.dlang.org/DIPs
