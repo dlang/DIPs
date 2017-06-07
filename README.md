@@ -58,7 +58,7 @@ community.
 
 ### Migrating an old DIP
 
-Many [DIPs][old-repo] were created before this repo existed.
+Many [DIPs][old-dips] were created before this repo existed.
 If you are interested in adopting such a drafted DIP, [`dwikiquery`][dwikiquery]
 can help with the conversion from the [DWiki][old-dips].
 
