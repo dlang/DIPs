@@ -1,95 +1,46 @@
 # DIP writing guidelines
 
-## Expected content
+Writing a solid and informative DIP is very hard work - it is often underestimated how much effort is required. And even with a high investment of time and effort, there are no guarantees that the proposal will ultimately be approved. The recommendations in this document, and they are just recommendations, will increase the odds of approval.
 
-Writing a good informative DIP with solid chances to get approved is very
-hard work - it is often underestimated how much effort is required. Good
-improvement proposals should:
+## General Advice
 
-1. Motivate, explain and demonstrate the value gained from implementing
-   the change. Alternative solutions must be considered and compared.
-2. Use real-world examples, either taken from existing projects, or looking
-   like ones.
-3. Consider possible objections against the proposal and research them
-   as part of DIP document.
-4. Stick to formal and technical language in general, avoid colloquialisms. A
-   DIP should be formulated like a scientific paper, as opposed to an op-ed
-   article.
-5. Provide sufficient technical details that can be used as a specification
-   by D compiler developers.
+The first step on the long road to final judgement is getting past the gatekeeper (the DIP manager) and into the DIP repository. The specifics required to get there are largely dependent on the nature of the proposal. However, there are a few general guidelines that, if followed, improve make for a more solid proposal and improve its odds of getting out of the pull request queue.
 
-Be prepared for a lot of work. There are always many ideas proposed but
-far fewer developers committed to pursuing the idea to the final stages of
-evaluation. The DIP system is _not_ for submitting undeveloped ideas, it is
-a process for formal approval of language changes.
+1. Motivate, explain and demonstrate the value gained from implementing the proposed feature. Alternative solutions should be considered and compared.
+2. Use real-world examples, taken from specific projects where possible.
+3. Consider potential objections against the proposal, research them, and address them in a dedicated section of the proposal.
+4. Stick to formal and technical language in general, avoid colloquialisms. A DIP should be formulated like a scientific or academic paper, as opposed to an op-ed article.
+5. Provide sufficient technical details that can be used as a specification by D compiler developers.
+6. Above all, remember that, as the DIP author, you are selling the idea to the language authors. Your goal is to convince them that the language will benefit from the proposed feature and give them enough detail to evaluate that claim.
 
-The remainder of this document provides more detailed explanation of requirements.
+Be prepared for a lot of work. There are inumberable ideas bandied about in the community forums, but far fewer developers who are committed to pursuing an idea to the final stages of evaluation. Many are unwilling to make the effort without a guarantee of acceptance. If such gurantees could be made, there would be no need for the DIP process.
 
-## Motivation
+The purpose of the process is to provide a coherent, formalized proposal for the language authors to evaluate. It is not impossible that a feature which they are inclined to reject may be approved in the end as the result of a convincing proposal. In short, DIP authors should start with the expectation that rejection is the default outcome and, instead of being discouraged, use that as motivation to craft the best DIP possible.
 
-Any DIP must focus on "why" at least as much as "what" and often even more.
-At this stage of the D language development changes need to justify their
-existence with great value. Doubt about the necessity or value of a
-change will be a strong motivator for rejection.
+## Proper Motivation
 
-It is important to research any alternative approaches to solving the same
-problem and explain why the proposed choice is superior. If there are any
-relevant success or failure stories in other programming languages,
-consider referring to them with explanation of how they might apply to D.
+Any DIP must focus on "why" at least as much as "what". Changes must be justified. Doubt about the necessity or value of a change will be a strong motivator for rejection.
 
-Redundancy of existing features should not be used as precedent and
-justification for adding another redundant feature. In a similar way, an
-existing language flaw cannot be used as an excuse for adding more
-functionality with a similar flaw.
+It is vital to research any alternative approaches to solving the same problem and explain why the proposed choice is superior. If there are any relevant stories of success or failure in other programming languages, consider referring to them with an explanation of how they might apply to D.
 
-It is important to evaluate costs of adding something the language. Something
-that uses existing syntax and builds upon established semantics is considered
-of much less weight than a proposal requiring completely new syntax or
-concept.
+Redundancy of existing features should not be used as precedent and/or justification for adding another redundant feature. Similarly, an existing language flaw should not be used as an excuse for adding new, similarly flawed, functionality.
 
-## Examples
+It is important to evaluate the costs of adding, changing, or removing language features. Something that uses existing syntax and builds upon established semantics is considered of much less expensive than a proposal requiring a completely concept or new. More expensive proposals should add greater benefit.
 
-The motivation section should showcase examples that currently are not
-possible or are contorted in D, followed by their alternative implementation
-using the proposed feature. At best, the example would be taken from existing
-code (e.g. found in dub, Phobos, etc). Next best is code that defines a
-plausible artifact.
+Avoid speculation. For example, unless you are an expert on human behavior, claims that a feature will increase the language's popularity or adoption rate are meaningless. Testimony based on personal experience, or that of others, is acceptable as long as it is backed up with data or a solid reasoning.
 
-Keep in mind that without such examples to back it, any reasoning in favor of
-proposed feature may be completely discarded. This is also why examples from
-existing code are preferred - D is a practical language and even a theoretically
-sound proposal is not important enough if it doesn't offer any substantial
-improvements to code that actually gets written.
+## Demonstrative Examples
 
-When possible, provide same example snippet implemented with both the current
-definition of the D language and using proposed functionality to show the
-improvement in a most obvious way.
+The motivation section should showcase examples that currently are not possible or are complex or verbose in D, followed by an implementation demonstrating the expected usage of the proposed feature. At best, the example would be taken from existing code (e.g. found in DUB, Phobos, etc).
+
+Keep in mind that without such examples to back it up, any reasoning in favor of a proposed feature may be completely disregarded. This is also why examples from existing code are preferred. D is a practical language and even a theoretically sound proposal is not important enough if it doesn't offer any substantial improvements to code that actually gets written.
 
 ## Technical details
 
-Anyone attempting to propose a language change is expected to be sufficiently
-knowledgeable in existing semantics that are affected by the proposal, as
-well as compiler technology, to provide formal explanation of required changes.
+Anyone proposing a language change is expected to understand how existing language features will be affected by the proposal and how the change can be implemented at a level sufficent for crafting a formal proposal. Anyone not fully cognizant of these details should either research them or enlist the aid of someone who is before submitting the proposal.
 
-That doesn't mean that a DIP author has to submit actual compiler patches. But
-specification should be formal and detailed enough so that independent compiler
-authors can rely on it to implement the feature in compliant way - it must not
-leave any room for the interpretation.
+It is crucial for any proposed change to list all possible concerns regarding breakage of existing D code caused by the change. Even if the chance of breakage seems very low, it needs to be listed anyway. If code breakage is likely to affect at least a few existing projects, the proposal must include a description of the intended deprecation process.
 
-For example, any change that requires adjusting language grammar must include
-description of the change in the same format as [existing grammar
-spec](https://dlang.org/spec/grammar.html).
+Submitted proposals should cover as many of these details as possible, but no DIP author is expected to be a qualified expert on language design or compiler technology. Any obvious technical details the author may have overlooked are likely to be identified during the Draft Review. The author is expected to make a best effort to comprehend and effectively address Draft Review feedback before a DIP is accepted into the repository.
 
-## Breaking changes
-
-It is crucial for any proposed change to list all possible concerns regarding
-breakage of existing D code caused by the change. Even if chance of breakage
-seems very low, it needs to be listed anyway.
-
-If code breakage is likely to affect at least a few existing projects, the
-proposal must include description of intended deprecation process for solving
-the problem. No language
-no transitional step.
-
-DIP authors must not judge quality of existing project code and dismiss
-potential breakage issues based on such opinion.
+Ultimately, to move beyond the Draft Review, the specification should be formal and detailed enough so that independent compiler authors can rely on it to implement the feature in a compliant way. There must be no room for interpretation. For example, any change that requires adjusting the language grammar must include a description of the change in the same format as the [existing grammar spec](https://dlang.org/spec/grammar.html).
