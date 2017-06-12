@@ -26,6 +26,14 @@ DIP submission is open to one and all. Each submission should adhere to a few gu
 
 The document '[GUIDLINES.md](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md)' provides advice on how to write a proper DIP. Ignoring it reduces the chance of a DIP being accepted into the repository.
 
+#### Migrating an old DIP
+
+Many [DIPs][old-dips] were created before this repository existed. If you are interested in resurrecting one of them, then [`dwikiquery`][dwikiquery] can help with the conversion from the [DWiki][old-dips] to the new format.
+
+[dwikiquery]: https://github.com/dlang/DIPs/tree/master/tools/dwikiquery
+[old-dips]: https://wiki.dlang.org/DIPs
+
+
 ### Review Process
 
 The overarching goal of the entire review process is to ensure the language authors have all the information they need to properly evaluate a DIP once it is in their hands. Ideally, the language authors should be able to discuss and evaluate the merits of a DIP without the need to ask for further clarification from the DIP author.
