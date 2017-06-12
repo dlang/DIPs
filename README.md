@@ -1,142 +1,94 @@
 # D Improvement Proposals (DIPs)
 
+Questions about this document or the DIP process should be directed to the current DIP manager, Mike Parker (aldacron@gmail.com).
+
 [List of submitted DIPs](https://github.com/dlang/DIPs/blob/master/DIPs/README.md)
 
 [List of old DIPs approved before this repo existed](https://github.com/dlang/DIPs/blob/master/DIPs/archive/README.md)
 
 ## Purpose
 
-This repository stores and manages improvement proposals for the D programming
-language. Common examples include a change to existing language semantics,
-the addition of a new major feature to the compiler, or enforcement of a new process as a
-standard. In general, any controversial change must be managed as a DIP and
-thus requires approval by the language authors and feedback from the D
-community.
+This repository is for the storage and management of improvement proposals for the D programming language. A D Improvement Proposal (DIP) is a formal document that details a potential feature or enhancement to the language, or the official tooling, and the rationale behind it. 
+
+Each DIP is steered through a process of review by the DIP manager. Each stage of the process is intended to prepare the DIP for its ultimate evaluation by the language authors (Walter Bright and Andrei Alexandrescu). Each stage of the process, from DIP submission to the final evaluation, is described in the following section.
 
 ## Procedure
 
-### Submitting a new D Improvement proposal
+### DIP Submission
 
-1. Write a document for the new improvement proposal based on
-   [the template](https://github.com/dlang/DIPs/blob/master/Template.md).
-   All sections mentioned in the template are important - for example, a change
-   implying breaking changes has almost no chance to be accepted if it
-   doesn't describe a migration path to mitigate breakage.
+DIP submission is open to one and all. Each submission should adhere to a few guidelines intended to make the process reasonably efficient for the DIP manager and the language authors. There are two steps a DIP author must take to initiate the review process.
 
-2. Create a new pull request against this repository by adding a new document to
-   the `DIPs` folder. The DIP manager will provide feedback about what information
-   needs to be added for the DIP to reach the required quality for further
-   consideration. Other reviewers will be free to make suggestions on how to
-   improve the DIP in preparation for the preliminary review.
+1.  Write a document that outlines the proposal in the format specified by [the template](https://github.com/dlang/DIPs/blob/master/Template.md) provided in this repository. Not every section listed in the template may apply to a given DIP, but it is important that every applicable section is included. For example, a proposal implying breaking changes has almost no chance to be accepted if it fails to describe a migration path to mitigate breakage, but a proposal that carries no breaking changes can dispense with that section. The author may further subdivide the document as desired.
 
-   The DIP document must be named "DIP1xxx-(Author Initials).md". The "xxx"
-   is a placeholder for a future ID that will be assigned by the DIP manager if and
-   when the PR is merged into the repository.
+2.  Create a new pull request against this repository that adds a new document to the `DIPs` folder. The document must be named "DIP1xxx-(Author Initials).md". The "xxx" is a placeholder for a future ID that will be assigned by the DIP manager if and when the PR is merged into the repository. The pull request title should match the DIP title.
 
-   The pull request title should match the DIP title.
+#### Advice for writing great DIPs
 
-3. After any initial feedback has been addressed, the DIP manager will merge the PR
-   and announce the new DIP in the official [D newsgroup](http://forum.dlang.org/group/announce)
-   for the first round of preliminary review. This will be a period of two weeks
-   during which the community can provide feedback on the DIP. The DIP author has full
-   discretion on whether to apply any suggestions and criticisms, but should be prepared
-   to respond to any and all feedback in the review thread. When the author chooses not
-   to apply a suggested change or addition, a justification should be provided. This is
-   intended to encourage discussion and ensure that no contributor's feedback is ignored.
+The document '[GUIDLINES.md](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md)' provides advice on how to write a proper DIP. Ignoring it reduces the chance of a DIP being accepted into the repository.
 
-   At the end of the first round of preliminary reviews, the DIP manager will determine if
-   the DIP is ready to proceed to the formal review. If not, the author will be asked for
-   updates to the DIP and another preliminary review round will be scheduled once the
-   changes have been submitted.
+### Review Process
 
-3. Once a proposal includes all necessary details and the DIP manager considers it
-   to be ready for evaluation by the language authors, the pull request will be updated
-   with the status of `Draft`. At an unspecified later date, the DIP manager will
-   announce formal review in the forums, scheduled for two weeks from the date of the announcement,
-   to allow the opportunity for any last minute feedback. At the end
-   of the two weeks, the DIP will be submitted to the language authors for evaluation.
+The overarching goal of the entire review process is to ensure the language authors have all the information they need to properly evaluate a DIP once it is in their hands. Ideally, the language authors should be able to discuss and evaluate the merits of a DIP without the need to ask for further clarification from the DIP author.
 
-### Migrating an old DIP
+The first stage of the review process begins as soon as a DIP author opens a pull request submitting the DIP to this repository. Subsequent stages are opened and closed at the discretion of the DIP manager. The stages of the review process are as follows.
 
-Many [DIPs][old-repo] were created before this repo existed.
-If you are interested in adopting such a drafted DIP, [`dwikiquery`][dwikiquery]
-can help with the conversion from the [DWiki][old-dips].
+1.  **Draft Review** 
+    While a DIP is in the PR queue, it will be open to feedback from the community and the DIP manager. At this stage, the review is carried out in PR comments. Reviewers should aim to fill any obvious holes in the DIP and request more detail where it is warranted. This is not the place for debates or detailed discussions about the DIP or its merits. Comments should be restricted solely to improving the proposal's coverage. Editorial suggestions are also welcome. 
+    
+    The overarching goal of this stage is for the DIP to acheive a state that minimizes the number of review rounds in the next stage.
+    
+    There is no time limit on the Draft Review, no guarantees on the amount of time that may elapse between the submission of a DIP and its acceptance into the repository. Upon determining a DIP is not suitable for acceptance into the repository, the DIP manager is required to inform the author of the changes that must be made to make it acceptable. If the author does not apply the recommendations within a *reasonable* amount of time, the DIP manager may close the PR until the author, or someone else, decides to reopen it and work to move the DIP forward.
 
-[dwikiquery]: https://github.com/dlang/DIPs/tree/master/tools/dwikiquery
-[old-dips]: https://wiki.dlang.org/DIPs
+    At the end of this stage, the DIP will be pushed be merged into the repostitory and given the `Draft` status.
 
-### Getting a DIP approved
+2. **Preliminary Review**   
+   The overarching goal of the Preliminary Review is to prepare the DIP for the Formal Review. This stage may consist of multiple rounds. Multiple DIPs may be under preliminary review simultaneously.
 
-1. Once every few months the DIP manager has to pick one DIP from those
-   that currently have `Draft` status. Proposals with more detailed
-   descriptions and/or proof of concept implementations should have a higher
-   priority.
-2. The DIP is brought to the language authors for review. The DIP manager's
-   responsibility is to gather and provide information about the proposal
-   at their request. After each round of review the DIP manager must publish
-   to the mailing list the outcome of the review along with a small summary.
-3. Review should result in the DIP either being moved to `Approved` status or
-   modified with a list of issues that need to be worked on before a final
-   decision can be made. In the latter case such a DIP may be marked with
-   "Information Requested" status for ease of sorting. In case the DIP topic
-   seems important, but the language authors decide it needs more research, a new topic on the
-   [Dlang-study](http://lists.puremagic.com/cgi-bin/mailman/listinfo/dlang-study)
-   mailing list may be initiated.
-4. Distinction between `Approved` and `Pending Implementation` status is that
-   for the former, only the concept itself got approval, while the latter means the DIP
-   document can act as a final specification for implementing it upstream.
-   Usually. a DIP that is only `Approved` will have remarks regarding what needs
-   to be cleaned up in the spec before it can be finalized.
-5. If a DIP is rejected during the formal review, it can't be ressurrected
-   again. A new DIP on a similar topic may be submitted, but it must be distinct
-   from the original DIP.
+   To launch a Preliminary Review, the DIP manager will mark the DIP with the `Preliminary Review Round N` state (where `N` is the current Preliminary Review round), announce the review in the Announce forum, and open a discussion thread in the General forum. All review-related discussion should take place in this thread. Reviewers at this stage should do their best to look deeper into the proposal to discover any flaws that were not caught in the Draft Review. The DIP author is expected to address all primary criticisms (not every comment a criticism inspires) with comments in the thread.
 
-#### Review Candidate Number (RC#)
+   It is appropriate at this stage to debate the merits of the DIP, to suggest alternatives, and to discuss any aspect of the DIP that warrants discussion. However, it is desirable keep the thread focused on the DIP itself. Any peripheral discussions should be carried out in a separate thread.
 
-Each DIP document starts with RC# 0 when it is merged into the queue. The number
-is changed to `1` after the first preliminary review round. The number will be
-incremented after each preliminary review round is completed.
+   The period of review will last approximately 15 days, or until the DIP manager declares the review period to be complete, whichever comes first. Under special circumstances, the review period may be extended by the DIP manager. Comments added to the thread after the close of the review period may be ignored. 
+   
+   When the review period has ended, the DIP manager will change the state of the DIP to `Post-Preliminary N` and will work with the DIP author to update the DIP to incorporate feedback received, where appropriate. The DIP author is the final arbiter of what is and is not appropriate. If the modifications are extensive, the DIP manager may schedule another Preliminary Review round. In extreme cases, the DIP may be closed and a new version submitted as a new DIP.
 
-Next to the `RC#` field will be a link to the git commit hash that matches the document version
-that was "tagged" to that number. Using actual git tags for this purpose was considered,
-but that is likely to result in too much noise as the DIP count grows.
+   Once the DIP manager and the author are satisfied that the DIP is reasonably complete, the DIP manager will update the state of the DIP to `Pre-Formal`.
 
-### Collaborating on DIPs
+3. **Formal Review**
+    This is the stage where the DIP is presented to the language authors for evaluation and a final decision on its disposition. Only one DIP may be under Formal Review at a time. This stage consists of two steps.
 
-1. Anyone can submit new pull requests with updates to merged DIP document as
-   long as the original author is notified.
+    The Formal Review is initiated when the DIP manager changes the state of a DIP to `Formal Review`, announces the review in the Announce forum, and opens a discussion thread in the General forum. 
+    
+    The discussion thread is the first step. It is an opportunity for the community to provide any last minute feedback on the DIP. The feedback period will last for approximately 15 days. Participants should avoid debate on the merits of the DIP at in this thread, though it is acceptable to make their express their opinions known for the benefit of the language authors. The primary focus should be on finding flaws that were overlooked in the previous stages. 
+    
+    The DIP author is not required to address any feedback at this stage, nor is the author required to incorporate any feedback into the DIP at the end of the period. However, the DIP manager may decide to halt the Formal Review if any of the feedback is deemed critical enough (e.g. a serious issue is raised in how a proposed feature interacts with existing features) and take the appropriate actoin (such as asking the author to update the DIP or, in extreme cases, reverting to a new Preliminary Review round).
+    
+    At the end of the feedback period, the DIP will be closed to all furhter updates and the second step initiated. The DIP manager will submit the DIP to the language authors and await their decision. Once the decision is reached, the DIP will be marked `Accepted`, `Rejected`, or `Postponed`. The language authors may ask for the DIP to be revised or rewritten. In the latter case, the process will begin again from the Draft Review stage when the DIP author submits the rewritten version. The DIP manager will add a summary of the decision at the bottom of the document.
 
-2. Discussion regarding the DIP's content is welcome in pull requests - everyone
-   is welcome to participate in the pull request review.
+    When a DIP is `Accepted` by the language authors, the DIP manager will ask the DIP author to remove any aspects of the DIP that were rejected (e.g. if the DIP presents multiple options, only the accepted option will remain). This penultimate version of the DIP is intended represent the feature as it is to be implemented. The DIP manager will include a note about the rejected aspects in the summary at the bottom of the document.
 
-3. If there are many uncertainties about the proposal, consider first publishing the
-   document somewhere else and discussing it via the [NG](http://forum.dlang.org/group/general)
-   or e-mails. That will greatly reduce the number of back-and-forth changes in the
-   DIP pull request later.
+    A `Rejected` DIP cannot be resurrected. A DIP that is similar may be submitted, but must be clearly distinct from the rejected DIP. The DIP manager is the final arbiter and may refuse to merge such a DIP if the distinction is not clear.
 
-## Advice for writing great DIPs
+    A DIP marked `Postponed` will remain as such indefinitely. The language authors will determine when to revisit the DIP and render a final judgement.
 
-There is a dedicated
-[document](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md) with
-explanations of expected DIP content and overall writing advice. Ignoring it
-reduce the chance of approval.
+#### Exceptions to the Rules
 
-## DIPs by the D language authors
+Any DIP submitted by a language author is not subject to the second step of a Formal Review. However, the 15-day feedback period will still be opened in the General forum. The primary focus of every review period in this case should be more oriented to the merits of the propsed feature, rather than the quality of the DIP itself.
 
-Language changes initiated by language authors are also supposed to go through
-the DIP queue. By their very nature formal approval is not needed.
-Hence they are processed slightly different and an
-increased focus is put into bringing community attention and feedback.
+#### The Review Count
 
-At the time of writing this document only Walter Bright and Andrei Alexandrescu
-are meant as language authors here.
+At the end of the Draft Review, the DIP is assigned a Review Count of `0` by the DIP manager. At the end of each subsequent round of reviews, the Review Count is incremented and is amended with a direct link to the version of the document that was reviewed in that round. The DIP manager will add a summary of the final decision, including the rationale, at the bottom of the document. 
 
-## The DIP manager responsibilities
+## Responsibilities of the DIP manager
 
-The idea behind the role of the DIP manager is to have a person who will do some
-minimal initial research and quality control, saving time for language authors
-to focus on the actual decision. That implies gathering information, maintaining
-this repository and communicating to involved parties so that the process keeps
-moving forward. Essentially the DIP manager is supposed to act as a proxy between
-D users and the language authors to help handling the growing scale of DIP
-information reliably and effectively.
+The DIP manager serves as Gatekeeper, Guide, and Coordinator throughout the DIP process. The role is intended to ease the burden on the language authors by ensuring that any DIPs they evaluate are well-written and reasonably complete. 
+
+It should be *difficult* to get a DIP approved. The days when new features could be added to the language through a casual discussion in the community forums are in the past. If a feature is worth adding to the language, than it must be worth the time investment required to craft a complete proposal and shepherd it through the review process. 
+
+* Gatekeeper -- The first step in the process is getting through the gate from the PR queue into the repository. The DIP manager has the authority to determine if a DIP meets the nebulous criteria for `Draft` status (determined on a case-by-case basis) and, if not, to refuse to accept the DIP into the repository until such requirements are met. This is not the same as rejecting a DIP outright, a privilege resting solely in the purview of the language authors. If a DIP author decides to abandon an unmerged DIP, anyone may take it over and modify it to meet the DIP manager's requirements. 
+
+* Guide -- The DIP manager is responsible for keeping the DIP's status up-to-date, making sure the direct links to previously reviewed versions are accurate, and keeping the DIP author informed of what needs to be done to progress to the next stage. The DIP manager also must determine, based on nebulous criteria, when a DIP is ready to move out of the Preliminary Review stage to await formal review.
+
+* Coordinator -- The DIP manager is required to announce and moderate DIP reviews, ensure that the DIP author addresses primary criticisms, facilitate any necessary communication between the language authors and the DIP author, and take steps to mitigate any potential confusion (e.g. including DIP titles in forum announcements).
+
+Disagreements between a DIP author, or other community member, and the DIP manager are bound to arise (e.g. disagreement over the DIP manager's refusal to merge a DIP under Draft Review). If such conflicts can not be settled satisfactorily through private communication, the DIP manager may encourage the complainant to open a thread in the General forum for community mediation or may ask the language authors to render judgement, depending on the nature of the dispute.
