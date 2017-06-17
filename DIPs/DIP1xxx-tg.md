@@ -1,0 +1,456 @@
+# Static foreach
+
+| Field           | Value                                                           |
+|-----------------|-----------------------------------------------------------------|
+| DIP:            | (number/id)                                                     |
+| RC#             | 0                                                               |
+| Author:         | Timon Gehr (<timon.gehr@gmx.ch>)                                |
+| Implementation: | [PR 6760](https://github.com/dlang/dmd/pull/6760)               |
+| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+
+## Abstract
+
+This DIP proposes the addition of `static foreach`. `static foreach` is to `foreach` as `static if` is to `if`.
+
+## Links
+
+- Some of the feature requests on the forums:
+  - (2006): http://forum.dlang.org/post/ebfmmf$jho$3@digitaldaemon.com
+  - (2010): http://forum.dlang.org/thread/hoofmi$2ihl$1@digitalmars.com
+  - (2012): http://forum.dlang.org/post/jrjf8u$h3r$1@digitalmars.com
+  - (2013): http://forum.dlang.org/thread/nqwbtvbellqaevkeiwkr@forum.dlang.org
+  - (2014): http://forum.dlang.org/thread/mshrxvlpotdzmxivoxrv@forum.dlang.org
+
+- Enhancement request on bugzilla (2010): https://issues.dlang.org/show_bug.cgi?id=4085
+
+- Some instances of the language authors expressing support and raising design considerations:
+  - (2014): http://forum.dlang.org/post/lf7r0c$2tfk$1@digitalmars.com
+  - (2015): https://forum.dlang.org/thread/cgygrirvgkgxpupzzftn@beta.forum.dlang.org
+
+- Old `static foreach` DIP (2015): http://forum.dlang.org/thread/lfimjs$1rqc$1@digitalmars.com
+
+- Pull request with implementation (2017): https://github.com/dlang/dmd/pull/6760
+- New compiler tests (2017): https://github.com/tgehr/dmd/blob/static-foreach/test/compilable/staticforeach.d
+
+## Rationale
+
+Iterating over a sequence of compile-time entities and generating declarations or statements is a reasonably common need in idiomatic D programs.
+Currently, there is no particularly readable way to accomplish this. (There are solutions using string mixins or recursive template mixins.)
+This DIP introduces the `static foreach` declaration/statement to fill this gap. This is a purely additive change and even though it is merely syntactic sugar (everything `static foreach` does can be achieved with a well-crafted string mixin), `static foreach` should enable a number of new idioms.
+
+
+## Description
+
+### Proposal 1: Allow `enum` and `alias` variables for unrolled `foreach` statements
+
+**Currently**: The loop variable for an unrolled `foreach` statement is a different kind of declaration based on the current element:
+```D
+immutable int x=1;
+int y(){}
+enum z=3;
+```
+
+```D
+foreach(v;AliasSeq!(x,y,z)) { ... };
+```
+
+This will lower to:
+
+```D
+{ auto v=x; { ... } }
+{ alias v=y; { ... } }
+{ enum v=z;  { ... } }
+```
+
+This is often fine behaviour, but sometimes one may want to force the loop variable to be consistently `alias` or `enum`.
+
+**New**: `enum` is allowed as a storage class for a unrolled `foreach` loop variable:
+
+```D
+foreach(enum v;AliasSeq!(x,y,z)){ ... }
+```
+will lower to:
+
+```D
+{ enum v=x; { ... } }
+{ enum v=y; { ... } }
+{ enum v=z; { ... } }
+```
+
+**New**: unrolled `foreach` statements can declare a loop `alias`:
+
+```D
+foreach(alias v;AliasSeq!(x,y,z)){ }
+```
+will lower to
+
+```D
+{ alias v=x; }
+{ alias v=y; }
+{ alias v=z; }
+```
+
+(Both of those will also be allowed for the newly proposed `static foreach`.)
+
+
+### Proposal 2: Add `static foreach` declaration and `static foreach` statement
+
+**Currently**: There is no `static foreach`, but it can be emulated using string mixins:
+
+```D
+mixin({
+    string s="";
+    foreach(i;0..10){
+        s~=generateBody(i);
+    }
+    return s;
+}());
+```
+
+
+There exists the unrolled `foreach` statement:
+
+```D
+foreach(i;AliasSeq!(0,1,2,3,4,5,6,7,8,9,10)) { ... }
+```
+
+This is always a statement and it cannot generate externally visible declarations.
+
+
+**New**: We add `static foreach` (and `static foreach_reverse`) that is to `foreach` (`foreach_reverse`) as `static if` is to `if`.
+
+In more detail:
+
+If the aggregate `a` is a sequence or an array, the body is copied `a.length` times. Within the `i`-th copy, the name of the `static foreach` variable is bound to the `i`-th entry of the sequence or array, either as an `enum` variable declaration (for constants) or an `alias` declaration (for symbols). (In particular, `static foreach` variables are never runtime variables.)
+
+```D
+static foreach(i;[0,1,2,3]){
+    pragma(msg, i);
+}
+```
+
+Multiple `static foreach` variables are supported too.
+
+```D
+static foreach(i,v;['a','b','c','d']){
+    static assert(i + 'a' == v);
+}
+```
+
+
+`static foreach` supports all types of aggregates that regular `foreach` does. For aggregate types other than sequences and arrays, `static forach` first computes an array of all the aggregate elements using CTFE, and then iterates over this array. (For aggregates that allow multiple `foreach` loop variables, an array of tuples is generated and the tuples are suitably unpacked during iteration.)
+
+
+A `static foreach` body does not introduce a new scope, therefore it can be used to generate declarations:
+
+```D
+static foreach(i;iota(0,3).map!text){
+    mixin(`enum x`~i~`=i;`);
+}
+
+pragma(msg, x0," ",x1," ",x2); // 0 1 2
+```
+
+`static foreach` does not interact with `break` and `continue` (it is not a loop, but a code generation construct; it generates multiple versions of the body):
+
+```D
+int test(int x){
+    int r = -1;
+    switch(x){
+        static foreach(i;0..100){
+            case i:
+                r = i;
+                break;
+        }
+        default: break;
+    }
+    return r;
+}
+static foreach(i;0..200){
+    static assert(test(i) == (i<100 ? i : -1));
+}
+```
+
+As some consider this to be potentially confusing, it has been suggested that `break` and `continue` directly inside `static foreach` should instead be compiler errors and require explicit labels. This DIP leaves the decision to the language authors, but recommends the above semantics.
+
+### Grammar changes
+
+First, the existing grammar is slightly refactored for reuse by `static foreach`:
+
+```
+AggregateForeach:
+    Foreach ( ForeachTypeList ; ForeachAggregate )
+
+ForeachStatement:
+    AggregateForeach ScopeStatement
+
+RangeForeach:
+    Foreach ( ForeachType ; LwrExpression .. UprExpression )
+
+ForeachRangeStatement:
+    RangeForeach ScopeStatement
+
+```
+
+Next, the following grammar rules are added:
+
+```
+ForeachType:
+    ForeachTypeAttributes[opt] BasicType Declarator
+    ForeachTypeAttributes[opt] Identifier
++   ForeachTypeAttributes[opt] alias Identifier
+
+ForeachTypeAttribute:
+    ref
+    TypeCtor
++   enum
+```
+
+```
+StaticForeach:
+    static AggregateForeach
+    static RangeForeach
+
+StaticForeachStatement:
+    StaticForeach ScopeStatement
+
+NonEmptyStatementNoCaseNoDefault:
+    ...
+    ConditionalStatement
++   StaticForeachStatement
+    StaticAssert
+    ...
+
+StaticForeachDeclaration:
+    StaticForeach DeclarationBlock
+    StaticForeach : DeclDefs[opt]
+    
+Declaration:
+    ...
+    ConditionalDeclaration
++   StaticForeachDeclaration
+```
+
+(`ConditionalDeclaration` is currently not a `Declaration`, but the grammar should allow `static if` to be parsed.)
+
+### Examples
+
+#### Visitor pattern (Mathias Lang)
+
+```D
+import std.traits, std.meta;
+
+abstract class Base{
+    abstract void accept(Visitor v){ v.visit(this); }
+}
+mixin template Accept(){
+    override void accept(Visitor v){ v.visit(this); }
+}
+class A: Base{ mixin Accept; }
+class B: Base{ mixin Accept; }
+class C: B{ mixin Accept; }
+class D: B{ mixin Accept; }
+class E: D{ mixin Accept; }
+
+alias Ts = AliasSeq!(Base,A,B,C,D,E);
+alias BaseClass(T) = BaseClassesTuple!T[0];
+
+abstract class Visitor{
+    static foreach(T;Ts) {
+        void visit(T t){
+            static if(is(T==Base)) assert(0);
+            else visit(cast(BaseClass!T)t);
+        }
+    }
+}
+```
+
+
+#### Wrapping an overload set ([Andrei Alexandrescu](https://forum.dlang.org/post/cgygrirvgkgxpupzzftn@beta.forum.dlang.org))
+
+```D
+import std.stdio, std.traits, std.meta;
+
+alias Overloads(alias a) = AliasSeq!(__traits(getOverloads, __traits(parent, a), __traits(identifier, a)));
+
+template trace(alias fun)
+{
+    private auto ref impl(Args...)(auto ref Args args)
+    {
+        write("Tracing: ", __traits(identifier, fun), "(");
+        foreach (i, arg; args)
+        {
+            if (i) write(", ");
+            write(arg);
+        }
+        writeln(")");
+        return fun(args);
+    }
+
+    static foreach (funk; Overloads!fun)
+    {
+        auto ref trace(Parameters!funk args)
+        {
+            return impl(args);
+        }
+    }
+}
+
+double foo(ref int x, string y)
+{
+    ++x;
+    return x + y.length;
+}
+
+double foo(string a, ref int x, string y)
+{
+    ++x;
+    return x + y.length + a.length;
+}
+
+void main()
+{
+    int a = 1;
+    assert(trace!foo(a, "hello") == 7);
+    assert(a == 2);
+    assert(trace!foo("meh", a, "hello") == 11);
+    assert(a == 3);
+}
+```
+
+#### Generating unit tests ([Dylan Knutson](http://forum.dlang.org/post/nqwbtvbellqaevkeiwkr@forum.dlang.org))
+
+```D
+import std.meta;
+
+T foo(T)(ref T thing)
+{
+    thing++; return thing * 2;
+}
+
+static foreach(Type; AliasSeq!(int, long, uint))
+{
+    unittest
+    {
+        Type tmp = 5;
+        import std.stdio;
+        assert(foo(tmp) == 12);
+    }
+    
+    unittest
+    {
+        Type tmp = 0;
+        foo(tmp);
+        assert(tmp == 1);
+    }
+}
+```
+
+#### Generating fields ([Vladimir Panteleev](https://github.com/dlang/dmd/pull/6760#issuecomment-300590321))
+
+```D
+static struct GetOptArgs
+{
+    static foreach (n, field; config.getoptConfig)
+        mixin("std.getopt.config config%d = std.getopt.config.%s;".format(n, field));
+    static foreach (n, param; Params)
+        mixin("string selector%d; OptionValueType!(Params[%d])* value%d;\n".format(n, n, n));
+}
+```
+
+```D
+static struct Result
+{
+    static foreach (unit; units)
+        mixin("long " ~ unit ~ ";");
+}
+```
+
+## Limitations of this DIP / possible future improvements
+
+This DIP focuses on aspects of `static foreach` that are as uncontroversial as possible in order to have a high chance of acceptance. There are however future directions that are worth exploring and useful to keep in mind when evaluating the current DIP.
+
+### Mixin identifiers
+
+One use case of `static foreach` is generating multiple declarations with different names. Currently, the only way to accomplish this is to turn the entire declaration whose name should vary into a string mixin. In this case, `static foreach` is not as much of an improvement as it could be. To mitigate this, we could allow [mixin identifiers](https://forum.dlang.org/post/ml51m4$tl9$1@digitalmars.com), as proposed by Idan Arye. (They would be useful beyond `static foreach` applications.)
+
+```D
+static foreach(ident;["foo","bar"]) {
+    auto mixin(ident)(){
+        // code for foo/bar
+    }
+}
+```
+
+This DIP does not propose adding mixin identifiers.
+
+### Local declarations
+
+Currently, the only declarations that are local to the `static foreach` body instead of inserted into the enclosing scope are the loop variables themselves. It could be useful to allow declarations that are local to the `static foreach` body.
+
+```D
+static foreach(i;0..10){
+    __local import std.conv: text;
+    __local enum name = text("foo",i); // note: no multiple declaration error
+    mixin(text("int ",name,"(int x){ return i+x; }"));
+    static foreach(j;-10..10)
+        static assert(mixin(name)(j) == i+j);
+}
+```
+
+This feature is already implemented except for imports, but would be disabled prior to merging. There could be a better syntax for declaring local symbols.
+
+### State
+
+This DIP does not propose a mechanism to keep state between loop iterations. This is easy to add, however. One way to support state is to provide an implicit `alias` that refers to the local symbols of the previous iteration.
+
+```D
+template staticMap(alias F,T...){
+    static foreach(i;0..T.length){
+        static if(i == 0) __local alias previous = AliasSeq!();
+        else __local alias previous = __previous.current;
+        __local alias current = AliasSeq!(previous, F!(T[i]));
+        static if(i+1 == T.length) alias staticMap = current;
+    }
+}
+```
+
+This feature is already implemented, but would be disabled prior to merging. There might be a better way to provide state.
+
+### `static break` and `static continue`
+
+We could provide imperative control flow constructs for controlling `static foreach` expansion, but this DIP does not propose adding them.
+
+```D
+static foreach(i;iota(int.max)){
+    static if(i^^3 > 123) static break;
+    if(i%2 != 0) static continue;
+    static assert(i^^3 <= 1234 && (i%2)==0);
+}
+```
+
+### Allowing `alias` and `enum` on regular `foreach` loop variables
+
+Currently, it is an error to use `alias` or `enum` on a regular `foreach` loop:
+
+```D
+foreach(enum i;0..3){ ... } // error
+```
+
+It has been suggested that this should instead unroll the loop, such that it becomes equivalent to:
+
+```D
+foreach(enum i;AliasSeq!(0,1,2)){ ... }
+```
+
+## Copyright & License
+
+Copyright (c) 2017 by the D Language Foundation
+
+Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+
+## Review
+
+Will contain comments / requests from language authors once review is complete,
+filled out by the DIP manager - can be both inline and linking to external
+document.
