@@ -43,7 +43,7 @@ The first stage of the review process begins as soon as a DIP author opens a pul
 1.  **Draft Review** 
     While a DIP is in the PR queue, it will be open to feedback from the community and the DIP manager. At this stage, the review is carried out in PR comments. Reviewers should aim to fill any obvious holes in the DIP and request more detail where it is warranted. This is not the place for debates or detailed discussions about the DIP or its merits. Comments should be restricted solely to improving the proposal's coverage. Editorial suggestions are also welcome. 
     
-    The overarching goal of this stage is for the DIP to acheive a state that minimizes the number of review rounds in the next stage.
+    The overarching goal of this stage is for the DIP to achieve a state that minimizes the number of review rounds in the next stage.
     
     There is no time limit on the Draft Review, no guarantees on the amount of time that may elapse between the submission of a DIP and its acceptance into the repository. Upon determining a DIP is not suitable for acceptance into the repository, the DIP manager is required to inform the author of the changes that must be made to make it acceptable. If the author does not apply the recommendations within a *reasonable* amount of time, the DIP manager may close the PR until the author, or someone else, decides to reopen it and work to move the DIP forward.
 
