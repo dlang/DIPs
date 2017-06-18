@@ -15,13 +15,14 @@ This DIP proposes the addition of a new syntax for contracts in D, with the aim 
 ### Links
 
 [Related forum discussion](http://forum.dlang.org/post/cklhgfbnpajbeefmwjrf@forum.dlang.org)
+
 [First announcement of this DIP](http://forum.dlang.org/post/tuzdqqpcoguatepgxupq@forum.dlang.org)
 
 ## Rationale
 
 If a new syntax could be devised that removed the "extra plumbing" that `in` and `out` contracts currently require, their use would probably increase. Aptly characterizing the problem, [Jonathan M. Davis says,](http://forum.dlang.org/post/mailman.2288.1494811099.31550.digitalmars-d@puremagic.com) "The amount of extra code required around in/out contracts is part of why I almost never use them. In most cases, it just makes more sense to put the assertions in the function body and not have all of that extra plumbing right after the function signature."
 
-This sentiment is probably very common. Even a code base that uses contracts, like SDC, must adhere to a strict formatting style to keep them manageable. [For example:](https://github.com/SDC-Developers/SDC/blob/master/src/d/parser/expression.d#L1059)
+This sentiment is probably very common. Even a code base that uses contracts, like [SDC](https://github.com/SDC-Developers/SDC/), must adhere to a strict formatting style to keep them manageable. [For example:](https://github.com/SDC-Developers/SDC/blob/master/src/d/parser/expression.d#L1059)
 ```d
 ulong strToDecInt(string s) in {
     assert(s.length > 0, "s must not be empty");
@@ -70,7 +71,7 @@ This enhancement preserves the basic idea of contracts as statements. Added to D
 
 The compiler groups all `in` statements, which must be consecutive, into a single contract, with multiple statements maintaining lexical order in the lowered code. It does the same thing with `out` statements, with one restriction: There may be only one `out` statement that defines a return identifier. That identifier may still be used in the other `out` statements, if desired.
 
-By themselves, multiple such `in` and `out` statements seem unnecessary. But when unbracketed, readability can improve:
+By themselves, multiple such `in` and `out` statements seem unnecessary. But when unbracketed, readability can improve. This:
 ```d
 in assert(x);
 in assert(y);
@@ -78,7 +79,7 @@ out(r) assert(r);
 out assert(z);
 
 ```
-would create these contracts:
+would lower to this:
 ```d
 in {
     assert(x);
@@ -91,7 +92,7 @@ out(r) {
 ```
 #### 3. allow contracts within the function body
 
-They must occur at the beginning of the function, and act as syntax sugar for external contracts:
+They must occur at the beginning of the function, and act as syntax sugar for external contracts. This:
 ```d
 int fun(int x)
 {
@@ -100,7 +101,7 @@ int fun(int x)
     ...
 }
 ```
-gets lowered to this:
+gets lowered to:
 ```d
 int fun(int x)
 in { assert(x); }
@@ -140,7 +141,7 @@ int noZeroAdd(int a, int b) {
     return a + b;
 }
 ```
-The latter is lowered to the former. The more familiar use with brackets is still allowed, of course, even in the body:
+The more familiar use with brackets is still allowed, of course, even in the body:
 ```d
 int noZeroAdd(int a, int b) {
     in {
@@ -158,10 +159,31 @@ int noZeroAdd(int a, int b) {
 
 Any of the three enhancements above can be combined separately to produce alternatives. In particular, if enhancement 3 is deemed too extravagant, enhancement 1, or the combination of enhancements 1 and 2, may still be desirable.
 
-Additionally, a variety of alternatives has been suggested in the forums. The details can be found in the following links:
+Additionally, the syntax of the existing proposal is restricted. It could be expanded in a couple ways:
 
-- [allow contracts as naked expressions](http://forum.dlang.org/post/qxlihdtknfobguubugym@forum.dlang.org):
-- [imply `assert` in contracts](http://forum.dlang.org/post/mailman.2337.1494961562.31550.digitalmars-d@puremagic.com):
+#### 4. allow contracts with conditional compilation. For example,
+```d
+int fun(int a) {
+    version(none) in assert(a);
+    static if (true) in assert(a);
+}
+```
+#### 5. allow contract statements anywhere in the function body
+```d
+int fun(int a) {
+   int b;
+   in assert(a);
+   b = a;
+   out(r) assert(r);
+   return b;
+}
+```
+It also need not be required that they be grouped together.
+
+Also, a variety of alternatives has been suggested in the forums. The details can be found in the following links:
+
+- [allow contracts as naked expressions](http://forum.dlang.org/post/qxlihdtknfobguubugym@forum.dlang.org)
+- [imply `assert` in contracts](http://forum.dlang.org/post/mailman.2337.1494961562.31550.digitalmars-d@puremagic.com)
 - [@uda based contracts](http://forum.dlang.org/post/ckznaermqjadwamqaewd@forum.dlang.org)
 - [inspiration from the Dafny programming language](http://forum.dlang.org/post/ckznaermqjadwamqaewd@forum.dlang.org)
 
@@ -191,15 +213,34 @@ Benefits:
 * Those programmers who dislike the requirement of having to write the word `body` (or `do`) for all functions with contracts will no longer have to do so.
 * Finally, the awkwardness of semicolon statements appearing outside function bodies, as decribed in critique 1, would not be an issue if such statements were only allowed within function bodies.
 
-#### Critique of Alternatives
+#### Critique 4
 
-When analyzing the alternatives, it will help to bear in mind that the main proposal has the following advantages which, for practical purposes, weigh heavily in its favor:
+Allowing conditional compilation before `in` or `out` statements seems to make sense. Such conditions could be lowered to occur after their respective keywords. For example,
+```d
+int fun(int a) {
+    version(none) in assert(a);
+    static if (true) out(r) assert(r);
+    
+    // could be lowered to:
+    in version(none) assert(a);
+    out(r) static if (true) assert(r);
+}
+```
+That said, certain documentation parsing that requires knowledge of contracts may become more complicated, as the parser won't be able to check just for the tokens `in` or `out` for contracts before skipping the rest of the function body. 
+
+#### Critique 5
+
+Allowing `in` and `out` statements anywhere in the function body seems reasonable from a compiler semantic point of view, as the compiler only needs to accumulate all such statements as it encounters them. But it may not be something that the language authors want to encourage. Also, if documentation parsing requires knowledge of contracts, it will slow parsing down, as the whole function now needs to be scanned for contracts and therefore cannot be skipped over.
+
+#### Critique of Linked Alternatives
+
+When analyzing the alternatives, it will help to bear in mind that the main proposal has the following advantages:
 
 - contracts are simple to write, with minimal "extra plumbing", i.e. without brackets and parentheses
-- they utilize existing contract infrastructure
-- there is minimal divergence from D's existing syntax and semantics
+- they utilize D's existing contract infrastructure
+- there is minimal divergence from the existing syntax and semantics for contracts
 
-Because of this, it is probably beyond the scope of this DIP to analyze the alternatives. This will change if compelling reasons to do so arise.
+Because of this, it is currently beyond the scope of this DIP to analyze the linked alternatives.
 
 ### Grammar
 
