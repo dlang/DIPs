@@ -35,7 +35,7 @@ e.g. `@system`,`@trusted`,`@safe` would all refer to the same enum, with inferre
 This also make attributes that do not begin with an `@` such as `nothrow` `pure` now start with an `@`, deprecate the form without the `@`.
 
 Allow tagging a module declaration with these attributes, to apply to all symbols.
-As all the attributes are now symbols we can group the in an `AliasSeq` to apply them én masse as is done in LDC for `[@fastmath](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58)`.
+As all the attributes are now symbols we can group the in an `AliasSeq` to apply them én masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
 Have an `AliasSeq` of the default values of the current attributes be applied when a sepcific attribute group is absent,
 taking on the current default set of attributes if none are specified.
