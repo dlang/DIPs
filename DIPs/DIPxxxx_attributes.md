@@ -16,34 +16,36 @@ Addresses the desire for different sets of default attributes.
 
 [Forum discussion](https://forum.dlang.org/thread/wnddmlmfinqqfccdlhqc@forum.dlang.org)
 
+## Terminology
+
+Groups of attributes that are mutually exclusive (such as `@safe`, `@system`, `@trusted`) and presence/absence attributes
+(e.g. `pure`, `nothrow`) and their (currently) non-existant logical negations are called _attribute groups_.
+
 ## Rationale
 
-State a short motivation about the importance and benefits of the proposed
-change.  An existing, well-known issue or a use case for an existing projects
-can greatly increase the chances of the DIP being understood and carefully
-evaluated.
-
-Many users feel that the default attributes have thr wrong defaults.
-Attributes are not invertable.
+Many users feel that the default attributes have the wrong defaults.
+Attributes are not invertable, thus putting 
+```
+pure: nothrow: @nogc: @safe:
+```
+at the top of a file means that one can never "undo" those attributes.
+This DIP proposes a solution to easily change the default values of the attributes while also allowing symbol specific 
+overrides of individual attribute groups.
 
 ## Description
 
-Move all (DMD) compiler recongnised attributes into `core.attribute`, making them symbols in their own right.
+Move all (DMD) compiler recongnised attributes into `core.attribute`, making them symbols in their own right, 
+grouping by attribute groups into `enum`s, each with
+* a default value `inferred`. The compiler shall determine the value of the attribute. It is illegal to forward declare a function `inferred`.
+* the attribute(s)
+* (if applicable) the attributes' logical negation.
 
-Group mutually exclusive attributes together (making them different members of the same `enum`) with an additional value of infered,
-e.g. `@system`,`@trusted`,`@safe` would all refer to the same enum, with inferred being the default. This is called an _attribute group_.
-This also make attributes that do not begin with an `@` such as `nothrow` `pure` now start with an `@`, deprecate the form without the `@`.
+A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
+If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes.
+As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them én masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
-Allow tagging a module declaration with these attributes, to apply to all symbols.
-As all the attributes are now symbols we can group the in an `AliasSeq` to apply them én masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
-
-Have an `AliasSeq` of the default values of the current attributes be applied when a sepcific attribute group is absent,
-taking on the current default set of attributes if none are specified.
-
-It is illegl to provide more than one mutually exclusive attribute from any given attribute group. 
+It is illegl to explicitly provide more than one (mutually exclusive) attribute from any given attribute group. 
 Attributes applied explicity override the module default attribute set.
-
-The attributes of templates shall conform to the attributes of the point of instansiation (with the defaults of being inferred shall be no change).
 
 ### Breaking changes / deprecation process
 
@@ -55,24 +57,35 @@ No breaking changes are expected.
 
 ### Examples
 
-`module foo;` will become synonymous with `@core.attribute.defaultAttributeSet module foo;` 
-(`core.attribute` will be implictly imported, by `object.d`)
+`module foo;` 
+will become implicitly 
+`@core.attribute.defaultAttributeSet module foo;` 
+with respect to attributes (`core.attribute` will be implicitly imported, by `object.d`), 
+if no attributes from `core.attribute` are attached.
 
- attribute groups may be selectivly added 
- `@nocg module foo;` - all symbols in this module are implicity `@nogc` with `nogc` reffering to `core.attribute.GarbageCollectedness.nogc`,
+ Attribute groups may be selectivly added to the module declaration, so that:
+ `@nocg module foo;` 
+ means that all symbols in this module are implicity `@nogc` (with `nogc` referring to `core.attribute.GarbageCollectedness.nogc`),
  but otherwise has all the same defaults as the default attribute set.
  
- `@nogc @core.attribute.GarbageCollectedness.gc module foo;` shall be an error because there are two explicit conflicting attribute.
- likewise 
+ `@nogc @core.attribute.GarbageCollectedness.gc module foo;` 
+ shall be an error because there are two explicit conflicting attribute.
+ Likewise 
  ```
  module foo;
- @nogc @core.attribute.GarbageCollectedness.gc module foo;
+ @nogc @core.attribute.GarbageCollectedness.gc 
+ void bar() { };
  ```
  shall be an error for the same reasons.
+ 
  ```
  @nogc module foo;
- @core.attribute.GarbageCollectedness.gc void bar() {new int;} // bar overrides the default @nogc'ness of the module and is @gc
- @core.attribute.GarbageCollectedness.inferred void baz() { someOtherFunction(); } // baz's gc'ness is determined by someOtherFunction
+ 
+ // bar overrides the default @nogc'ness of the module and is @gc
+ @core.attribute.GarbageCollectedness.gc void bar() {auto a = new int;} 
+ 
+ // baz's gc'ness is determined by someOtherFunction
+ @core.attribute.GarbageCollectedness.inferred void baz() { someOtherFunction(); }
  ```
 
 ## Copyright & License
