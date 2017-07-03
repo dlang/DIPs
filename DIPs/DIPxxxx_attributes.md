@@ -10,7 +10,8 @@
 
 ## Abstract
 
-Addresses the desire for different sets of default attributes.
+Addresses the desire for different sets of default attributes and rectifies the non-invertibilty
+of the special compiler recognised attributes.
 
 ### Links
 
@@ -23,8 +24,7 @@ Groups of attributes that are mutually exclusive (such as `@safe`, `@system`, `@
 
 ## Rationale
 
-Many users feel that the default attributes have the wrong defaults.
-Attributes are not invertable, thus putting 
+Many users feel that the default attributes have the wrong defaults and given that attributes are not invertable,  putting 
 ```
 pure: nothrow: @nogc: @safe:
 ```
@@ -36,35 +36,41 @@ overrides of individual attribute groups.
 
 Move all (DMD) compiler recongnised attributes into `core.attribute`, making them symbols in their own right, 
 grouping by attribute groups into `enum`s, each with
-* a default value `inferred`. The compiler shall determine the value of the attribute. It is illegal to forward declare a function `inferred`.
+* a value `inferred`. The compiler shall determine the value of the attribute. It is illegal to have a function declaration `inferred`.
 * the attribute(s)
 * (if applicable) the attributes' logical negation.
 
 A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
-If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes.
+If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, of with command line switches (e.g. `-safe`).
+
 As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them én masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
-It is illegl to explicitly provide more than one (mutually exclusive) attribute from any given attribute group. 
-Attributes applied explicity override the module default attribute set.
+It is illegl to explicitly provide more than one attribute from any given attribute group as they are mutually exclusive. 
+Attributes applied explicity to any symbol override the module default attribute set.
 
 ### Breaking changes / deprecation process
 
 Use of the current attributes that are not prefiex by an `@` such as `pure` and `nothrow`,
 and optionally other modifiers that are attribute like such as `final` will be changed to refer to the `core.attribute` symbols,
-and their use without the leading `@` will be deprecated.
+and thus their use without the leading `@` will be deprecated.
 
 No breaking changes are expected.
 
 ### Examples
 
 `module foo;` 
+
 will become implicitly 
+
 `@core.attribute.defaultAttributeSet module foo;` 
+
 with respect to attributes (`core.attribute` will be implicitly imported, by `object.d`), 
 if no attributes from `core.attribute` are attached.
 
  Attribute groups may be selectivly added to the module declaration, so that:
+ 
  `@nocg module foo;` 
+ 
  means that all symbols in this module are implicity `@nogc` (with `nogc` referring to `core.attribute.GarbageCollectedness.nogc`),
  but otherwise has all the same defaults as the default attribute set.
  
