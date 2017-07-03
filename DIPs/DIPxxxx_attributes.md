@@ -35,7 +35,7 @@ overrides of individual attribute groups.
 
 ## Description
 
-Move all (DMD) compiler recongnised attributes into `core.attribute`, making them symbols in their own right, 
+Move all (DMD) compiler recongnized attributes into `core.attribute`, making them symbols in their own right, 
 grouping by attribute groups into `enum`s, each with
 * a value `inferred`. The compiler shall determine the value of the attribute. It is illegal to have a function declaration `inferred`.
 * the attribute(s)
@@ -44,9 +44,9 @@ grouping by attribute groups into `enum`s, each with
 A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
 If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, of with command line switches (e.g. `-safe`).
 
-As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them én masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
+As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them en masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
-It is illegl to explicitly provide more than one attribute from any given attribute group as they are mutually exclusive. 
+It is illegal to explicitly provide more than one attribute from any given attribute group as they are mutually exclusive. 
 Attributes applied explicity to any symbol override the module default attribute set.
 
 ### Breaking changes / deprecation process
