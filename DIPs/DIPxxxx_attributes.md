@@ -11,7 +11,8 @@
 ## Abstract
 
 Addresses the desire for different sets of default attributes and rectifies the non-invertibilty
-of the special compiler recognised attributes.
+of the special compiler recognised attributes by having module level defaults. It does not (yet) 
+propose any mechanism to remove compiler attributes directly (e.g. `@!nogc`).
 
 ### Links
 
@@ -71,11 +72,11 @@ if no attributes from `core.attribute` are attached.
  
  `@nocg module foo;` 
  
- means that all symbols in this module are implicity `@nogc` (with `nogc` referring to `core.attribute.GarbageCollectedness.nogc`),
+ means that all symbols in this module are implicity `@nogc` (with `nogc` referring to `core.attribute.GarbageCollectedness.nogc` via an alias in `core.attribute`),
  but otherwise has all the same defaults as the default attribute set.
  
  `@nogc @core.attribute.GarbageCollectedness.gc module foo;` 
- shall be an error because there are two explicit conflicting attribute.
+ shall be an error because there are two explicit mutually exclusive attributes.
  Likewise 
  ```
  module foo;
@@ -92,6 +93,9 @@ if no attributes from `core.attribute` are attached.
  
  // baz's gc'ness is determined by someOtherFunction
  @core.attribute.GarbageCollectedness.inferred void baz() { someOtherFunction(); }
+ 
+ // quux is implicily @nogc because foo is @nogc
+ void quux() {} 
  ```
 
 ## Copyright & License
