@@ -35,7 +35,7 @@ overrides of individual attribute groups.
 
 ## Description
 
-Move all (DMD) compiler recongnized attributes into `core.attribute`, making them symbols in their own right, 
+Move all (DMD) compiler recognized attributes into `core.attribute`, making them symbols in their own right, 
 grouping by attribute groups into `enum`s, each with
 * a value `inferred`. The compiler shall determine the value of the attribute. It is illegal to have a function declaration `inferred`.
 * the attribute(s)
