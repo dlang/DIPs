@@ -42,20 +42,39 @@ grouping by attribute groups into `enum`s, each with
 * (if applicable) the attributes' logical negation.
 
 A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
-If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, of with command line switches (e.g. `-safe`).
+If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, of with command line switches (e.g. `-safe` or if Type_Info / Module Info generation is added as an attribute `-betterC`).
 
 As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them en masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
 It is illegal to explicitly provide more than one attribute from any given attribute group as they are mutually exclusive. 
 Attributes applied explicity to any symbol override the module default attribute set.
 
+### Attributes & attribute like compiler behaviour encompassed in this DIP
+
+Encompassed:
+
+* pure
+* @nothrow
+* @nogc
+* @safe/@system/@trusted
+
+Optionally encompassed:
+
+* final
+* Type_Info / Module Info generation (other components of -betterC?)
+
+Not encompassed:
+
+* @disable
+
 ### Breaking changes / deprecation process
 
 Use of the current attributes that are not prefiex by an `@` such as `pure` and `nothrow`,
 and optionally other modifiers that are attribute like such as `final` will be changed to refer to the `core.attribute` symbols,
-and thus their use without the leading `@` will be deprecated.
+and thus their use without the leading `@` will be deprecated. 
 
-No breaking changes are expected.
+No breaking changes are intended, although the introduction of the new enum symbols to be implicitly imported by `object.d`
+may break some code if the names chosen clash (unlikely).
 
 ### Examples
 
