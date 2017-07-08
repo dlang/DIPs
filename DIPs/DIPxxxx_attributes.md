@@ -66,6 +66,7 @@ Optionally encompassed:
 Not encompassed:
 
 * @disable
+* @property
 
 ### Breaking changes / deprecation process
 
