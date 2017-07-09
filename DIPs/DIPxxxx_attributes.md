@@ -90,7 +90,7 @@ if no attributes from `core.attribute` are attached.
 
  Attribute groups may be selectivly added to the module declaration, so that:
  
- `@nocg module foo;` 
+ `@nogc module foo;` 
  
  means that all symbols in this module are implicity `@nogc` (with `nogc` referring to `core.attribute.GarbageCollectedness.nogc` via an alias in `core.attribute`),
  but otherwise has all the same defaults as the default attribute set.
