@@ -14,6 +14,7 @@ It is proposed that
 
 * `extern(delegate)` be added as a linkage type in order to create functions that are ABI-compatible with delegates
 * taking the address of a UFCS call to an `extern(delegate)` function creates a delegate
+* member function be implicitly convertible to `extern(delegate)` functions
 
 ### Links
 
@@ -26,32 +27,45 @@ It is proposed that `extern(delegate)` be added as a linkage type, i.e.
 extern(delegate) void bar(Foo foo);
 ```
 
-This linkage type causes the first parameter of the function to be passed in using the same ABI as a context pointer for a member function.  An `extern(delegate)` function pointer is implicitly convertible to a delegate that has the same parameters minus the first, i.e.
+This linkage type modifies the ABI of the function by causing the first parameter to be passed in the same way a context pointer would be passed to a delegate function.  If the first parameter of an `extern(delegate)` function is a class or a reference to a struct, then it will have the same ABI as a member function of that type.  Every function in the following example has the same ABI:
 ```D
-template checkImplicitConversion(ContextType, ReturnType, Args...)
+class SomeClass
 {
-    // This assert should succeed for all possible types that can be passed to this template
-    static assert( is( extern(delegate) ReturnType function(ContextType, Args) : ReturnType delegate(Args) ) );
+    void memberFunc(int x, float y)
+    {
+    }
+}
+extern(delegate) void notMemberFunc(SomeClass s, int x, float y)
+{
+}
+struct SomeStruct
+{
+    void memberFunc(int x, float y)
+    {
+    }
+}
+extern(delegate) void notMemberFunc(ref SomeStruct s, int x, float y)
+{
+}
+extern(delegate) void notMemberFunc(SomeStruct* s, int x, float y)
+{
 }
 ```
 
-Taking the address of an `extern(delegate)` function should return an `extern(delegate)` function pointer.  If that function pointer is assigned/implicitly converted to a delegate, the context pointer will be null.  In order to retreive a delegate with a context pointer, it is proposed that UFCS be utilized, i.e.
+A delegate can be retreived to an `extern(delegate)` function using UFCS, i.e.
 ```D
 extern(delegate) void bar(Foo foo)
 {
     // ...
 }
 
-auto dg1 = &bar;           // type of dg1 is "extern(delegate) void function(Foo foo)"
-void delegate() dg2 = dg1; // implicit conversion to delegate, but context pointer is null
-
 Foo foo;
-auto dg3 = &foo.bar;       // uses UFCS to get a "void delegate()" complete with the context pointer set to foo
+void delegate() dg = &foo.bar;   // uses UFCS to get a "void delegate()" with the context pointer set to foo
 ```
 
-By using UFCS to retrieve a delegate, the same syntax is used for `extern(delegate)` functions and member functions, namely, `&<object>.<function>`.  This allows templates and mixins to work with both kinds.
+By using UFCS to retrieve a delegate, the same syntax is used for `extern(delegate)` functions and member functions, namely, `&<object>.<function>`.  This allows templates and mixins to work with both kinds.  It also maintains type safety between the context pointer and the first parameter of the function by "piggy-backing" off the type checking done by the UFCS call.
 
-Since an `extern(delegate)` function should implicitly convert to a delegate, the opposite conversion should also work implicitly, i.e.
+For completeness, a member function should be implicitly convertible to an `extern(delegate)` function i.e.
 ```D
 struct FooStruct
 {
@@ -159,7 +173,7 @@ extern(delegate) void baz(ref Foo foo, int x)
 // Note that even though `bar` is defined as a member function inside
 // the struct Foo, the `baz` function has an identical ABI with `bar`.
 
-void delegate(int x) dg;
+void delegate(int) dg;
 Foo foo;
 
 dg = &foo.bar;  // a normal member function delegate
@@ -168,10 +182,7 @@ dg(42);         // calls foo.bar(42)
 dg = &foo.baz;  // using UFCS to retreive a delegate to the extern(delegate) baz function
 dg(42);         // calls baz(foo, 42);
 
-dg = &baz;      // a "null delegate", funcptr points to the baz function, but ptr is null.
-                // it's probably a good idea to only allow implicit conversion of an extern(delegate) function
-                // to a delegate without a context pointer in "unsafe" code
-dg(42);         // calls baz(null, 42);
+dg = &baz;      // Error: cannot implicitly convert expression (baz) of type extern (delegate) void function(ref Foo, int) to void delegate(int)
 ```
 
 A more realistic example:
@@ -274,12 +285,33 @@ struct Foo
 }
 ```
 
-An `extern(delegate)` function is not ABI-compatible with a regular function so it should not implicitly convert to the corresponding function pointer without `extern(delegate)`, i.e.
+Taking the address of an `extern(delegate)` function should return a function pointer just like a normal function.  The difference is that the function pointer will have the `extern(delegate)` linkage type meaning the type system will prevent it from being assigned and called like a regular function pointer.
 ```D
 extern(delegate) void function(Foo foo) x;
 void function(Foo foo) y = x; // Error: cannot implicitly convert expression (x) of type extern (delegate) void function(Foo) to void function(Foo)
 ```
+
 This type of error already occurs with other linkage types so it should just work.
+
+# Extras
+
+It might be worth looking into the how this can be used to improve the delegate type.  It has two fields `ptr` and a `funcptr` where `funcptr` is a normal function pointer.  It might make more sense to have the function pointer use the `extern(delegate)` linkage type.  Should this deem useful, it's unlikely that changing `funcptr` would be worth breaking existing code, but a new property could be added that uses the `extern(delegate)` linkage type, i.e.
+```D
+struct __current_delegate_type__
+{
+    void* ptr;
+    void function(<arg_types>) funcptr;
+}
+struct __new_delegate_type__
+{
+    void* ptr;
+    union
+    {
+        void function(<arg_types>) funcptr;
+        extern(delegate) void function(void*, <arg_types>) dgptr;
+    }
+}
+```
 
 ## Copyright & License
 
