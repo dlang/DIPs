@@ -23,6 +23,8 @@ propose any mechanism to remove compiler attributes directly (e.g. `@!nogc`).
 Groups of attributes that are mutually exclusive (such as `@safe`, `@system`, `@trusted`) and presence/absence attributes
 (e.g. `pure`, `nothrow`) and their (currently) non-existant logical negations are called _attribute groups_.
 
+Attributes from `core.attribute` are called core attributes.
+
 ## Rationale
 
 Many users feel that the default attributes have the wrong defaults and given that attributes are not invertable,  putting 
@@ -41,10 +43,18 @@ grouping by attribute groups into `enum`s, each with
 * the attribute(s)
 * (if applicable) the attributes' logical negation.
 
+It is suggested that 
+* `inferred` have the value 0, and the compiler shall be required to replace enum core attributes
+that have the value `inferred` to the acual value as determined by the compiler, i.e. no symbols in object files or in reflection shall
+have a core attribute with the value `inferred`. 
+* the current default have the value 1.
+* the negation of the default (`@safe` for `@safe`/`@system`/`@trusted`) the value 2.
+* any other values (e.g. `@trusted`) continue from the value 3.
+
 A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
 If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, of with command line switches (e.g. `-safe` or if Type_Info / Module Info generation is added as an attribute `-betterC`).
 
-As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them en masse as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
+As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them en masse, as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
 It is illegal to explicitly provide more than one attribute from any given attribute group as they are mutually exclusive. 
 Attributes applied explicity to any symbol override the module default attribute set.
