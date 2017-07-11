@@ -125,7 +125,10 @@ if no attributes from `core.attribute` are attached.
  @core.attribute.GarbageCollectedness.inferred void baz() { someOtherFunction(); }
  
  // quux is implicily @nogc because foo is @nogc
- void quux() {} 
+ void quux();
+ 
+ // Error: declarations may not have their be be explicity inferred
+ @core.attribute.GarbageCollectedness.inferred blarg(); 
  ```
 
 ## Copyright & License
