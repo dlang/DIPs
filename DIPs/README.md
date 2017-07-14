@@ -1,6 +1,7 @@
 |                  ID|                           Title|  Status|
 |--------------------|--------------------------------|--------|
 |[1010](./DIP1010.md)|                  Static foreach|Formal Review|
+|[1011](./DIP1011.md)|                extern(delegate)|Preliminary Review Round 1|
 |[1004](./DIP1004.md)|          Inherited Constructors|Post-Preliminary 1|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|Post-Preliminary 1|
 |[1008](./DIP1008.md)|            Exceptions and @nogc|Post-Preliminary 1|
