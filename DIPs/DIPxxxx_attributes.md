@@ -131,6 +131,47 @@ if no attributes from `core.attribute` are attached.
  @core.attribute.GarbageCollectedness.inferred blarg(); 
  ```
 
+As the core attributes are now also regular attributes we can manipulte them as such:
+
+```
+version(SafeD) // hypothetically set by -safe on the command line
+{
+    alias __defaultSafetyAttribute = FunctionSafety.safe;
+}
+else
+{
+    alias __defaultSafetyAttribute = FunctionSafety.system; // or inferred
+}
+// Similarly for the other core attributes
+
+alias defaultAttributeSet = AliasSeq!(__defaultSafetyAttribute, __defaultThrowAttribute, ...); // ... meaning and so on
+```
+
+A similar approach could be used to always have -betterC imply `@nothrow @nogc` (and Typeinfo emission if it were to come under the control of an attribute).
+
+It is also possible to conveniently infer multiple attributes at once:
+
+```
+template infer(Attrs...)
+{
+    static if (Attrs.length == 0) alias infer = AliasSeq!();
+    else static if (is(typeof(Attr[0] == cast(typeof(Attrs[0]))0))) // if e is a value of an enum
+    {
+        alias infer = AliasSeq!(typeof(Attr[0]).inferred,infer!(Attrs[1 .. $]));
+    }
+    else 
+        alias infer = AliasSeq!(Attr[0].inferred,infer!(Attrs[1 .. $]));
+
+}
+```
+
+and can be used like
+
+```
+@infer!(nogc,FunctionSafety) module foo;
+```
+to infer attributes by either the core attribute enum (`FunctionSafety` in the above example) or a value of that enum (`nogc` in the above example).
+
 ## Copyright & License
 
 Copyright (c) 2017 by the D Language Foundation
