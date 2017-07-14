@@ -52,7 +52,7 @@ have a core attribute with the value `inferred`.
 * any other values (e.g. `@trusted`) continue from the value 3.
 
 A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
-If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, of with command line switches (e.g. `-safe` or if Type_Info / Module Info generation is added as an attribute `-betterC`).
+If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, or with command line switches (e.g. `-safe` or if Type_Info / Module Info generation is added as an attribute `-betterC`).
 
 As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them en masse, as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
 
@@ -127,7 +127,7 @@ if no attributes from `core.attribute` are attached.
  // quux is implicily @nogc because foo is @nogc
  void quux();
  
- // Error: declarations may not have their be be explicity inferred
+ // Error: declarations may not have their attributes be explicity inferred
  @core.attribute.GarbageCollectedness.inferred blarg(); 
  ```
 
