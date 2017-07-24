@@ -11,7 +11,7 @@
 ## Abstract
 
 Addresses the desire for different sets of default attributes and rectifies the non-invertibilty
-of the special compiler recognised attributes by having module level defaults. It does not (yet) 
+of the built-in attributes attributes by having module level defaults. It does not (yet) 
 propose any mechanism to remove compiler attributes directly (e.g. `@!nogc`).
 
 ### Links
@@ -20,7 +20,7 @@ propose any mechanism to remove compiler attributes directly (e.g. `@!nogc`).
 
 ## Terminology
 
-Groups of attributes that are mutually exclusive (such as `@safe`, `@system`, `@trusted`) and presence/absence attributes
+Groups of attributes that are mutually exclusive (such as `@safe`, `@system`, `@trusted`) and binary attributes
 (e.g. `pure`, `nothrow`) and their (currently) non-existant logical negations are called _attribute groups_.
 
 Attributes from `core.attribute` are called core attributes.
@@ -38,23 +38,55 @@ overrides of individual attribute groups.
 ## Description
 
 Move all (DMD) compiler recognized attributes into `core.attribute`, making them symbols in their own right, 
-grouping by attribute groups into `enum`s, each with
-* a value `inferred`. The compiler shall determine the value of the attribute. It is illegal to have a function declaration `inferred`.
-* the attribute(s)
-* (if applicable) the attributes' logical negation.
+grouping by attribute groups into `enum`s, each with the following members:
+* `inferred`. The compiler shall determine the value of the attribute. It is illegal for a function declaration without a body to be marked `inferred`. Does not apply to `final`/`virtual`.
+* the attributes default value e.g. `@system` impure
+* the default values' logical negation e.g `@safe` pure
+* any remaining attributes, e.g. `@trusted`
 
 It is suggested that 
-* `inferred` have the value 0, and the compiler shall be required to replace enum core attributes
-that have the value `inferred` to the acual value as determined by the compiler, i.e. no symbols in object files or in reflection shall
-have a core attribute with the value `inferred`. 
-* the current default have the value 1.
-* the negation of the default (`@safe` for `@safe`/`@system`/`@trusted`) the value 2.
+* `inferred` have the value 0, and the compiler shall be required to determine the appropriate value and use that to replace enum 
+core attributes which are set to the value `inferred`, i.e. no symbols in object files or in reflection shall have a core attribute
+with the value `inferred`. 
+* the attributes current default have the value 1.
+* the negation of the default the value 2.
 * any other values (e.g. `@trusted`) continue from the value 3.
 
-A module declaration may be tagged with zero or more attribute groups, to apply to all symbols (bar templates which remain inferred with explicit tagging) declared within the module acting as the default.
-If any attribute groups are absent, then the value for that attribute group default to the corresponding value in `core.attribute.defaultAttributeSet`, which will have the values of the current defauls, but may be versioned in druntime as the end user wishes, or with command line switches (e.g. `-safe` or if Type_Info / Module Info generation is added as an attribute `-betterC`).
+As all the attributes are now symbols we can:
+* group them in an `AliasSeq` like fashion to apply them en masse, as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58)
+* mutate the `AliasSeq`s with compile time computations.
 
-As all the attributes are now symbols we can group the in an `AliasSeq` like fashion to apply them en masse, as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58).
+A master set of atributes, `core.attribute.defaultAttributeSet`
+
+A module declaration may be tagged with zero or more attribute groups to apply to all symbols declared within the module acting as the default, with except of templates which remain inferred with explicit tagging.
+Any attribute groups not provided will be inserted into the modules' attribute list from `core.attribute.defaultAttributeSet`, the master set of atributes. 
+
+The values of `core.attribute.defaultAttributeSet` will be determined by version conditions under the control of compiler switches to provide maximum utility and flexibility, like so:
+
+```
+version (D_SafeD)
+    alias __defaultSafetyAttribute = FunctionSafety.safe;
+else
+    alias __defaultSafetyAttribute = FunctionSafety.inferred;
+
+version (D_BetterC)
+{
+    alias defaultAttributeSet = 
+        AliasSeq!(nogc,
+                  __defaultSafetyAttribute,
+                  nothrow,
+                  FunctionPurity.inferred);
+}
+else
+{
+    alias defaultAttributeSet = 
+        AliasSeq!(FunctionGarbageCollectedness.inferred,
+                  __defaultSafetyAttribute,
+                  FunctionThrowness.inferred,
+                  FunctionPurity.inferred);
+}                                     
+```
+It is also possible for the end user to directly control `core.attribute.defaultAttributeSet` by editing druntime directly.
 
 It is illegal to explicitly provide more than one attribute from any given attribute group as they are mutually exclusive. 
 Attributes applied explicity to any symbol override the module default attribute set.
@@ -70,7 +102,7 @@ Encompassed:
 
 Optionally encompassed:
 
-* final
+* final/virtual
 * Type_Info / Module Info generation (other components of -betterC?)
 
 Not encompassed:
@@ -78,13 +110,15 @@ Not encompassed:
 * @disable
 * @property
 
+as they are not grouped and do not make sense as a default.
+
 ### Breaking changes / deprecation process
 
 Use of the current attributes that are not prefiex by an `@` such as `pure` and `nothrow`,
 and optionally other modifiers that are attribute like such as `final` will be changed to refer to the `core.attribute` symbols,
 and thus their use without the leading `@` will be deprecated. 
 
-No breaking changes are intended, although the introduction of the new enum symbols to be implicitly imported by `object.d`
+No other breaking changes are intended, although the introduction of the new enum symbols to be implicitly imported by `object.d`
 may break some code if the names chosen clash (unlikely).
 
 ### Examples
