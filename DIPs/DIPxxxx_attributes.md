@@ -56,8 +56,6 @@ As all the attributes are now symbols we can:
 * group them in an `AliasSeq` like fashion to apply them en masse, as is done in LDC for [`@fastmath`](https://github.com/ldc-developers/druntime/blob/ldc/src/ldc/attributes.d#L58)
 * mutate the `AliasSeq`s with compile time computations.
 
-A master set of atributes, `core.attribute.defaultAttributeSet`
-
 A module declaration may be tagged with zero or more attribute groups to apply to all symbols declared within the module acting as the default, with except of templates which remain inferred with explicit tagging.
 Any attribute groups not provided will be inserted into the modules' attribute list from `core.attribute.defaultAttributeSet`, the master set of atributes. 
 
