@@ -1,6 +1,6 @@
 |                  ID|                           Title|  Status|
 |--------------------|--------------------------------|--------|
-|[1012](./DIO1012.md)|                      Attributes|Preliminary Review Round 1|
+|[1012](./DIP1012.md)|                      Attributes|Preliminary Review Round 1|
 |[1009](./DIP1009.md)|      Improve Contract Usability|Preliminary Review Round 2|
 |[1004](./DIP1004.md)|          Inherited Constructors|Post-Preliminary 1|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|Post-Preliminary 1|
