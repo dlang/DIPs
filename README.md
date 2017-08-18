@@ -40,14 +40,14 @@ The overarching goal of the entire review process is to ensure the language auth
 
 The first stage of the review process begins as soon as a DIP author opens a pull request submitting the DIP to this repository. Subsequent stages are opened and closed at the discretion of the DIP manager. The stages of the review process are as follows.
 
-1.  **Draft Review** 
-    While a DIP is in the PR queue, it will be open to feedback from the community and the DIP manager. At this stage, the review is carried out in PR comments. Reviewers should aim to fill any obvious holes in the DIP and request more detail where it is warranted. This is not the place for debates or detailed discussions about the DIP or its merits. Comments should be restricted solely to improving the proposal's coverage. Editorial suggestions are also welcome. 
+1. **Draft Review** 
+   While a DIP is in the PR queue, it will be open to feedback from the community and the DIP manager. At this stage, the review is carried out in PR comments. Reviewers should aim to fill any obvious holes in the DIP and request more detail where it is warranted. This is not the place for debates or detailed discussions about the DIP or its merits. Comments should be restricted solely to improving the proposal's coverage. Editorial suggestions are also welcome. 
     
-    The overarching goal of this stage is for the DIP to achieve a state that minimizes the number of review rounds in the next stage.
+   The overarching goal of this stage is for the DIP to achieve a state that minimizes the number of review rounds in the next stage.
     
-    There is no time limit on the Draft Review, no guarantees on the amount of time that may elapse between the submission of a DIP and its acceptance into the repository. Upon determining a DIP is not suitable for acceptance into the repository, the DIP manager is required to inform the author of the changes that must be made to make it acceptable. If the author does not apply the recommendations within a *reasonable* amount of time, the DIP manager may close the PR until the author, or someone else, decides to reopen it and work to move the DIP forward.
+   There is no time limit on the Draft Review, no guarantees on the amount of time that may elapse between the submission of a DIP and its acceptance into the repository. Upon determining a DIP is not suitable for acceptance into the repository, the DIP manager is required to inform the author of the changes that must be made to make it acceptable. If the author does not apply the recommendations within a *reasonable* amount of time, the DIP manager may close the PR until the author, or someone else, decides to reopen it and work to move the DIP forward.
 
-    At the end of this stage, the DIP will be pushed be merged into the repository and given the `Draft` status.
+   At the end of this stage, the DIP will be pushed be merged into the repository and given the `Draft` status.
 
 2. **Preliminary Review**   
    The overarching goal of the Preliminary Review is to prepare the DIP for the Formal Review. This stage may consist of multiple rounds. Multiple DIPs may be under preliminary review simultaneously.
@@ -63,21 +63,21 @@ The first stage of the review process begins as soon as a DIP author opens a pul
    Once the DIP manager and the author are satisfied that the DIP is reasonably complete, the DIP manager will update the state of the DIP to `Pre-Formal`.
 
 3. **Formal Review**
-    This is the stage where the DIP is presented to the language authors for evaluation and a final decision on its disposition. Only one DIP may be under Formal Review at a time. This stage consists of two steps.
+   This is the stage where the DIP is presented to the language authors for evaluation and a final decision on its disposition. Only one DIP may be under Formal Review at a time. This stage consists of two steps.
 
-    The Formal Review is initiated when the DIP manager changes the state of a DIP to `Formal Review`, announces the review in the Announce forum, and opens a discussion thread in the General forum. 
+   The Formal Review is initiated when the DIP manager changes the state of a DIP to `Formal Review`, announces the review in the Announce forum, and opens a discussion thread in the General forum. 
     
-    The discussion thread is the first step. It is an opportunity for the community to provide any last minute feedback on the DIP. The feedback period will last for approximately 15 days. Participants should avoid debate on the merits of the DIP at in this thread, though it is acceptable to make their express their opinions known for the benefit of the language authors. The primary focus should be on finding flaws that were overlooked in the previous stages. 
+   The discussion thread is the first step. It is an opportunity for the community to provide any last minute feedback on the DIP. The feedback period will last for approximately 15 days. Participants should avoid debate on the merits of the DIP in this thread, though it is acceptable to express their opinions for the benefit of the language authors. The primary focus should be on finding flaws that were overlooked in the previous stages. 
     
-    The DIP author is not required to address any feedback at this stage, nor is the author required to incorporate any feedback into the DIP at the end of the period. However, the DIP manager may decide to halt the Formal Review if any of the feedback is deemed critical enough (e.g. a serious issue is raised in how a proposed feature interacts with existing features) and take the appropriate action (such as asking the author to update the DIP or, in extreme cases, reverting to a new Preliminary Review round).
+   The DIP author is not required to address any feedback at this stage, nor is the author required to incorporate any feedback into the DIP at the end of the period. However, the DIP manager may decide to halt the Formal Review if any of the feedback is deemed critical enough (e.g. a serious issue is raised in how a proposed feature interacts with existing features) and take the appropriate action (such as asking the author to update the DIP or, in extreme cases, reverting to a new Preliminary Review round).
     
-    At the end of the feedback period, the DIP will be closed to all further updates and the second step initiated. The DIP manager will submit the DIP to the language authors and await their decision. Once the decision is reached, the DIP will be marked `Accepted`, `Rejected`, or `Postponed`. The language authors may ask for the DIP to be revised or rewritten. In the latter case, the process will begin again from the Draft Review stage when the DIP author submits the rewritten version. The DIP manager will add a summary of the decision at the bottom of the document.
+   At the end of the feedback period, the DIP will be closed to all further updates and the second step initiated. The DIP manager will submit the DIP to the language authors and await their decision. Once the decision is reached, the DIP will be marked `Accepted`, `Rejected`, or `Postponed`. The language authors may ask for the DIP to be revised or rewritten. In the latter case, the process will begin again from the Draft Review stage when the DIP author submits the rewritten version. The DIP manager will add a summary of the decision at the bottom of the document.
 
-    When a DIP is `Accepted` by the language authors, the DIP manager will ask the DIP author to remove any aspects of the DIP that were rejected (e.g. if the DIP presents multiple options, only the accepted option will remain). This penultimate version of the DIP is intended represent the feature as it is to be implemented. The DIP manager will include a note about the rejected aspects in the summary at the bottom of the document.
+   When a DIP is `Accepted` by the language authors, the DIP manager will ask the DIP author to remove any aspects of the DIP that were rejected (e.g. if the DIP presents multiple options, only the accepted option will remain). This penultimate version of the DIP is intended represent the feature as it is to be implemented. The DIP manager will include a note about the rejected aspects in the summary at the bottom of the document.
 
-    A `Rejected` DIP cannot be resurrected. A DIP that is similar may be submitted, but must be clearly distinct from the rejected DIP. The DIP manager is the final arbiter and may refuse to merge such a DIP if the distinction is not clear.
+   A `Rejected` DIP cannot be resurrected. A DIP that is similar may be submitted, but must be clearly distinct from the rejected DIP. The DIP manager is the final arbiter and may refuse to merge such a DIP if the distinction is not clear.
 
-    A DIP marked `Postponed` will remain as such indefinitely. The language authors will determine when to revisit the DIP and render a final judgement.
+   A DIP marked `Postponed` will remain as such indefinitely. The language authors will determine when to revisit the DIP and render a final judgement.
 
 #### Exceptions to the Rules
 
