@@ -47,7 +47,7 @@ The first stage of the review process begins as soon as a DIP author opens a pul
     
    There is no time limit on the Draft Review, no guarantees on the amount of time that may elapse between the submission of a DIP and its acceptance into the repository. Upon determining a DIP is not suitable for acceptance into the repository, the DIP manager is required to inform the author of the changes that must be made to make it acceptable. If the author does not apply the recommendations within a *reasonable* amount of time, the DIP manager may close the PR until the author, or someone else, decides to reopen it and work to move the DIP forward.
 
-   At the end of this stage, the DIP will be pushed be merged into the repository and given the `Draft` status.
+   At the end of this stage, the DIP will be merged into the repository and given the `Draft` status.
 
 2. **Preliminary Review**   
    The overarching goal of the Preliminary Review is to prepare the DIP for the Formal Review. This stage may consist of multiple rounds. Multiple DIPs may be under preliminary review simultaneously.
