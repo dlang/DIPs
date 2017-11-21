@@ -464,50 +464,6 @@ void main()
 
 Despite the unfortunate inconsistency of this proposal treating rvalue properties and lvalue properties differently, it is necessary to prevent breakage and maintain the status quo.
 
-Note that assigning to the return value of lvalue `@property` functions is already the status quo as illustrated in the following
-example.
-```D
-class R
-{
-    int field;
-    int opAssignCount;
-
-    void opAssign(int rhs)
-    {
-        opAssignCount++;
-        field = rhs;
-    }
-}
-
-struct S
-{
-    R field = new R();
-    int setterCount;
-
-    ref R prop() @property
-    {
-        return field;
-    }
-
-    ref R prop(R value) @property
-    {
-        setterCount++;
-        return field = value;
-    }
-}
-
-void main()
-{
-    S s;
-
-    s.prop = 1;                          // Existing Implementation: `1` is assigned to `prop`'s
-                                            // return value
-
-    assert(s.setterCount == 0);
-    assert(s.field.opAssignCount == 1);
-}
-```
-
 Without this special case the following Phobos implementations would break.
 
 - [`std.typecons.Nullable`](https://github.com/dlang/phobos/blob/feab9a2f5225d7f3a5179f24ae3699e64455807c/std/typecons.d#L2562-L2573)
