@@ -156,17 +156,17 @@ struct S
 {
     int field;
 
-	ref int prop() @property
-	{
-		return field & 0b11;  // Existing Implementation: Error: `this.field & 3` is not an lvalue
-	}
+    ref int prop() @property
+    {
+        return field & 0b11;  // Existing Implementation: Error: `this.field & 3` is not an lvalue
+    }
 }
 
 void main()
 {
-	S s;
+    S s;
 
-	s.prop += 1;
+    s.prop += 1;
 }
 ```
 
@@ -256,8 +256,8 @@ void main()
     ((auto ref _e1) => _e1.prop(_e1.prop() + 1))(e1);
 
     assert(s.field == 1);        // Requirement 1: Confirm desired result
-	assert(getCount == 1);       // Requirement 2: Confirm `e1` was only evaluated once
-	assert(s.copyCount == 0);    // Requirement 3: Confirm `e1` was not copied
+    assert(getCount == 1);       // Requirement 2: Confirm `e1` was only evaluated once
+    assert(s.copyCount == 0);    // Requirement 3: Confirm `e1` was not copied
     assert(s.getterCount == 1);  // Requirement 4: Confirm getter was called exactly once
     assert(s.setterCount == 1);  // Requirement 4: Confirm setter was called exactly once
 }
@@ -270,7 +270,7 @@ Free properties with a context argument can be called with UFCS.  Binary assignm
 ```D
 struct S
 {
-	int field;
+    int field;
 }
 
 int prop(S* context) @property { return context.field; }
@@ -278,13 +278,13 @@ int prop(S* context, int value) @property { return context.field = value; }
 
 void main()
 {
-	S s;
+    S s;
 
     // The lowering of `s.prop += 1` as proposed in this DIP.
     // Existing Implementation:  Compiles and produces the expected result.
     ((auto ref _e1) => _e1.prop(_e1.prop() + 1))(&s);
 
-	assert(s.field == 1);
+    assert(s.field == 1);
 }
 ```
 
@@ -462,27 +462,27 @@ void main()
 }
 ```
 
-Despite the unfortuate inconsistency of this proposal treating rvalue properties and lvalue properties differently, it is necessary to prevent breakage and maintain the status quo.
+Despite the unfortunate inconsistency of this proposal treating rvalue properties and lvalue properties differently, it is necessary to prevent breakage and maintain the status quo.
 
 Note that assigning to the return value of lvalue `@property` functions is already the status quo as illustrated in the following
 example.
 ```D
 class R
 {
-	int field;
-	int opAssignCount;
+    int field;
+    int opAssignCount;
 
-	void opAssign(int rhs)
-	{
-		opAssignCount++;
-		field = rhs;
-	}
+    void opAssign(int rhs)
+    {
+        opAssignCount++;
+        field = rhs;
+    }
 }
 
 struct S
 {
     R field = new R();
-	int setterCount;
+    int setterCount;
 
     ref R prop() @property
     {
@@ -491,20 +491,20 @@ struct S
 
     ref R prop(R value) @property
     {
-		setterCount++;
+        setterCount++;
         return field = value;
     }
 }
 
 void main()
 {
-	S s;
+    S s;
 
-	s.prop = 1;                          // Existing Implementation: `1` is assigned to `prop`'s 
-                                         // return value
+    s.prop = 1;                          // Existing Implementation: `1` is assigned to `prop`'s
+                                            // return value
 
-	assert(s.setterCount == 0);
-	assert(s.field.opAssignCount == 1);
+    assert(s.setterCount == 0);
+    assert(s.field.opAssignCount == 1);
 }
 ```
 
