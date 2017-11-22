@@ -471,6 +471,8 @@ Without this special case the following Phobos implementations would break.
 
 There would likely be other breakages in the D ecosystem.
 
+It may be possible to remove this special case in the future after the solution proposed in this DIP is implemented.  That is, [as described in the rationale](#lack-of-binary-assignment-operators-for-properties-proliferates-anti-patterns), with the proposed implementation in place, users will no longer need to misuse lvalue `@property` functions to obtain the convenience of binary assignment operators.  As users convert their lvalue properties to rvalue properties, the occurrences of lvalue properties will decline, potentially enabling the possibility to tolerate a breaking change, removing this special case, and uniting both lvalue properties and rvalue properties under [the general case](#the-general-case).
+
 ### Special case 3
 
 If `e1` is a type, and `prop` is a `static` property of that type, the semantics of `e1` are quite different (i.e. *Requirement 2* and *Requirement 3* are irrelevant). Therefore, it is handled differently.  [Special case 1](#Special%20case%201) and [special case 2](#Special%20case%202) still apply.
