@@ -1,4 +1,4 @@
-# D Improvement Proposals (DIPs)
+# D Improvement Proposals
 
 Questions about this document or the DIP process should be directed to the current DIP manager, Mike Parker (aldacron@gmail.com).
 
@@ -20,11 +20,11 @@ DIP submission is open to one and all. Each submission should adhere to a few gu
 
 1.  Write a document that outlines the proposal in the format specified by [the template](https://github.com/dlang/DIPs/blob/master/Template.md) provided in this repository. Not every section listed in the template may apply to a given DIP, but it is important that every applicable section is included. For example, a proposal implying breaking changes has almost no chance to be accepted if it fails to describe a migration path to mitigate breakage, but a proposal that carries no breaking changes can dispense with that section. The author may further subdivide the document as desired.
 
-2.  Create a new pull request against this repository that adds a new document to the `DIPs` folder. The document must be named "DIP1xxx-(Author Initials).md". The "xxx" is a placeholder for a future ID that will be assigned by the DIP manager if and when the PR is merged into the repository. The pull request title should match the DIP title.
+2.  Create a new pull request against this repository that adds a new document to the `DIPs` folder. The document must be named `DIP1xxx-(Author Initials).md`. The `xxx` is a placeholder for a future ID that will be assigned by the DIP manager if and when the PR is merged into the repository. The pull request title should match the DIP title.
 
 #### Advice for writing great DIPs
 
-The document '[GUIDELINES.md](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md)' provides advice on how to write a proper DIP. Ignoring it reduces the chance of a DIP being accepted into the repository.
+The [guidelines document](https://github.com/dlang/DIPs/blob/master/GUIDELINES.md) provides advice on how to write a proper DIP. Ignoring it reduces the chance of a DIP being accepted into the repository.
 
 #### Migrating an old DIP
 
@@ -40,8 +40,9 @@ The overarching goal of the entire review process is to ensure the language auth
 
 The first stage of the review process begins as soon as a DIP author opens a pull request submitting the DIP to this repository. Subsequent stages are opened and closed at the discretion of the DIP manager. The stages of the review process are as follows.
 
-1. **Draft Review** 
-   While a DIP is in the PR queue, it will be open to feedback from the community and the DIP manager. At this stage, the review is carried out in PR comments. Reviewers should aim to fill any obvious holes in the DIP and request more detail where it is warranted. This is not the place for debates or detailed discussions about the DIP or its merits. Comments should be restricted solely to improving the proposal's coverage. Editorial suggestions are also welcome. 
+1. **Draft Review**
+
+   While a DIP is in the PR queue, it will be open to feedback from the community and the DIP manager. At this stage, the review is carried out in PR comments. Reviewers should aim to fill any obvious holes in the DIP and request more detail where it is warranted. This is not the place for debates or detailed discussions about the DIP or its merits. Comments should be restricted solely to improving the proposal’s coverage. Editorial suggestions are also welcome. 
     
    The overarching goal of this stage is for the DIP to achieve a state that minimizes the number of review rounds in the next stage.
     
@@ -49,7 +50,8 @@ The first stage of the review process begins as soon as a DIP author opens a pul
 
    At the end of this stage, the DIP will be merged into the repository and given the `Draft` status.
 
-2. **Preliminary Review**   
+2. **Preliminary Review**
+
    The overarching goal of the Preliminary Review is to prepare the DIP for the Formal Review. This stage may consist of multiple rounds. Multiple DIPs may be under preliminary review simultaneously.
 
    To launch a Preliminary Review, the DIP manager will mark the DIP with the `Preliminary Review Round N` state (where `N` is the current Preliminary Review round), announce the review in the Announce forum, and open a discussion thread in the General forum. All review-related discussion should take place in this thread. Reviewers at this stage should do their best to look deeper into the proposal to discover any flaws that were not caught in the Draft Review. The DIP author is expected to address all primary criticisms (not every comment a criticism inspires) with comments in the thread.
@@ -63,6 +65,7 @@ The first stage of the review process begins as soon as a DIP author opens a pul
    Once the DIP manager and the author are satisfied that the DIP is reasonably complete, the DIP manager will update the state of the DIP to `Pre-Formal`.
 
 3. **Formal Review**
+
    This is the stage where the DIP is presented to the language authors for evaluation and a final decision on its disposition. Only one DIP may be under Formal Review at a time. This stage consists of two steps.
 
    The Formal Review is initiated when the DIP manager changes the state of a DIP to `Formal Review`, announces the review in the Announce forum, and opens a discussion thread in the General forum. 
@@ -93,10 +96,10 @@ The DIP manager serves as Gatekeeper, Guide, and Coordinator throughout the DIP 
 
 It should be *difficult* to get a DIP approved. The days when new features could be added to the language through a casual discussion in the community forums are in the past. If a feature is worth adding to the language, than it must be worth the time investment required to craft a complete proposal and shepherd it through the review process. 
 
-* Gatekeeper -- The first step in the process is getting through the gate from the PR queue into the repository. The DIP manager has the authority to determine if a DIP meets the nebulous criteria for `Draft` status (determined on a case-by-case basis) and, if not, to refuse to accept the DIP into the repository until such requirements are met. This is not the same as rejecting a DIP outright, a privilege resting solely in the purview of the language authors. If a DIP author decides to abandon an unmerged DIP, anyone may take it over and modify it to meet the DIP manager's requirements. 
+* Gatekeeper — The first step in the process is getting through the gate from the PR queue into the repository. The DIP manager has the authority to determine if a DIP meets the nebulous criteria for `Draft` status (determined on a case-by-case basis) and, if not, to refuse to accept the DIP into the repository until such requirements are met. This is not the same as rejecting a DIP outright, a privilege resting solely in the purview of the language authors. If a DIP author decides to abandon an unmerged DIP, anyone may take it over and modify it to meet the DIP manager’s requirements. 
 
-* Guide -- The DIP manager is responsible for keeping the DIP's status up-to-date, making sure the direct links to previously reviewed versions are accurate, and keeping the DIP author informed of what needs to be done to progress to the next stage. The DIP manager also must determine, based on nebulous criteria, when a DIP is ready to move out of the Preliminary Review stage to await formal review.
+* Guide — The DIP manager is responsible for keeping the DIP’s status up-to-date, making sure the direct links to previously reviewed versions are accurate, and keeping the DIP author informed of what needs to be done to progress to the next stage. The DIP manager also must determine, based on nebulous criteria, when a DIP is ready to move out of the Preliminary Review stage to await formal review.
 
-* Coordinator -- The DIP manager is required to announce and moderate DIP reviews, ensure that the DIP author addresses primary criticisms, facilitate any necessary communication between the language authors and the DIP author, and take steps to mitigate any potential confusion (e.g. including DIP titles in forum announcements).
+* Coordinator — The DIP manager is required to announce and moderate DIP reviews, ensure that the DIP author addresses primary criticisms, facilitate any necessary communication between the language authors and the DIP author, and take steps to mitigate any potential confusion (e.g. including DIP titles in forum announcements).
 
-Disagreements between a DIP author, or other community member, and the DIP manager are bound to arise (e.g. disagreement over the DIP manager's refusal to merge a DIP under Draft Review). If such conflicts can not be settled satisfactorily through private communication, the DIP manager may encourage the complainant to open a thread in the General forum for community mediation or may ask the language authors to render judgement, depending on the nature of the dispute.
+Disagreements between a DIP author, or other community member, and the DIP manager are bound to arise (e.g. disagreement over the DIP manager’s refusal to merge a DIP under Draft Review). If such conflicts can not be settled satisfactorily through private communication, the DIP manager may encourage the complainant to open a thread in the General forum for community mediation or may ask the language authors to render judgement, depending on the nature of the dispute.
