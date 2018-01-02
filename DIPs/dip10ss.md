@@ -84,7 +84,7 @@ Parameter:
 
 ## Existing Solutions
 
-Apply UDA through parent symbol with additional information for which child it should be applied to:
+A current solution for applying an UDA to an enum or parameter is to use an UDA on the parent symbol with some additional information for which child element it should be applied to. This allows the desired UDA to be used and associated with the desired symbol. It introduces some duplication and the information stored in the UDA is separated from the rest of the information of the symbol.
 
 ```D
 @MyUda("feature0", "...")
@@ -101,9 +101,7 @@ void foo(int param0)
 }
 ```
 
-This allows the desired UDA to be used and associated with the desired symbol. It introduces some duplication and the information stored in the UDA is separated from the rest of the information of the symbol.
-
-Deprecation of an enum can be done by reimplementing an enum as a structure with static enums as follows:
+A solution for applying the `deprecation` attribute to an enum member can be done by reimplementing an enum as a structure with static enums. This allows the attribute to be placed with the desired enum member. While still allowing for any existing code that simply used an enum before hand to still work accordingly, as if the struct was an enum.
 
 ```D
 enum SomeEnumImpl
@@ -113,7 +111,7 @@ enum SomeEnumImpl
     actualValue3 = 3,
 }
 
-public struct SomeEnum
+struct SomeEnum
 {
     SomeEnumImpl x;
     alias this x;
