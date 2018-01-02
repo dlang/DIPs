@@ -16,7 +16,9 @@ Allow additional meta information (attributes) to be attached with enums and fun
 
 [Preliminary discussion about Enum and Function Parameter Attributes on the NG](http://forum.dlang.org/thread/cltyrthdxkkfvuxqasqw@forum.dlang.org)
 
-[Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/4783/files)
+[(New) Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/7576)
+
+[(Old) Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/4783/files)
 
 ## Rationale
 
