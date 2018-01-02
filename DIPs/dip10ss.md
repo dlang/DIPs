@@ -28,7 +28,29 @@ The concept known as "orthogonality of language features" applies here. Attribut
 
 ## Description
 
-TBD
+Grammar changes for [Enum](https://dlang.org/spec/enum.html):
+
+```
+EnumMember:
+    Identifier
+    Identifier = AssignExpression
+
+// becomes -------------------------------------------
+
+EnumAttribute:
+    DeprecatedAttribute
+    UserDefinedAttribute
+
+EnumAttributes:
+    EnumAttribute
+    EnumAttiribute EnumAttributes
+
+EnumMember:
+    Identifier
+    Identifier = AssignExpression
+    EnumAttributes Identifier
+    EnumAttributes Identifier = AssignExpression
+```
 
 ## Existing Solutions
 
