@@ -52,6 +52,36 @@ EnumMember:
     EnumAttributes Identifier = AssignExpression
 ```
 
+Grammar change for [Function](https://dlang.org/spec/function.html):
+
+```
+Parameter:
+    InOut_opt BasicType Declarator
+    InOut_opt BasicType Declarator ...
+    InOut_opt BasicType Declarator = AssignExpression
+    InOut_opt Type
+    InOut_opt Type ...
+
+// becomes -----------------------------
+
+ParameterAttribute:
+    UserDefinedAttribute
+
+ParameterAttributes:
+    ParameterAttribute
+    ParameterAttribute ParameterAttributes
+
+Parameter:
+    InOut_opt BasicType Declarator
+    InOut_opt BasicType Declarator ...
+    InOut_opt BasicType Declarator = AssignExpression
+    InOut_opt Type
+    InOut_opt Type ...
+    ParameterAttributes InOut_opt BasicType Declarator
+    ParameterAttributes InOut_opt BasicType Declarator = AssignExpression
+    ParameterAttributes InOut_opt Type
+```
+
 ## Existing Solutions
 
 Apply UDA through parent symbol with additional information for which child it should be applied to:
