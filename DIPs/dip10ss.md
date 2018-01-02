@@ -162,7 +162,7 @@ enum SomeEnum
 }
 ```
 
-Providing extra attributes that can be used to take advantage of knowledge known about the function parameters:
+Providing extra attributes that can be used to take advantage of knowledge known about the function parameters. An example of this is `NonNull` as could be implemented in LDC2 through LLVM. More details [here](https://clang.llvm.org/docs/AttributeReference.html#nonnull).
 
 ```D
 extern(C) void fetch(@NonNull int* ptr)
@@ -170,7 +170,7 @@ extern(C) void fetch(@NonNull int* ptr)
 }
 ```
 
-Examples of above from [vibe.d](https://github.com/vibe-d/vibe.d):
+More examples of parameter attributes from [vibe.d](https://github.com/vibe-d/vibe.d):
 
 ```D
 @body("user")
