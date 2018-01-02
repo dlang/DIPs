@@ -14,19 +14,21 @@ Allow additional meta information (attributes) to be attached with enums and fun
 
 ### Links
 
-[Does it require a DIP?](http://forum.dlang.org/thread/cltyrthdxkkfvuxqasqw@forum.dlang.org)
+[Preliminary discussion about Enum and Function Parameter Attributes on the NG](http://forum.dlang.org/thread/cltyrthdxkkfvuxqasqw@forum.dlang.org)
 
 ## Rationale
 
-It is currently not possible to attach attributes to both enums and function parameters. This excludes a few features that can be used with almost any other symbol in D. Attributes and User Defined Attributes serve as a means to provide extra meta data for a symbol. What can be said for why attributes were included as a feature in D can also be said for why they should be extended to enums and function parameters. It is benefitial to provide extra meta data about a symbol that can be used at compile-time.
+It is currently not possible to attach attributes to both enums and function parameters. This excludes a few features that can be used with almost any other symbol in D.
+
+Attributes and user-defined attributes (UDA) serve as a means to provide extra meta data for a symbol. What can be said for why attributes were included as a feature in D can also be said for why they should be extended to enums and function parameters. It is benefitial to provide extra meta data about a symbol that can be used at compile-time.
+
+The concept know as orthogonality of language features applies here. Attributes can be applied to almost every symbol in D. A user would expect them to also be applicable to enums and function parameters.
 
 ## Description
 
 TBD
 
 ## Existing Solutions
-
-Existing solutions exist only for UDAs, for an attribute such a `deprecated`, there is no existing solution to receive the desired effect.
 
 Apply UDA through parent symbol with additional information for which child it should be applied to:
 
@@ -43,24 +45,108 @@ enum SomeEnum
 void foo(int param0)
 {
 }
-
 ```
 
 This allows the desired UDA to be used and associated with the desired symbol. It introduces some duplication and the information stored in the UDA is separated from the rest of the information of the symbol.
 
+Deprecation of an enum can be done by reimplementing an enum as a structure with static enums as follows:
+
+```D
+enum SomeEnumImpl
+{
+    none         = -1,
+    actualValue2 = 2,
+    actualValue3 = 3,
+}
+
+public struct SomeEnum
+{
+    SomeEnumImpl x;
+    alias this x;
+
+    deprecated("reason for deprecation")
+    static enum deprecatedValue0 = none;
+
+    deprecated("reason for deprecation")
+    static enum deprecatedValue1 = none;
+}
+```
 
 ### Examples
 
-Allowing to deprecate enums which should not be used anymore:
+Allowing to deprecate enums which should not be used anymore as seen [here](https://github.com/vibe-d/vibe.d/pull/1947/files):
 
 ```D
+enum SomeEnumImpl
+{
+    none         = -1,
+    actualValue2 = 2,
+    actualValue3 = 3,
+}
+
+public struct SomeEnum
+{
+    SomeEnumImpl x;
+    alias this x;
+
+    deprecated("reason for deprecation")
+    static enum deprecatedValue0 = SomeEnumImpl.none;
+
+    deprecated("reason for deprecation")
+    static enum deprecatedValue1 = SomeEnumImpl.none;
+}
+
+// becomes
+
 enum SomeEnum
 {
-    feature0,
-    feature1,
+    none = -1,
+    deprecated("reason for deprecation")
+    deprecatedValue0 = none,
+    deprecated("reason for deprecation")
+    deprecatedValue1 = none,
+    actualValue2 = 2,
+    actualValue3,
+}
+```
 
-    deprecated("use feature0 or feature1 instead")
-    feature2,
+Providing extra attributes that can be used to take advantage of knowledge known about the function parameters:
+
+```D
+extern(C) void fetch(@NonNull int* ptr)
+{
+}
+```
+
+Examples of above from [vibe.d](https://github.com/vibe-d/vibe.d):
+
+```D
+@body("user")
+@errorDisplay
+auto postUsers(User _user, string  _error)
+{
+}
+
+// becomes
+
+auto postUser(@body User user, @errors Errors errors)
+{
+}
+
+// Another example:
+
+@path("/users/:id")
+@queryParam("page")
+@before!authenticate("user")
+auto getUsers(string _id, int page, User user)
+{
+}
+
+// becomes
+
+@path("/users/:id")
+auto getUser(@urlParam string id, @queryParam int page, @auth User user)
+{
 }
 ```
 
@@ -74,27 +160,31 @@ enum ScriptType
     scenery,
 }
 
-// scripting language can now know that the index is of a specific type
-// the scripting language not being aware that it is just an index
+struct ScriptParameter
+{
+    string name;
+    ScriptType type;
+}
+
+@ScriptParameter("vehicleIndex", ScriptType.vehicle)
+void someFunction(string name, int vehicleIndex)
+{
+}
+
+// becomes
+
+enum ScriptType
+{
+    vehicle,
+    character,
+    scenery,
+}
+
 void someFunction(string name, @ScriptType.vehicle int vehicleIndex)
 {
-    // ...
-}
-```
-
-Providing extra attributes that can be used to take advantage of knowledge known about the function parameters:
-
-```D
-
-extern(C) void fetch(@NonNull int* ptr)
-{
-    // ...
 }
 ```
 
 ## Copyright & License
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
-
-
-
