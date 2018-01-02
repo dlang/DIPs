@@ -22,7 +22,7 @@ It is currently not possible to attach attributes to both enums and function par
 
 Attributes and user-defined attributes (UDA) serve as a means to provide extra meta data for a symbol. What can be said for why attributes were included as a feature in D can also be said for why they should be extended to enums and function parameters. It is benefitial to provide extra meta data about a symbol that can be used at compile-time.
 
-The concept know as orthogonality of language features applies here. Attributes can be applied to almost every symbol in D. A user would expect them to also be applicable to enums and function parameters.
+The concept known as "orthogonality of language features" applies here. Attributes can be applied to almost every symbol in D. A user would expect them to also be applicable to enums and function parameters.
 
 ## Description
 
