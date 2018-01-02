@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | 10ss                                                            |
 | Review Count:   | NA                                                              |
-| Author(s):      | @skl131313                                                      |
+| Author(s):      | [skl131313](https://github.com/skl131313)                       |
 | Status:         | NA                                                              |
 
 
@@ -15,6 +15,7 @@ Allow additional meta information (attributes) to be attached with enums and fun
 ### Links
 
 [Preliminary discussion about Enum and Function Parameter Attributes on the NG](http://forum.dlang.org/thread/cltyrthdxkkfvuxqasqw@forum.dlang.org)
+[Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/4783/files)
 
 ## Rationale
 
