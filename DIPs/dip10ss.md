@@ -30,6 +30,40 @@ The concept known as "orthogonality of language features" applies here. Attribut
 
 ## Description
 
+The changes made to D would be relatively minor. Most of the framework for attributes already exist and it would just be a matter of extending that into the respective symbols for enums and function parameters.
+
+The following syntaxes are being proposed to be accepted:
+
+```D
+enum SomeEnum
+{
+    // attributes declared infront of enum value
+    @90 @MyUda deprecated("reason") someEnumValue0,
+    @91 @MyUda deprecated("reason") someEnumValue1 = 1,
+}
+
+// attributes for enum values can be retrieved with __traits(getAttributes, ...)
+static assert(__traits(getAttributes, SomeEnum.someEnumValue0)[0] == 90);
+static assert(__traits(getAttributes, SomeEnum.someEnumValue1)[0] == 91);
+
+// for functions, attributes are allowed infront of function parameters
+void someFunction(@93 @MyUda int someParameter)
+{
+    // can use __traits(getAttributes, ...) with the paramter from inside of function
+    static assert(__traits(getAttributes, someParamter)[0] == 93);
+}
+
+void someExternalFunction()
+{
+    // attributes can be accessed for paramters by another function
+    // through existing functionality of __parameters
+    static if(is(typeof(someFunction) PT == __parameters))
+    {
+        static assert(__traits(getAttributes, PT[0 .. 1]) == 93);
+    }
+}
+```
+
 Grammar changes for [Enum](https://dlang.org/spec/enum.html):
 
 ```
@@ -50,8 +84,8 @@ EnumAttributes:
 EnumMember:
     Identifier
     Identifier = AssignExpression
-    EnumAttributes Identifier
-    EnumAttributes Identifier = AssignExpression
++   EnumAttributes Identifier
++   EnumAttributes Identifier = AssignExpression
 ```
 
 Grammar change for [Function](https://dlang.org/spec/function.html):
@@ -79,9 +113,9 @@ Parameter:
     InOut_opt BasicType Declarator = AssignExpression
     InOut_opt Type
     InOut_opt Type ...
-    ParameterAttributes InOut_opt BasicType Declarator
-    ParameterAttributes InOut_opt BasicType Declarator = AssignExpression
-    ParameterAttributes InOut_opt Type
++   ParameterAttributes InOut_opt BasicType Declarator
++   ParameterAttributes InOut_opt BasicType Declarator = AssignExpression
++   ParameterAttributes InOut_opt Type
 ```
 
 ## Existing Solutions
