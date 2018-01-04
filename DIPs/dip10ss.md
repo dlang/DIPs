@@ -38,8 +38,8 @@ The following syntaxes are being proposed to be accepted:
 enum SomeEnum
 {
     // attributes declared infront of enum value
-    @90 @MyUda deprecated("reason") someEnumValue0,
-    @91 @MyUda deprecated("reason") someEnumValue1 = 1,
+    @(90) @MyUda deprecated("reason") someEnumValue0,
+    @(91) @MyUda deprecated("reason") someEnumValue1 = 1,
 }
 
 // attributes for enum values can be retrieved with __traits(getAttributes, ...)
@@ -47,7 +47,7 @@ static assert(__traits(getAttributes, SomeEnum.someEnumValue0)[0] == 90);
 static assert(__traits(getAttributes, SomeEnum.someEnumValue1)[0] == 91);
 
 // for functions, attributes are allowed infront of function parameters
-void someFunction(@93 @MyUda int someParameter)
+void someFunction(@(93) @MyUda int someParameter)
 {
     // can use __traits(getAttributes, ...) with the paramter from inside of function
     static assert(__traits(getAttributes, someParamter)[0] == 93);
