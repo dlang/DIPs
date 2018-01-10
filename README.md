@@ -1,6 +1,6 @@
 # D Improvement Proposals
 
-Questions about this document or the DIP process should be directed to the current DIP manager, Mike Parker (aldacron@gmail.com).
+Questions about this document or the DIP process should be directed to the current DIP manager, Mike Parker (&#x61;&#x6c;&#x64;&#x61;&#x63;&#x72;&#x6f;&#x6e;&#x40;&#x67;&#x6d;&#x61;&#x69;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;).
 
 [List of submitted DIPs](https://github.com/dlang/DIPs/blob/master/DIPs/README.md)
 
