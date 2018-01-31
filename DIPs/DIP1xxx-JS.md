@@ -31,7 +31,19 @@ A symbol or feature must not be marked for removal on a specific date, but rathe
 specific release. This allows users to easily know if upgrading will break their
 code or not.
 
-Both at the time of deprecation and removal, a changelog entry must be made.
+At the time of the pull request for deprecation, all code in Phobos, Druntime,
+and DMD must be updated to remove use of the effected code. Any projects that
+are tested on the Project Tester that are broken should also have their
+maintainers notified.
+
+Both at the time of deprecation and removal, a changelog entry must be made. This
+changelog entry should have a short motivation for the deprecation (or removal)
+and should to describe what steps can be taken by the user to upgrade their codebase.
+
+In order to facilitate on schedule deprecations, a comment of the format
+`@@@DEPRECATED_[version]@@@` should be added to the top of the code to be removed/disabled.
+This comment allows code to be easily searched before every release to
+catch all planned deprecations.
 
 ### Public Functions, Types, and Modules
 
@@ -41,10 +53,10 @@ deprecation. The documentation of the symbol(s) must be updated noting the
 deprecation and removal plan. The documentation should contain information to help
 the users using the symbol(s) transition their code away from the symbol(s).
 
-Users must be given at least four major releases before the deprecated symbols
+Users must be given at least four non-patch releases before the deprecated symbols
 are removed. More releases should be given if the removed code is commonly used.
 
-On the third release, the documentation for the symbol should be removed while
+On the second release, the documentation for the symbol should be removed while
 keeping it public.
 
 If there is no equivalent for the functionality of the removed symbol in the
@@ -54,19 +66,18 @@ code if refactoring is not possible.
 
 ### Language Features
 
-If the language feature is determined to be common, a command line flag should
-be added in the form of `-transition=[name]` which gives the deprecation message
-in advance of yielding a deprecation message by default. If this approach is used,
-users must be given at least two major releases before not using the flag gives
-deprecation messages. The transition flag would then have no effect, and turn
-into an error when the deprecated feature is finally removed.
+Deprecations to language features must also update the [language deprecations
+page](https://dlang.org/deprecate.html) on dlang.org simultaneously.
 
-Users must be given at least four major releases before the deprecated features
+Users must be given at least four non-patch releases before the deprecated features
 are removed. More releases should be given if the removed code is commonly used.
 
-Warnings should NOT be used in the deprecation process. Warnings are set as errors
+Warnings must NOT be used in the deprecation process. Warnings are set as errors
 in many build systems (including DUB), and would therefore prematurely break many
-user's code.
+user's code. The exception is when the deprecation is for a change which turns 
+something into a warning. In this case the code which would trigger the warning must
+also first go through a deprecation period.
+
 
 ## Copyright & License
 
