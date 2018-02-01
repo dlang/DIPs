@@ -63,8 +63,9 @@ All removals (or changes that make the code `private`/`package`) of public funct
 types, and modules must be accompanied with a deprecation period.
 
 The symbol(s) must be marked using the `deprecated` keyword with a message containing
-the planned removal period and/or a pointer to more information pertaining to the
-deprecation. The documentation of the symbol(s) must be updated noting the
+the planned removal period. A pointer to more information should also be added. E.g.
+"See the 2.080 changelog for more details" or "See the function documentation for more
+details". The documentation of the symbol(s) must be updated noting the
 deprecation and removal plan. The documentation should contain information to help
 the users using the symbol(s) transition their code away from the symbol(s).
 
