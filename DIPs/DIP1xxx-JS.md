@@ -18,7 +18,7 @@ used across DMD, Druntime, and Phobos.
 ## Rationale
 
 There is general disagreement on the best and/or accepted way to remove public
-features. Each deprecation ends being handled slightly differently depending on
+features. Each deprecation ends up being handled slightly differently depending on
 who's handling the pull requests. Standardizing the process makes sure that
 deprecations are done very publicly and carefully, so as to minimize breakage and
 to provide clear fixes for user code.
