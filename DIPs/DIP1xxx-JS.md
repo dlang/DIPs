@@ -20,7 +20,7 @@ used across DMD, Druntime, and Phobos.
 There is general disagreement on the best and/or accepted way to remove public
 features. Each deprecation ends being handled slightly differently depending on
 who's handling the pull requests. Standardizing the process makes sure that
-deprecations are done very publicly and carefully, as to minimize breakage and
+deprecations are done very publicly and carefully, so as to minimize breakage and
 to provide clear fixes for user code.
 
 ## Description
@@ -31,7 +31,7 @@ A symbol or feature must not be marked for removal on a specific date, but rathe
 specific release. This allows users to easily know if upgrading will break their
 code or not.
 
-Users must be given at least eight non-patch releases before the deprecated features
+Users must be given at least 10 non-patch releases before the deprecated features
 are removed. More releases can be given if the removed code is commonly used.
 There are two cases where the deprecation period is allowed to be shorter:
 
@@ -73,7 +73,7 @@ symbols, both the old and the new symbol(s) should be availible un-deprecated
 in at least one release to allow users to build their code without issue on
 both the `stable` and `master` branches.
 
-On the fourth release in the deprecation period, the documentation for the symbol
+On the fifth release in the deprecation period, the documentation for the symbol
 should be removed while keeping the code itself public until removal.
 
 If there is no equivalent for the functionality of the removed symbol in the
@@ -87,7 +87,7 @@ Unless the removed language feature is very unsafe or causes damage to real
 world systems, all changes or removals must be accompanied with a deprecation
 period. "Language features" includes bugs in the current behavior that existing
 user code depends on, e.g. [Issue 10378](https://issues.dlang.org/show_bug.cgi?id=10378).
-Fixing such issues should include a deprecation preiod for the current behavior,
+Fixing such issues should include a deprecation period for the current behavior,
 and an introduction of the new behavior as the default only at the end of the
 period.
 
