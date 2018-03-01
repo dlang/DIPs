@@ -40,7 +40,7 @@ it from their code as soon as possible.
 2. The existance of the current code precludes its own fix or the fix of an equally
 important issue.
 
-Shorting the deprecation preiod should be done with caution to avoid giving D
+Shorting the deprecation period should be done with caution to avoid giving D
 an image of instability.
 
 At the time of the pull request for deprecation, all code in Phobos, Druntime,
