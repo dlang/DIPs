@@ -48,7 +48,7 @@ It is the responsibility of the DIP Manager to provide the POC with regular upda
 
 #### Development Stage
 
-This is where the first draft of the DIP is assembled by the DIP Author(s). The DIP Author(s) should adhere to the structure of the [DIP Template], including the ordering of the headings. New subheadings may be added as needed. The `Deprecations` heading may be removed unless the proposal requires the deprecation of language or library features. The other headings are mandatory.
+This is where the first draft of the DIP is assembled by the DIP Author(s). The DIP Author(s) should adhere to the structure of the [DIP Template], including the ordering of the headings. New subheadings may be added as needed. A DIP Author is expected to complete sections marked as "Required".
 
 Generally, it will be a DIP Author who forks the [DIP Repository]. The new DIP must follow the naming convention given in the outline above, i.e. `1NNN-(POC initials).md`. The DIP Author _should not_ submit a pull request to the [DIP Repository] until the first draft is complete. The [DIP Repository] is not the place for the initial development of a DIP. The DIP Author(s) should develop the first draft of the DIP in the newly forked repository. A completed first draft is one that, if it were perfect and required no further revision, would be ready to proceed through the entirety of the DIP process.
 
