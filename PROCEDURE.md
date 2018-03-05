@@ -1,0 +1,107 @@
+# The DIP Process
+
+DIP submission is open to anyone aiming to improve the D programming language and possessing the motivation to see a proposal through to implementation. Once submitted, a DIP will undergo a series of reviews intended to ensure that it is technically sound and that it adheres as closely as possible to the requirements defined in this document.
+
+This document outlines the DIP process from beginning to end. The process is divided into a sequence of stages. Each stage establishes the specific responsibilities of all relevant parties. The details outlined here are subject to change at any time, and the DIP Manager or the Language Maintainers may allow for exceptions which waive requirements or responsibilities at their discretion.
+
+## Requirements
+
+In general, most proposals to enhance the language or to make changes to existing features or syntax will require a DIP. Changes that also affect the compiler output will also usually require a DIP. Even seemingly innocuous changes can have an impact that is not immediately obvious. Anyone considering a serious proposal who isn't sure if a DIP will be required can first make an exploratory post in the D [General discussion forum](https://forum.dlang.org/group/general), but the rule of thumb should be, "When in doubt, write a DIP."
+
+## Process
+
+There are 9 steps to the DIP process. A brief summary of each is provided in outline form, followed by a more detailed description of each major stage.
+
+### Outline
+
+1. Once the determination is made that a DIP is required, an individual must be selected to serve as the [Point of Contact](#point-of-contact) (POC).
+
+2. The primary DIP Author will fork the [DIP repository] and copy the `template.md` file to the `Drafts` subdirectory using the following naming convention: `1NNN-(POC initials).md`, where `(POC initials)` is replaced with the initials of the POC, e.g. `1NNN-JQC.md` when the POC is Joe Q. Coder.
+
+3. The first stage of the DIP process, the [Development Stage](#development-stage), begins.
+
+4. When the first draft is complete and ready to undergo the [Draft Review](#draft-review), the DIP Author will submit a pull request to the [DIP Repository].
+
+5. Periodically, the DIP Manager will select a DIP to move out of [Draft Review](#draft-review) and into the first round of [Community Review](#community-review),
+
+6. When the [Community Review](#community-review) round is complete, the DIP Manager will decide if another round of [Community Review](#community-review) is required or if the DIP is ready to proceed to the [Final Review](#final-review).
+
+7. The [Final Review](#final-review), the last opportunity for community members to provide feedback, will begin within 180 days of the DIP's last [Community Review](#community-review) round.
+
+8. The DIP Manager will submit the DIP to the Language Maintainers for the [Formal Assessment](#formal-assessment) as soon as possible following the [Final Review](#final-review).
+
+9. If the Language Maintainers mark a DIP as `Accepted`, it is incumbent upon the POC, unless otherwise informed by the DIP Manager, to ensure the DIP is implemented.
+
+### Details
+
+The following sections expand on the outline above. Each major stage of the DIP process is explained in detail. If any of the explanations are unclear, please report an issue or submit a pull request to the [DIP Repository].
+
+#### Point of Contact
+
+Every DIP submitted to the [DIP Repository] must be assigned a Point of Contact. If the DIP has a single Author, the Author is required to be the POC. If there are multiple Authors, they must select one from among themselves to act as the POC before the DIP is submitted.
+
+The POC is responsible for communicating with the DIP Manager or Language Maintainers, as required, from the time the DIP is submitted until the time it receives its final disposition or, if accepted, until the implementation has been completed, e.g. merged into the appropriate repository. The POC is not required to be the owner of the GitHub account from which the DIP is submitted.
+
+If communication with the POC is lost, then 30 days after the last known contact, the DIP Manager will attempt to find a new POC. If, after 60 days, no one has taken over the role, the DIP Manager will consult with the Language Maintainers to determine the disposition of the DIP. The DIP may be accepted as is, rejected, postponed, or marked as `Abandoned` at their discretion. Abandoned DIPs may be resurrected by anyone at any time.
+
+It is the responsibility of the DIP Manager to provide the POC with regular updates throughout the process. If the POC receives no updates from the DIP Manager after 30 days, and the DIP Manager fails to respond to requests, the POC may contact the Language Maintainers directly to determine how to proceed.
+
+#### Development Stage
+
+This is where the first draft of the DIP is assembled by the DIP Author(s). The DIP Author(s) should adhere to the structure of the [DIP Template], including the ordering of the headings. New subheadings may be added as needed. The `Deprecations` heading may be removed unless the proposal requires the deprecation of language or library features. The other headings are mandatory.
+
+Generally, it will be a DIP Author who forks the [DIP Repository]. The new DIP must follow the naming convention given in the outline above, i.e. `1NNN-(POC initials).md`. The DIP Author _should not_ submit a pull request to the [DIP Repository] until the first draft is complete. The [DIP Repository] is not the place for the initial development of a DIP. The DIP Author(s) should develop the first draft of the DIP in the newly forked repository. A completed first draft is one that, if it were perfect and required no further revision, would be ready to proceed through the entirety of the DIP process.
+
+If community feedback is desired during the Development Stage, the DIP Author(s) should announce in the [D Forums] that the DIP is in development and ask for feedback, providing a link to the DIP in the forked repository. Any pull request submitted to the [DIP Repository] before the DIP is in a first draft state will be rejected.
+
+
+#### Draft Review
+
+The purpose of the Draft Review is to find and fix any obvious flaws in the content of the DIP. Unaddressed technical issues, potential feature conflicts, potential deprecations, spelling, grammar, and so on, are all welcome targets of criticism and debate. Most technical feedback is intended to come from community members, where a wide variety of expertise and experience is to be found. The DIP Manager will begin work to ensure that the language of the DIP meets the standards expected by the Language Maintainers.
+
+When the first draft of the DIP is ready and the POC is prepared to begin the Draft Review, the DIP Author should submit the DIP to the [DIP Repository] in the form of a pull request. The DIP should maintain the same naming convention. At no point should anyone other than the DIP Manager assign a number to the DIP.
+
+The submission of the pull request signifies the beginning of the Draft Review. All discussion takes place in pull request comments at the [DIP Repository]. At this point, the POC can invite community members to submit feedback in the discussion thread. The DIP Manager is required to acknowledge the DIP within a week of its submission by ensuring the status of the DIP is set to `Draft`, leaving a comment in the pull request thread, and announcing in the [D Forums] that the DIP is under Draft Review so that community members may leave feedback. The DIP Manager will immediately request that any superficial issues, such as improperly completed fields in the header or the use of an unacceptable convention for the file name, be corrected. The DIP Manager may withhold feedback on the substance of the DIP until the DIP is selected for promotion to the next stage.
+
+Periodically, the DIP Manager will peruse the DIPs currently under Draft Review and select one to prepare for [Community Review](#community-review). The frequency of this occurance depends on the the number of DIPs currently in the subsequent stages of the DIP process. Once a DIP has been selected, the DIP Manager will work with the POC to ensure that no obvious flaws remain and that all criticisms raised throughout the Draft Review period are reasonably addressed.
+
+#### Community Review
+
+When the DIP Manager is satisfied that a DIP is ready to proceed beyond the [Draft Review](#draft-review) stage, the DIP Manager will assign the DIP a number, move it out of the `Drafts` subdirectory into the `DIPs` directory, set its status to `Community Review Round 1`, and announce the review in the forums. The purpose of the Community Review is to expose the DIP to a wider audience in order to find flaws that were not uncovered in the [Draft Review](#draft-review), further improve the language and scope of the DIP, and generally revise the DIP until it is meets the standards set forth in the Guidelines document.
+
+The DIP Manager will announce the review in the [D Forums] and open a thread where community members can discuss the DIP and provide feedback. Everyone is welcome to participate in this review stage. The POC is expected to address each feedback point raised. If the POC determines a criticism is actionable, an acknowledgement should be made that the DIP will be revised accordingly. If the POC determines a criticism is not actionable or applicable, a rationale is welcome but not required.
+
+Discussion in a Community Review thread is expected to remain on topic. Multiple discussion topics in a single thread make it more time-consuming to follow and review the discussion. The DIP Manager will monitor the thread and politely prompt participants to remain on topic if the conversation begins to drift off topic.
+
+Each round of a Community Review will continue for a period of 15 days from the date of the announcement. The DIP Manager will include the terminal date in the review announcement. At the end of the review period, the DIP Manager will work with the POC to ensure all feedback has been addressed, revise the DIP as necessary, and include a summary of the review round in the Reviews section of the DIP. If the feedback leads to extensive revision, as judged by the DIP Manager in consultation with the POC, the DIP Manager may call for another review round. In that case, the status of the revised DIP will be set to `Community Review Round N`, where `N` is the sequential number of the new round. When any review round is completed, the status of the DIP will be set to `Post-Community Round N`.
+
+#### Final Review
+
+A DIP may remain in the `Post-Community Round N` status for a maximum of 180 days. Periodically, the DIP Manager will determine if any post-community DIP is ready to move forward to the Final Review stage. Only one DIP may be in this stage at any given time. Other circumstances may cause progress to be delayed. If a given DIP has not been moved out of the post-community state after 180 days, the DIP Manager is required either to move it forward or to append its status with the `Abandoned` or `Postponed` label after consultation with the POC.
+
+When a DIP enters the Final Review stage, the DIP Manager will set its status to `Final Review`, announce the review in the [D Forums], and create a discussion thread where everyone is welcome to leave feedback. The review will last for a period of 15 days. The DIP Manager will include the termination date in the announcement. The purpose of this stage is to provide one final opportunity to review the revisions made in the [Community Review](#community-review) stage and further refine the DIP as necessary. The DIP is not expected to undergo significant revision as a result of this stage.
+
+The Final Review thread is not the place to debate the merits of the DIP. That is for the [Community Review](#community-review) rounds. Feedback in the Final Review should be limited to specific criticisms of the current DIP revision. The DIP Manager will endeavor to keep the review thread on topic. The exception to this rule is in the case that any major flaws are discovered which may have been overlooked in previous review rounds or introduced as a result of revision. In such a scenario, the DIP Manager will consult with the POC and determine how to proceed.
+
+If no major flaws are discovered as a result of the Final Review, the DIP Manager will set the status of the DIP to `Post-Final`, add a summary of the Final Review to the Reviews section of the DIP, and consult with the POC to determine if any revision is necessary. As soon as any required revisions are complete, the DIP Manager will move the DIP to the next stage.
+
+#### Formal Assessment
+
+The DIP Manager is required to submit the DIP to the Language Maintainers for the Formal Assessment as soon as possible following the [Final Review](#final-review). The DIP Manager will copy the latest revision of the DIP to a private [GitHub gist], then send the POC and the Language Maintainers a link to the gist. The Language Maintainers will provide their feedback in gist comments. The POC is required to address all criticisms, also in gist comments, and perform any requested revisions, with the assistance of the DIP Manager as required.
+
+The Language Maintainers commit to rendering a judgement within 30 days of the start of the Formal Assessment. If they determine a final disposition for the DIP, the DIP Manager will mark it as `Accepted` or `Rejected`. If they decide more time is needed, the `Extended` label may be appended to the DIP status. The DIP Manager will periodically consult with the Language Maintainers to determine if the DIP is ready for a final disposition. At the end of 90 days, if the Language Maintainers are still not ready for a finial decision, the DIP Manager will change the `Extended` label to `Postponed`.
+
+#### Postponed and Abandoned DIPs
+
+At any point in the review process, the POC may request that the DIP Manager mark the DIP status with either the `Postponed` or `Abandoned` label. The DIP Manager may also independently decide to append either label to the DIP status if contact with the POC is lost. DIPs marked as such are frozen at the current stage of the DIP process.
+
+Postponed DIPs may be revived by the POC (or DIP Author(s)) at any time within 180 days from the day the label was added. If no request to revive the DIP is made after 180 days, the DIP Manager will change the label from `Postponed` to `Abandoned` unless consultation with the POC warrants extension of the postponement. Abandoned DIPs may be revived by anyone at any time.
+
+When a postponed or abandoned DIP is revived, the DIP Manager will consult with the POC to determine if the DIP may continue the DIP process from the stage at which the label was applied, if it should move to an earlier stage, or if it should be completely rewritten and resubmitted as a new DIP.
+
+
+
+[DIP Repository]: https://github.com/dlang/DIPs
+[D Forums]: https://forum.dlang.org/
+[GitHub gist]: https://help.github.com/articles/about-gists/
+[DIP template]: https://github.com/dlang/DIPs/blob/master/Template.md
