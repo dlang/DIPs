@@ -9,7 +9,7 @@
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1|
-|[1000](./drafts/DIP1000.md)|                         Scoped Pointers|             Draft|
+|[1000](./DIP1000.md)|                                Scoped Pointers|             Draft|
 |[1005](./DIP1005.md)|               Dependency-Carrying Declarations|         Postponed|
 
 ## Accepted DIPs
