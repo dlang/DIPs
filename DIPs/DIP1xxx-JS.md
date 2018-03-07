@@ -1,12 +1,12 @@
 # The Deprecation Process
 
-| Field | Value |
+| Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
-| DIP:            | xxxx |
-| Review Count:   | 0 |
-| Author:         | Jack Stouffer |
-| Implementation: | N/A |
-| Status:         | Draft |
+| DIP:            | 10XX                                                            |
+| Review Count:   | 0                                                               |
+| Author:         | Jack Stouffer <jack@jackstouffer.com>                           |
+| Implementation: | N/A                                                             |
+| Status:         |                                                                 |
 
 ## Abstract
 
@@ -14,6 +14,12 @@ In order to incrementally improve D or it's standard library, it's often necessa
 mark features or functions for future removal. This document proposes a standardized
 process for language maintainers to remove public features. This process would be 
 used across DMD, Druntime, and Phobos.
+
+## Contents
+* [Rationale](#rationale)
+* [Description](#description)
+* [Acknowledgements](#acknowledgements)
+* [Reviews](#reviews)
 
 ## Rationale
 
@@ -108,3 +114,8 @@ also first go through a deprecation period.
 Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+
+## Review
+
+The DIP Manager will supplement this section with a summary of each review stage
+of the DIP process beyond the Draft Review.
