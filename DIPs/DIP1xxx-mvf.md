@@ -291,8 +291,8 @@ struct S
     int field;
 }
 
-int prop(S* context) @property { return context.field; }
-int prop(S* context, int value) @property { return context.field = value; }
+int prop(ref S context) @property { return context.field; }
+int prop(ref S context, int value) @property { return context.field = value; }
 
 void main()
 {
@@ -300,7 +300,7 @@ void main()
 
     // The lowering of `s.prop += 1` as proposed in this DIP.
     // Existing Implementation:  Compiles and produces the expected result.
-    ((auto ref _e1) => _e1.prop(_e1.prop() + 1))(&s);
+    ((auto ref _e1) => _e1.prop(_e1.prop() + 1))(s);
 
     assert(s.field == 1);
 }
