@@ -184,12 +184,11 @@ public struct SomeEnum
 enum SomeEnum
 {
     none = -1,
-    deprecated("reason for deprecation")
-    deprecatedValue0 = none,
-    deprecated("reason for deprecation")
-    deprecatedValue1 = none,
     actualValue2 = 2,
     actualValue3,
+
+    deprecated("reason for deprecation") deprecatedValue0 = none,
+    deprecated("reason for deprecation") deprecatedValue1 = none,
 }
 ```
 
