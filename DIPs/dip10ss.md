@@ -23,8 +23,9 @@ Allow additional meta information (attributes) to be attached with enums and fun
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
+* [Existing Solutions](#existing-solutions)
+* [Examples](#examples)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [Acknowledgements](#acknowledgements)
 * [Reviews](#reviews)
 
 ## Rationale
@@ -269,9 +270,6 @@ void someFunction(string name, @ScriptType.vehicle int vehicleIndex)
 
 No breaking changes are to occur from including these features.
 
-## Acknowledgements
-
-* Todo
 
 ## Copyright & License
 
