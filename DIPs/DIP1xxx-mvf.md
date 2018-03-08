@@ -58,6 +58,7 @@ Other
   * [Special case 3](#special-case-3)
   * [Alternatives](#alternatives)
 * [Breaking changes and deprecations](#breaking-changes-and-deprecations)
+* [Acknowledgements](#Acknowledgements)
 
 ## Rationale
 
@@ -590,6 +591,11 @@ That proposal violates Requirement 2.
 ### Breaking changes and deprecations
 
 Due to [special case 2](#special-case-2), the proposed implementation will introduce no breaking changes.
+
+## Acknowledgements
+
+  * Iain Buclaw - Helped tremendously with the initial implementation.
+  * Andrei Alexandrescu - Identified problems in the initial implementation and provided the proper lowering to resolve said problems.
 
 ## Copyright & license
 
