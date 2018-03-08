@@ -117,6 +117,8 @@ A current solution for applying an UDA to an enum or parameter is to use an UDA 
 
 ```D
 @MyUda("feature0", "...")
+@MyUda("feature1", "...")
+@MyUda("feature2", "...")
 enum SomeEnum
 {
     feature0,
