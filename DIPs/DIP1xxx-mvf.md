@@ -14,7 +14,7 @@ This document is a proposal to fill some holes in D's property design and implem
 
 This proposal does not address unary assignment operators (e.g. `x++`, `++x`, etc...) as they are orthogonal to binary assignment operators, may require special considerations not present in this proposal, and would only complicate this DIP's review and approval process.  However, if and when this proposal is accepted and implemented, a followup DIP addressing unary assignment operators would be a logical progression, and is already planned for by the author of this DIP.
 
-### Links
+### Reference
 
 Historical DIPs and Discussions
   - [Prowiki Property](http://www.prowiki.org/wiki4d/wiki.cgi?DocComments/Property) - An old, but rather thorough examination of properties in the D language, [originally authored in August, 2007](http://forum.dlang.org/post/h5g94a$lc5$1@digitalmars.com).
@@ -41,6 +41,23 @@ Other
   - [Property (programming)](https://en.wikipedia.org/wiki/Property_(programming)) - Wikipedia article documentating the the property abstraction.
   - [Comment in the implementation's pull request](https://github.com/dlang/dmd/pull/7079#issuecomment-327924953) that ultimately led to this DIP's current design and implementation.
   - [The D Programming Language by Walter Bright](https://youtu.be/WKRRgcEk0wg?t=64) - A talk presenting some of the pillars of the D programming language.
+
+## Contents
+
+* [Rationale](#rationale)
+  * [D's property implementation fails the Duck Test](#ds-property-implementation-fails-the-duck-test)
+  * [Modeling power & modern convenience: Two pillars of D](#modeling-power--modern-convenience-two-pillars-of-d)
+  * [Lack of binary assignment operators for properties proliferates anti-patterns](#lack-of-binary-assignment-operators-for-properties-proliferates-anti-patterns)
+  * [Returning an lvalue is not always possible](#returning-an-lvalue-is-not-always-possible)
+  * [Precedence in other programming languages](#precedence-in-other-programming-languages)
+  * [A casual cost/benefit observation](#a-casual-costbenefit-observation)
+* [Description](#description)
+  * [The general case](#the-general-case)
+  * [Special case 1](#special-case-1)
+  * [Special case 2](#special-case-2)
+  * [Special case 3](#special-case-3)
+  * [Alternatives](#alternatives)
+* [Breaking changes and deprecations](#breaking-changes-and-deprecations)
 
 ## Rationale
 
@@ -76,7 +93,7 @@ void main()
 
 It is not apparent why D does not support binary assignment operators for properties.  We are left to assume that the design and implementation or properties in D is simply [unfinished business](http://forum.dlang.org/post/mgja40$2dhp$1@digitalmars.com), as no one has taken the initiative to work out the design and do the implementation.
 
-### Modeling Power & Modern Convenience: Two pillars of D
+### Modeling power & modern convenience: Two pillars of D
 
 Properties in D provide support for two of its fundamental pillars: Modeling Power and Modern Convenience.  However, the implementation is incomplete without binary assignment operators, so users are not able to completely encapsulate their implementation behind the property abstraction, nor provide the full convenience of that abstraction to their users.
 
@@ -202,9 +219,9 @@ Consider the binary assignment expression `e1.prop @= e2` where `prop` is a gett
 
 In the general case, to meet these requirements, the binary assignment expression is lowered to the lambda expression `((auto ref _e1) => _e1.prop(_e1.prop() @ e2))(e1)` except under the following conditions:
 
-- **Special Case 1** - If either the getter or setter function is not attributed with `@property` the binary assignment expression will not be lowered.
-- **Special Case 2** - If the getter returns an lvalue, the binary assignment expression will not be lowered.
-- **Special Case 3** - If `e1` is a type (e.g. `prop` is a `static` property or module-level property), the binary assignment expression will be lowered to `e1.prop(e1.prop() @ e2)`.  Special Cases 1 and 2 still apply.
+- **Special case 1** - If either the getter or setter function is not attributed with `@property` the binary assignment expression will not be lowered.
+- **Special case 2** - If the getter returns an lvalue, the binary assignment expression will not be lowered.
+- **Special case 3** - If `e1` is a type (e.g. `prop` is a `static` property or module-level property), the binary assignment expression will be lowered to `e1.prop(e1.prop() @ e2)`.  Special Cases 1 and 2 still apply.
 
 The following subsections elaborate on each of these items.
 
@@ -570,11 +587,11 @@ a.prop(a.prop() + 42); // Equivalent code if @property wasn't used.
 
 That proposal violates Requirement 2.
 
-### Breaking changes
+### Breaking changes and deprecations
 
-Due to [special case 2](#Special%20case%202), the proposed implementation will introduce no breaking changes.
+Due to [special case 2](#special-case-2), the proposed implementation will introduce no breaking changes.
 
-## Copyright & License
+## Copyright & license
 
 Copyright (c) 2017 by the D Language Foundation
 
