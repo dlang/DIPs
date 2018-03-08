@@ -2,23 +2,30 @@
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
-| DIP:            | 10ss                                                            |
-| Review Count:   | NA                                                              |
-| Author(s):      | [skl131313](https://github.com/skl131313)                       |
-| Status:         | NA                                                              |
-
+| DIP:            | (number/id -- assigned by DIP Manager)                          |
+| Review Count:   | 0 (edited by DIP Manager)                                       |
+| Author:         | [@skl131313](https://github.com/skl131313)                      |
+| Implementation: | [(Partial) Function UDAS](https://github.com/dlang/dmd/pull/7576) |
+| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
 
 Allow additional meta information (attributes) to be attached with enums and functions parameters, including built-in attributes such as `deprecated`.
 
-### Links
+### Reference
 
 [Preliminary discussion about Enum and Function Parameter Attributes on the NG](http://forum.dlang.org/thread/cltyrthdxkkfvuxqasqw@forum.dlang.org)
 
 [(New) Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/7576)
 
 [(Old) Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/4783/files)
+
+## Contents
+* [Rationale](#rationale)
+* [Description](#description)
+* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Acknowledgements](#acknowledgements)
+* [Reviews](#reviews)
 
 ## Rationale
 
@@ -66,20 +73,14 @@ void someExternalFunction()
 
 Grammar changes for [Enum](https://dlang.org/spec/enum.html):
 
-```
-EnumMember:
-    Identifier
-    Identifier = AssignExpression
+```diff
++ EnumAttribute:
++     DeprecatedAttribute
++     UserDefinedAttribute
 
-// becomes -------------------------------------------
-
-EnumAttribute:
-    DeprecatedAttribute
-    UserDefinedAttribute
-
-EnumAttributes:
-    EnumAttribute
-    EnumAttiribute EnumAttributes
++ EnumAttributes:
++     EnumAttribute
++     EnumAttiribute EnumAttributes
 
 EnumMember:
     Identifier
@@ -90,22 +91,13 @@ EnumMember:
 
 Grammar change for [Function](https://dlang.org/spec/function.html):
 
-```
-Parameter:
-    InOut_opt BasicType Declarator
-    InOut_opt BasicType Declarator ...
-    InOut_opt BasicType Declarator = AssignExpression
-    InOut_opt Type
-    InOut_opt Type ...
+```diff
++ ParameterAttribute:
++     UserDefinedAttribute
 
-// becomes -----------------------------
-
-ParameterAttribute:
-    UserDefinedAttribute
-
-ParameterAttributes:
-    ParameterAttribute
-    ParameterAttribute ParameterAttributes
++ ParameterAttributes:
++     ParameterAttribute
++     ParameterAttribute ParameterAttributes
 
 Parameter:
     InOut_opt BasicType Declarator
@@ -273,6 +265,21 @@ void someFunction(string name, @ScriptType.vehicle int vehicleIndex)
 }
 ```
 
+## Breaking Changes and Deprecations
+
+No breaking changes are to occur from including these features.
+
+## Acknowledgements
+
+* Todo
+
 ## Copyright & License
 
+Copyright (c) 2017 by the D Language Foundation
+
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+
+## Reviews
+
+The DIP Manager will supplement this section with a summary of each review stage
+of the DIP process beyond the Draft Review.
