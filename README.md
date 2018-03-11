@@ -10,9 +10,9 @@ Questions about this document or the DIP process should be directed to the curre
 
 This repository is for the storage and management of improvement proposals for the D programming language. A D Improvement Proposal (DIP) is a formal document that details a potential feature or enhancement to the language, or the official tooling, and the rationale behind it.
 
-Each DIP is steered through a process of review by the DIP manager. Each stage of the process is intended to prepare the DIP for its ultimate evaluation by the language maintainers (Walter Bright and Andrei Alexandrescu). The entire process process, from the initial DIP submission to the final evaluation, is described in the [procedure document][proc].
+Each DIP is steered through a process of review by the DIP manager. Each stage of the process is intended to prepare the DIP for its ultimate evaluation by the language maintainers (Walter Bright and Andrei Alexandrescu). The entire process, from the initial DIP submission to the final evaluation, is described in the [procedure document][proc].
 
-The [guidelines document][guide] provide advice on how to write a proper DIP. All DIP authors should read this document. The DIP Manager will require that a best effort is made to conform to the guidelines before any DIP is moved out of the initial draft stage.
+The [guidelines document][guide] provides advice on how to write a proper DIP. All DIP authors should read this document. The DIP Manager will require that a best effort is made to conform to the guidelines before any DIP is moved out of the initial draft stage.
 
 [proc]: https://github.com/dlang/DIPs/blob/master/PROCEDURE.md
 [guide]: https://github.com/dlang/DIPs/blob/master/GUIDELINES.md
