@@ -2,8 +2,8 @@
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
-| DIP:            | (number/id)                                                     |
-| Review Count:   | 0
+| DIP:            | (number/id -- assigned by DIP Manager)                          |
+| Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | (your name and contact data)                                    |
 | Implementation: | (links to implementation PR if any)                             |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
@@ -12,25 +12,38 @@
 
 Short and concise description of the idea in a few lines.
 
-### Links
+### Reference
 
-Optional sections containing links to existing discussions, research papers or any
-other supplementary materials.
+Optional links to reference material such as existing discussions, research papers
+or any other supplementary materials.
+
+## Contents
+* [Rationale](#rationale)
+* [Description](#description)
+* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Acknowledgements](#acknowledgements)
+* [Reviews](#reviews)
 
 ## Rationale
 
-State a short motivation about the importance and benefits of the proposed
-change.  An existing, well-known issue or a use case for an existing projects
-can greatly increase the chances of the DIP being understood and carefully
-evaluated.
+Required.
+
+A short motivation about the importance and benefits of the proposed change.  An existing,
+well-known issue or a use case for an existing projects can greatly increase the
+chances of the DIP being understood and carefully evaluated.
 
 ## Description
 
-Detailed technical description of the new semantics.
-Language grammar changes (per https://dlang.org/spec/grammar.html)
-needed to support the new syntax (or change) must be mentioned.
+Required.
 
-### Breaking changes / deprecation process
+Detailed technical description of the new semantics. Language grammar changes
+(per https://dlang.org/spec/grammar.html) needed to support the new syntax
+(or change) must be mentioned. Examples demonstrating the new semantics will
+strengthen the proposal and should be considered mandatory.
+
+## Breaking Changes and Deprecations
+
+This section is not required if no breaking changes or deprecations are anticipated.
 
 Provide a detailed analysis on how the proposed changes may affect existing
 user code and a step-by-step explanation of the deprecation process which is
@@ -38,12 +51,6 @@ supposed to handle breakage in a non-intrusive manner. Changes that may break
 user code and have no well-defined deprecation process have a minimal chance of
 being approved.
 
-### Examples
-
-A more practical explanation of DIP semantics should be given by showing
-several examples of its idiomatic application. Inspecting vivid code examples
-is usually an easier & quicker way to evaluate the value of a proposal than
-trying to reason about its abstract description.
 
 ## Copyright & License
 
@@ -53,6 +60,5 @@ Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdom
 
 ## Review
 
-Will contain comments / requests from language authors once review is complete,
-filled out by the DIP manager - can be both inline and linking to external
-document.
+The DIP Manager will supplement this section with a summary of each review stage
+of the DIP process beyond the Draft Review.

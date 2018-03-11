@@ -4,28 +4,28 @@ Writing a solid and informative DIP is very hard work - it is often underestimat
 
 ## General Advice
 
-The first step on the long road to final judgement is getting past the gatekeeper (the DIP manager) and into the DIP repository. The specifics required to get there are largely dependent on the nature of the proposal. However, there are a few general guidelines that, if followed, improve make for a more solid proposal and improve its odds of getting out of the pull request queue.
+The first step on the long road to acceptance is getting past the gatekeeper (the DIP Manager) and into the DIP repository. The specifics required to get there are largely dependent on the nature of the proposal. However, there are a few general guidelines that, if followed, make for a more solid proposal and improve its odds of getting out of the pull request queue.
 
 1. Motivate, explain and demonstrate the value gained from implementing the proposed feature. Alternative solutions should be considered and compared.
 2. Use real-world examples, taken from specific projects where possible.
-3. Consider potential objections against the proposal, research them, and address them in a dedicated section of the proposal.
+3. Consider potential objections against the proposal, research them, and address them.
 4. Stick to formal and technical language in general, avoid colloquialisms. A DIP should be formulated like a scientific or academic paper, as opposed to an op-ed article.
 5. Provide sufficient technical details that can be used as a specification by D compiler developers.
-6. Above all, remember that, as the DIP author, you are selling the idea to the language authors. Your goal is to convince them that the language will benefit from the proposed feature and give them enough detail to evaluate that claim.
+6. Above all, remember that, as the DIP author, you are selling the idea to the Language Maintainers. Your goal is to convince them that the language will benefit from the proposed feature and give them enough detail to evaluate that claim.
 
-Be prepared for a lot of work. There are inumberable ideas bandied about in the community forums, but far fewer developers who are committed to pursuing an idea to the final stages of evaluation. Many are unwilling to make the effort without a guarantee of acceptance. If such gurantees could be made, there would be no need for the DIP process.
+Be prepared for a lot of work. There are countless ideas bandied about in the community forums, but few are the developers who are committed to pursuing an idea to the final stages of evaluation. Many are unwilling to make the effort without a guarantee of acceptance. If such guarantees could be made, there would be no need for the DIP process.
 
-The purpose of the process is to provide a coherent, formalized proposal for the language authors to evaluate. It is not impossible that a feature which they are inclined to reject may be approved in the end as the result of a convincing proposal. In short, DIP authors should start with the expectation that rejection is the default outcome and, instead of being discouraged, use that as motivation to craft the best DIP possible.
+The purpose of the process is to provide a coherent, formalized proposal for the language authors to evaluate. It is not impossible that a feature which they are inclined to reject may be approved in the end as the result of a convincing proposal. In short, DIP Authors should start with the expectation that rejection is the default outcome and, instead of being discouraged, use that as motivation to craft the best DIP possible.
 
 ## Proper Motivation
 
-Any DIP must focus on "why" at least as much as "what". Changes must be justified. Doubt about the necessity or value of a change will be a strong motivator for rejection.
+Any DIP must focus on "why" at least as much as "what". Language changes must be justified. Doubt about the necessity or value of a change will be a strong motivator for rejection.
 
 It is vital to research any alternative approaches to solving the same problem and explain why the proposed choice is superior. If there are any relevant stories of success or failure in other programming languages, consider referring to them with an explanation of how they might apply to D.
 
 Redundancy of existing features should not be used as precedent and/or justification for adding another redundant feature. Similarly, an existing language flaw should not be used as an excuse for adding new, similarly flawed, functionality.
 
-It is important to evaluate the costs of adding, changing, or removing language features. Something that uses existing syntax and builds upon established semantics is considered of much less expensive than a proposal requiring a completely concept or new. More expensive proposals should add greater benefit.
+It is important to evaluate the costs of adding, changing, or removing language features. Something that uses existing syntax and builds upon established semantics is considered much less expensive than a proposal requiring a completely new concept. More expensive proposals should add greater benefit.
 
 Avoid speculation. For example, unless you are an expert on human behavior, claims that a feature will increase the language's popularity or adoption rate are meaningless. Testimony based on personal experience, or that of others, is acceptable as long as it is backed up with data or a solid reasoning.
 
@@ -37,7 +37,7 @@ Keep in mind that without such examples to back it up, any reasoning in favor of
 
 ## Technical details
 
-Anyone proposing a language change is expected to understand how existing language features will be affected by the proposal and how the change can be implemented at a level sufficent for crafting a formal proposal. Anyone not fully cognizant of these details should either research them or enlist the aid of someone who is before submitting the proposal.
+Anyone proposing a language change is expected to understand how existing language features will be affected by the proposal and how the change can be implemented at a level sufficient for crafting a formal proposal. Anyone not fully cognizant of these details should either research them or enlist the aid of someone who is before submitting the proposal.
 
 It is crucial for any proposed change to list all possible concerns regarding breakage of existing D code caused by the change. Even if the chance of breakage seems very low, it needs to be listed anyway. If code breakage is likely to affect at least a few existing projects, the proposal must include a description of the intended deprecation process.
 
