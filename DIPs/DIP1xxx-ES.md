@@ -3,9 +3,9 @@
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | 1013                                                            |
-| Review Count:   | 0                                                               |
-| Author:         | Elijah Stone <elronnd@slashem.me>                               |
-| Implementation: | None yet (XXX)                                                  |
+| Review Count:   | 0 (edited by DIP Manager)                                       |
+| Author:         | Elijah Stone <elronnd@elronnd.net>                              |
+| Implementation: | None yet (TODO)                                                 |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
@@ -20,6 +20,19 @@ present in python for lists, with this syntax:
 
 
 
+### Reference
+
+The `in` operator was [recently added](https://github.com/dlang/phobos/pull/5629) to `std.range.iota`, showing support for
+useage of the operator in general.
+
+
+## Contents
+* [Rationale](#rationale)
+* [Description](#description)
+* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Acknowledgements](#acknowledgements)
+* [Reviews](#reviews)
+
 ## Rationale
 
 Although the effects of the proposed `in` operator can be replicated using
@@ -28,7 +41,14 @@ cumbersome, and there is a language inconsistency in that AAs and redblacktrees
 have an `in` operator but arrays do not.  Having a simple, quick way of
 checking if an array contains an object in a way that is consistent with the
 rest of the language should be essential.  In addition, the lack of such an
-operator could be jarring to newcomers from such languages as python.
+operator could be jarring to newcomers from such languages as python.  Previous
+criticism of said operator has been that there should not be built-in language
+features with worse than O(1) complexity, but AAs already have the `in` operator,
+which provides worst-case O(log(n)) complexity; and, besides, people who
+actually care about the complexity of their code will know not to use the `in`
+operator, and those who want operators of higher complexity will have an easier
+time using them.
+
 
 ## Description
 
@@ -37,16 +57,7 @@ of type `T[]`.  If any of the elements of the haystack are equal to the needle,
 then it will return true.  Otherwise, it will return false.  No new grammar
 changes will be made
 
-### Breaking changes / deprecation process
-
-The overload of canFind that takes a Range and an Element should be deprecated
-in favour of the `in` operator.  Other overloads of `canFind` should be
-preserved as they do not fit into the scope of an `in` operator.
-
-
-### Examples
-
-This code:
+Simple example:
 
     import std.algorithm.iteration: canFind;
     string tmp;
@@ -68,6 +79,12 @@ closer to the actual intent of the code:
     } while (tmp.lower !in legalgreetings);
 
 
+## Breaking Changes and Deprecations
+
+The overload of canFind that takes a Range and an Element should be deprecated
+in favour of the `in` operator.  Other overloads of `canFind` should be
+preserved as they do not fit into the scope of an `in` operator.
+
 
 ## Copyright & License
 
@@ -77,6 +94,5 @@ Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdom
 
 ## Review
 
-Will contain comments / requests from language authors once review is complete,
-filled out by the DIP manager - can be both inline and linking to external
-document.
+The DIP Manager will supplement this section with a summary of each review stage
+of the DIP process beyond the Draft Review.
