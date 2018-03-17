@@ -15,7 +15,7 @@ Such references are prohibited by the current language definition, as D might ch
 around in memory by a simple bit-copy operation.
 
 The purpose of this DIP is to maintain this ability, while also allowing internal and external references
-to the instace. The means by which this is achieved is by allowing the struct to define a postblit like
+to the instance. The means by which this is achieved is by allowing the struct to define a postblit like
 callback, called `opMove`, that will get called and allow the struct to update those references that need
 updating as a result of such a move.
 
@@ -42,19 +42,19 @@ such support, as well as discussions on why it is needed.
 ## Rationale
 
 D cherishes its ability to move stack allocated struct objects at will. While this might be a very useful feature,
-it does mean certain programming patterns become diffuclt, if not downright impossible.
+it does mean certain programming patterns become difficult, if not downright impossible.
 
 The limitation is usually phrased as "D structs may not contain pointers to themselves". While that limitation is
 correct, it is not the only one. For example, D structs may also not use the constructor/destructor to register themselves
 with a global registry that keeps track of all instances in the system (e.g. - by a linked list). This limitation also
-severly limits the ability to store delegates that reference the struct from outside the struct.
+severely limits the ability to store delegates that reference the struct from outside the struct.
 
-While not all of those scenarios will be easilly solved by this DIP, without it the programmer is left with *zero* tools to
+While not all of those scenarios will be easily solved by this DIP, without it the programmer is left with *zero* tools to
 tackle this problem, even if she was lucky enough to spot it before it caused memory corruption.
 
 ## Terminology
 
-Whenever an upper case vowl is used (MAY, SHOULD, MUST NOT), their meaning should be taken as defined in
+Whenever an upper case vowel is used (MAY, SHOULD, MUST NOT), their meaning should be taken as defined in
 [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
 ## Description
@@ -115,8 +115,8 @@ Structs that do not define `opMove`, and that none of their members define `opMo
 implementation be just a function calling a bunch of empty functions recursively. Hopefully, the compiler will be able to inline
 this series of calls into oblivion, meaning the run time cost of this feature for structs that do not use it will be zero.
 
-If the compiler implementors fear that inlining will not nullify these calls where not applicable, they MAY manually eliminate
-no-op subtrees.
+If the compiler implementers fear that inlining will not nullify these calls where not applicable, they MAY manually eliminate
+no-op sub-trees.
 
 Structs that do define `opMove` manage their own costs.
 
