@@ -67,7 +67,7 @@ void someExternalFunction()
     // through existing functionality of __parameters
     static if(is(typeof(someFunction) PT == __parameters))
     {
-        static assert(__traits(getAttributes, PT[0 .. 1]) == 93);
+        static assert(__traits(getAttributes, PT[0 .. 1])[0] == 93);
     }
 }
 ```
