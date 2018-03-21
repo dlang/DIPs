@@ -20,6 +20,8 @@ Allow additional meta information (attributes) to be attached with enums and fun
 
 [(Old) Pull request implementing UDAs for function parameters](https://github.com/dlang/dmd/pull/4783/files)
 
+[Pull request implement UDAs for enums](https://github.com/dlang/dmd/pull/6161)
+
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
