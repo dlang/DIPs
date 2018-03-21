@@ -150,10 +150,10 @@ struct SomeEnum
     alias this x;
 
     deprecated("reason for deprecation")
-    static enum deprecatedValue0 = none;
+    enum deprecatedValue0 = none;
 
     deprecated("reason for deprecation")
-    static enum deprecatedValue1 = none;
+    enum deprecatedValue1 = none;
 }
 ```
 
@@ -175,10 +175,10 @@ public struct SomeEnum
     alias this x;
 
     deprecated("reason for deprecation")
-    static enum deprecatedValue0 = SomeEnumImpl.none;
+    enum deprecatedValue0 = SomeEnumImpl.none;
 
     deprecated("reason for deprecation")
-    static enum deprecatedValue1 = SomeEnumImpl.none;
+    enum deprecatedValue1 = SomeEnumImpl.none;
 }
 
 // becomes
