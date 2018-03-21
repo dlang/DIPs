@@ -10,7 +10,7 @@
 
 ## Abstract
 
-Allow additional meta information (attributes) to be attached to enums and functions parameters, including built-in attributes such as `deprecated`.
+Rationale for why additional meta information (attributes) should be allowed to be attached to enums and functions parameters, including built-in attributes such as `deprecated`.
 
 ### Reference
 
