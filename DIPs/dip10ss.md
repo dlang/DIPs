@@ -5,7 +5,7 @@
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | [@skl131313](https://github.com/skl131313)                      |
-| Implementation: | [Function UDAS](https://github.com/dlang/dmd/pull/7576) [Enum UDAs](https://github.com/dlang/dmd/pull/6161) |
+| Implementation: | [Function UDAS](https://github.com/dlang/dmd/pull/7576) / [Enum UDAs](https://github.com/dlang/dmd/pull/6161) |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
