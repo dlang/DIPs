@@ -10,7 +10,7 @@
 
 ## Abstract
 
-Allow additional meta information (attributes) to be attached with enums and functions parameters, including built-in attributes such as `deprecated`.
+Allow additional meta information (attributes) to be attached to enums and functions parameters, including built-in attributes such as `deprecated`.
 
 ### Reference
 
@@ -32,15 +32,15 @@ Allow additional meta information (attributes) to be attached with enums and fun
 
 ## Rationale
 
-It is currently not possible to attach attributes to both enums and function parameters. This excludes a few features that can be used with almost any other symbol in D.
+It is currently not possible to attach attributes to enums or function parameters. This excludes a few features that can be used with almost any other symbol in D.
 
-Attributes and user-defined attributes (UDA) serve as a means to provide extra meta data for a symbol. What can be said for why attributes were included as a feature in D can also be said for why they should be extended to enums and function parameters. It is benefitial to provide extra meta data about a symbol that can be used at compile-time.
+Attributes and user-defined attributes (UDA) serve as a means to provide extra metadata for a symbol. The reasoning for why attributes were included as a feature in D can be included as to why UDAs should be extended to enums and function parameters. It is benefitial to provide extra metadata about a symbol that can be used at compile-time.
 
 The concept known as "orthogonality of language features" applies here. Attributes can be applied to almost every symbol in D. A user would expect them to also be applicable to enums and function parameters.
 
 ## Description
 
-The changes made to D would be relatively minor. Most of the framework for attributes already exist and it would just be a matter of extending that into the respective symbols for enums and function parameters.
+The changes made to D would be relatively minor. Most of the framework for attributes already exists, and it would just be a matter of extending that to the respective symbols for enums and function parameters.
 
 The following syntaxes are being proposed to be accepted:
 
@@ -115,7 +115,7 @@ Parameter:
 
 ## Existing Solutions
 
-A current solution for applying an UDA to an enum or parameter is to use an UDA on the parent symbol with some additional information for which child element it should be applied to. This allows the desired UDA to be used and associated with the desired symbol. It introduces some duplication and the information stored in the UDA is separated from the rest of the information of the symbol.
+A current solution for applying a UDA to an enum or parameter is to use an UDA on the parent symbol with some additional information for which child element it should be applied to. This allows the desired UDA to be used and associated with the desired symbol. It introduces some duplication and the information stored in the UDA is separated from the rest of the information of the symbol.
 
 ```D
 @MyUda("feature0", "...")
@@ -134,7 +134,7 @@ void foo(int param0)
 }
 ```
 
-A solution for applying the `deprecation` attribute to an enum member can be done by reimplementing an enum as a structure with static enums. This allows the attribute to be placed with the desired enum member. While still allowing for any existing code that simply used an enum before hand to still work accordingly, as if the struct was an enum.
+A solution for applying the `deprecation` attribute to an enum member can be done by reimplementing an enum as a structure with static enums. This allows the attribute to be placed with the desired enum member. While still allowing for any existing code that simply used an enum beforehand to still work accordingly, as if the struct was an enum.
 
 ```D
 enum SomeEnumImpl
@@ -159,7 +159,7 @@ struct SomeEnum
 
 ### Examples
 
-Allowing to deprecate enums which should not be used anymore as seen [here](https://github.com/vibe-d/vibe.d/pull/1947/files):
+Deprecating individual enums value which should not be used anymore as seen [here](https://github.com/vibe-d/vibe.d/pull/1947/files):
 
 ```D
 enum SomeEnumImpl
