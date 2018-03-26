@@ -18,14 +18,16 @@ used across DMD, Druntime, and Phobos.
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
-* [Acknowledgements](#acknowledgements)
+    * [Public Functions, Types, and Modules](#public-functions-types-and-modules)
+    * [Language Features](#language-features)
+* [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
 ## Rationale
 
 There is general disagreement on the best and/or accepted way to remove public
 features. Each deprecation ends up being handled slightly differently depending on
-who's handling the pull requests. Standardizing the process makes sure that
+who's writing the pull request. Standardizing the process makes sure that
 deprecations are done very publicly and carefully, so as to minimize breakage and
 to provide clear fixes for user code.
 
@@ -43,10 +45,10 @@ There are two cases where the deprecation period is allowed to be shorter:
 
 1. The code or feature is notably dangerous or unsafe, and users need to remove
 it from their code as soon as possible.
-2. The existance of the current code precludes its own fix or the fix of an equally
+2. The existence of the current code precludes its own fix or the fix of an equally
 important issue.
 
-Shorting the deprecation period should be done with caution to avoid giving D
+Shortening the deprecation period should be done with caution to avoid giving D
 an image of instability.
 
 At the time of the pull request for deprecation, all code in Phobos, Druntime,
@@ -56,7 +58,7 @@ maintainers notified.
 
 Both at the time of deprecation and removal, a changelog entry must be made. This
 changelog entry should have a short motivation for the deprecation (or removal)
-and should to describe what steps can be taken by the user to upgrade their codebase.
+and should describe which steps can be taken by the user to upgrade their codebase.
 
 In order to facilitate on schedule deprecations, a comment of the format
 `@@@DEPRECATED_[version]@@@` should be added to the top of the code to be removed/disabled.
@@ -80,8 +82,11 @@ symbols, both the old and the new symbol(s) should be availible un-deprecated
 in at least one release to allow users to build their code without issue on
 both the `stable` and `master` branches.
 
-On the fifth release in the deprecation period, the documentation for the symbol
-should be removed while keeping the code itself public until removal.
+On the first release in the deprecation period, the removed symbol(s) should
+be removed from any module or package wide list of public functions/booktables/cheatsheets
+to demphize its use. On the fifth release in the deprecation period, the documentation
+for the symbol should be removed completely while keeping the code itself public until
+complete removal.
 
 If there is no equivalent for the functionality of the removed symbol in the
 standard library or the runtime, the code should be moved to
@@ -115,7 +120,7 @@ Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
-## Review
+## Reviews
 
 The DIP Manager will supplement this section with a summary of each review stage
 of the DIP process beyond the Draft Review.
