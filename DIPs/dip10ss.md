@@ -10,7 +10,9 @@
 
 ## Abstract
 
-Rationale for why additional meta information (attributes) should be allowed to be attached to enums and functions parameters, including built-in attributes such as `deprecated`.
+User-defined attributes (UDA) serve as a means of adding additional compile time information to a symbol. This additional information can be used for various purposes in combination with the type system. D also has some built-in attributes such as `deprecated` which provide some additional functinality. In the case of `deprecated`, a message is displayed warning if a symbol that is marked with deprecated is used.
+
+D current allows UDAs/built-in attributes on most symbols, but there are some instances where they are currently prohibited, specifically for enums and function parameters. This proposal looks to make the change that would allow UDAs/built-in attributes to be attached to enums and functions paramters.
 
 ### Reference
 
