@@ -10,6 +10,8 @@
 
 ## Abstract
 
+Required.
+
 Short and concise description of the idea in a few lines.
 
 ### Reference
@@ -54,7 +56,7 @@ being approved.
 
 ## Copyright & License
 
-Copyright (c) 2017 by the D Language Foundation
+Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
