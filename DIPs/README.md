@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1013](./DIP1013.md)|                        The Deprecation Process|Community Review 1|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
 |[1009](./DIP1009.md)|                     Improve Contract Usability|     Formal Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|     Formal Review|
