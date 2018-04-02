@@ -10,9 +10,9 @@
 
 ## Abstract
 
-User-defined attributes (UDA) serve as a means of adding additional compile time information to a symbol. This additional information can be used for various purposes in combination with the type system. D also has some built-in attributes such as `deprecated` which provide some additional functinality. In the case of `deprecated`, a message is displayed warning if a symbol that is marked with deprecated is used.
+In D, attributes provide a means of attaching compile-time information to a symbol. Built-in attributes provide information to the compiler, User-Defined Attributes (UDAs) provide information to the programmer or tooling, and both are accessible through compile-time reflection.
 
-D current allows UDAs/built-in attributes on most symbols, but there are some instances where they are currently prohibited, specifically for enums and function parameters. This proposal looks to make the change that would allow UDAs/built-in attributes to be attached to enums and functions paramters.
+D currently prohibits the use of attributes on some types of symbols, specifically enums and function parameters. This document describes a proposal to allow UDAs and built-in attributes to be attached to enums and function parameters.
 
 ### Reference
 
