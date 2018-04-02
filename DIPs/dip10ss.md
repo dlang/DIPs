@@ -34,11 +34,9 @@ D currently prohibits the use of attributes on some types of symbols, specifical
 
 ## Rationale
 
-It is currently not possible to attach attributes to enums or function parameters. This excludes a few features that can be used with almost any other symbol in D.
+Allowing attributes to be attached to function parameters and enums would enable current implementations to be simplified and result in cleaner, more easily readable code. Current workarounds involve attaching the attributes to the parent symbol instead, as such additional identifying information needs to be added to the attribute indicating which child the attribute belongs to. This makes it difficult to read as information pertaining to a symbol isn't located with it, instead you would need to look through the parent's attributes.
 
-Attributes and user-defined attributes (UDA) serve as a means to provide extra metadata for a symbol. The reasoning for why attributes were included as a feature in D can be included as to why UDAs should be extended to enums and function parameters. It is benefitial to provide extra metadata about a symbol that can be used at compile-time.
-
-The concept known as "orthogonality of language features" applies here. Attributes can be applied to almost every symbol in D. A user would expect them to also be applicable to enums and function parameters.
+The concept known as "orthogonality of language features" can be said to apply to this proposal. Attributes can be applied to almost every symbol in D, a user would expect them to also be applicable to enums and function parameters.
 
 ## Description
 
@@ -136,28 +134,7 @@ void foo(int param0)
 }
 ```
 
-A solution for applying the `deprecation` attribute to an enum member can be done by reimplementing an enum as a structure with static enums. This allows the attribute to be placed with the desired enum member. While still allowing for any existing code that simply used an enum beforehand to still work accordingly, as if the struct was an enum.
-
-```D
-enum SomeEnumImpl
-{
-    none         = -1,
-    actualValue2 = 2,
-    actualValue3 = 3,
-}
-
-struct SomeEnum
-{
-    SomeEnumImpl x;
-    alias this x;
-
-    deprecated("reason for deprecation")
-    enum deprecatedValue0 = none;
-
-    deprecated("reason for deprecation")
-    enum deprecatedValue1 = none;
-}
-```
+A solution for applying the `deprecation` attribute to an enum member can be done by reimplementing an enum as a structure with static enums. This allows the attribute to be placed with the desired enum member. While still allowing for any existing code that simply used an enum beforehand to still work accordingly, as if the struct was an enum. An example of this workaround can be seen in the [Examples](#examples) section, with the corresponding solution if this proposal was implemented.
 
 ### Examples
 
