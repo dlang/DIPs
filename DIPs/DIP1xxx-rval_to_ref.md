@@ -5,7 +5,7 @@
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Manu Evans (turkeyman@gmail.com)                                |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
@@ -262,7 +262,7 @@ In my experience, this issue is almost enough on its own to call for immediate d
 
 ## Copyright & License
 
-Copyright (c) 2017 by the D Language Foundation
+Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
