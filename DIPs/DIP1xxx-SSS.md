@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Shachar Shemesh                                                 |
 | Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
@@ -107,7 +107,7 @@ the compiler try to move such a struct.
 
 The documentation for `opMove` MUST also emphasize that while manipulating the memory at the `opMove` source location is allowed,
 the memory will be effectively freed with no destruction immediately after the function's return. Implementors SHOULD be
-encouraged to define the argument to `opMove` to be `const ref` to gain some compiler protection against accidental manipulation. 
+encouraged to define the argument to `opMove` to be `const ref` to gain some compiler protection against accidental manipulation.
 This does not harm the implementor's access to the data, as she already has a copy at the destination location.
 
 ### Code emitted by the compiler on move
