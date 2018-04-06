@@ -5,7 +5,6 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1013](./DIP1013.md)|                        The Deprecation Process|Community Review 1|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
-|[1009](./DIP1009.md)|                     Improve Contract Usability|     Formal Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|     Formal Review|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1|
@@ -18,6 +17,7 @@
 |-----------------------------|--------------------------------|
 |[1003](./accepted/DIP1003.md)|      Remove `body` as a Keyword|
 |[1007](./accepted/DIP1007.md)|"future symbol" Compiler Concept|
+|[1009](./accepted/DIP1009.md)|      Improve Contract Usability|
 |[1010](./accepted/DIP1010.md)|                  Static foreach|
 
 ## Rejected DIPs
