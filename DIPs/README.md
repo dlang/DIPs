@@ -13,15 +13,15 @@
 |[1005](./DIP1005.md)|               Dependency-Carrying Declarations|         Postponed|
 
 ## Accepted DIPs
-|                           ID|                           Title|
-|-----------------------------|--------------------------------|
-|[1003](./accepted/DIP1003.md)|      Remove `body` as a Keyword|
-|[1007](./accepted/DIP1007.md)|"future symbol" Compiler Concept|
-|[1009](./accepted/DIP1009.md)|      Improve Contract Usability|
-|[1010](./accepted/DIP1010.md)|                  Static foreach|
+|                           ID|                                 Title|
+|-----------------------------|--------------------------------------|
+|[1003](./accepted/DIP1003.md)|            Remove `body` as a Keyword|
+|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept|
+|[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax|
+|[1010](./accepted/DIP1010.md)|                        Static foreach|
 
 ## Rejected DIPs
-|                           ID|                           Title|
-|-----------------------------|--------------------------------|
-|[1001](./rejected/DIP1001.md)|                    DoExpression|
-|[1002](./rejected/DIP1002.md)|               TryElseExpression|
+|                           ID|                                 Title|
+|-----------------------------|--------------------------------------|
+|[1001](./rejected/DIP1001.md)|                          DoExpression|
+|[1002](./rejected/DIP1002.md)|                     TryElseExpression|
