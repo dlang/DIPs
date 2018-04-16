@@ -16,7 +16,7 @@ around in memory by a simple bit-copy operation.
 
 The purpose of this DIP is to maintain this ability, while also allowing internal and external references
 to the instance. The means by which this is achieved is by allowing the struct to define a postblit like
-callback, called `opMove`, that will get called and allow the struct to update the references invalidated
+callback, called `opPostMove`, that will get called and allow the struct to update the references invalidated
 by the move.
 
 ### Reference
@@ -31,9 +31,9 @@ such support, as well as discussions on why it is needed.
 * [Description](#description)
   * [Outline](#outline)
   * [`__move_post_blt`'s implementation](#move_post_blts-implementation)
-  * [`opMove`](#opMove)
+  * [`opPostMove`](#opPostMove)
   * [Code emitted by the compiler on move](#code-emitted-by-the-compiler-on-move)
-  * [`opMove` Decoration Considerations](#opmove-decoration-considerations)
+  * [`opPostMove` Decoration Considerations](#opmove-decoration-considerations)
 * [Performance Considerations](#performance-considerations)
 * [Effect on Phobos](#effect-on-phobos)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
@@ -64,7 +64,7 @@ Whenever an upper case vowel is used (MAY, SHOULD, MUST NOT), their meaning shou
 The DIP suggests the following changes:
 
 1. A new function, called `__move_post_blt`, will be added to druntime.
-1. The user MAY create a member function, called `opMove`, in structs. If created, that function MUST follow a certain interface.
+1. The user MAY create a member function, called `opPostMove`, in structs. If created, that function MUST follow a certain interface.
 1. When deciding to move a struct, the compiler will emit a call to the struct's `__move_post_blt` after blitting the struct and
 before releasing the old struct's memory. `__move_post_blt` will receive the old and new struct's pointers.
 
@@ -80,57 +80,57 @@ void __move_post_blt(S)(ref S newLocation, ref S oldLocation) nothrow if( is(S==
         }
     }
 
-    static if( __traits(hasMember, S, "opMove") ) {
-        newLocation.opMove(oldLocation);
+    static if( __traits(hasMember, S, "opPostMove") ) {
+        newLocation.opPostMove(oldLocation);
     }
 }
 ```
 
 Please note that `S` might also be shared, immutable or const.
 
-### `opMove`
+### `opPostMove`
 
-As should be obvious from the definition of `__move_post_blt`, `opMove`, if defined, MUST be a `nothrow` function
+As should be obvious from the definition of `__move_post_blt`, `opPostMove`, if defined, MUST be a `nothrow` function
 that updates the external/internal references after they have already been copied. Implementors SHOULD also make it `@nogc` and
 either `@safe` or `@trusted`.
 
-Implementors MAY define `opMove` for const and/or immutable instances. If they do, the implementation code MAY safely modify
+Implementors MAY define `opPostMove` for const and/or immutable instances. If they do, the implementation code MAY safely modify
 the data in the destination location for the object, as that has no pointers pointing at it. Such modifications will require a
 cast.
 
 Whether it is safe to modify external data pointed to by pointers stored in the struct (such as the case for an intrusive linked
 list), or the data in the source address of the move, heavily depends on the specifics of the implementation. The user
-documentation for `opMove` MUST explain what is guaranteed to be safe and what is not.
+documentation for `opPostMove` MUST explain what is guaranteed to be safe and what is not.
 
-Implementors may also choose to not define const/immutable versions of `opMove`. This will results in a compile-time error should
+Implementors may also choose to not define const/immutable versions of `opPostMove`. This will results in a compile-time error should
 the compiler try to move such a struct.
 
-The documentation for `opMove` MUST also emphasize that while manipulating the memory at the `opMove` source location is allowed,
+The documentation for `opPostMove` MUST also emphasize that while manipulating the memory at the `opPostMove` source location is allowed,
 the memory will be effectively freed with no destruction immediately after the function's return. Implementors SHOULD be
-encouraged to define the argument to `opMove` to be `const ref` to gain some compiler protection against accidental manipulation.
+encouraged to define the argument to `opPostMove` to be `const ref` to gain some compiler protection against accidental manipulation.
 This does not harm the implementor's access to the data, as she already has a copy at the destination location.
 
 ### Code emitted by the compiler on move
 
 When moving a struct, the compiler should call `__move_post_blt` on the struct, giving it both new and old instances.
 
-### `opMove` Decoration Considerations
+### `opPostMove` Decoration Considerations
 
-Ideally, `opMove` should be `@nogc`, `nothrow` and either `@safe` or `@trusted`. If that doesn't happen, trying to compile
+Ideally, `opPostMove` should be `@nogc`, `nothrow` and either `@safe` or `@trusted`. If that doesn't happen, trying to compile
 code that moves a struct from context that is `nothrow`, `@nogc` or `@safe` would result in a compilation error.
 
-We could force these by decorating `__move_post_blt` itself as `nothrow @nogc @safe`, thus not allowing `opMove` to be defined
-any other way (we cannot otherwise force `opMove` to be defined any specific way, as it is being defined by the user). I chose
+We could force these by decorating `__move_post_blt` itself as `nothrow @nogc @safe`, thus not allowing `opPostMove` to be defined
+any other way (we cannot otherwise force `opPostMove` to be defined any specific way, as it is being defined by the user). I chose
 not to do so because the user might opt not to use, e.g., `@safe` anywhere in her program. It would, therefor, not make sense
-to force her to use it in `opMove`. Due to attribute inference on template functions, if all member `opMove`s are, e.g., `@nogc`,
+to force her to use it in `opPostMove`. Due to attribute inference on template functions, if all member `opPostMove`s are, e.g., `@nogc`,
 D will automatically define `__move_post_blt` as `@nogc`.
 
-We do force `nothrow` on `opMove`, because throwing would mean a change in the program flow from a place that does not seem to
+We do force `nothrow` on `opPostMove`, because throwing would mean a change in the program flow from a place that does not seem to
 run code, which might prove too confusing.
 
 ## Performance Considerations
 
-Structs that do not define `opMove`, and that none of their members define `opMove`, will have their `__move_post_blt`
+Structs that do not define `opPostMove`, and that none of their members define `opPostMove`, will have their `__move_post_blt`
 implementation be just a function calling a bunch of empty functions recursively. Hopefully, the compiler will be able to inline
 this series of calls into oblivion, meaning the run time cost of this feature for structs that do not use it will be zero.
 
@@ -142,14 +142,14 @@ static if( !hasElaborateMove!S )
     return;
 ```
 
-Such an addition incures some compile-time cost in the case that an inner member does have `opMove` defined, as it performs
+Such an addition incures some compile-time cost in the case that an inner member does have `opPostMove` defined, as it performs
 multiple scans of the subtrees during the recursive descent. It does, however, guarantee zero run time cost.
 
-Structs that do define `opMove` manage their own costs.
+Structs that do define `opPostMove` manage their own costs.
 
 ## Effect on Phobos
 
-For the most part, no effect should happen on Phobos. Even if `opMove` is defines for a struct, the compiler's handling should
+For the most part, no effect should happen on Phobos. Even if `opPostMove` is defines for a struct, the compiler's handling should
 make sure Phobos is not affected.
 
 The exceptions are:
@@ -157,7 +157,7 @@ The exceptions are:
 * The `move` family of functions defined in `std.algorithm` will have to be updated with a call to `__move_post_blt`.
 * The `swap` functions may, also, need to be similarly updated (depending on precise implementation).
 * A new template SHOULD be added to `std.traits`: `hasElaborateMove`, that returns whether a struct or any of its members have
-an `opMove` defined.
+an `opPostMove` defined.
 
 ## Breaking Changes and Deprecations
 
@@ -165,7 +165,7 @@ There are no breaking changes introduced by the proposal itself, as structs have
 any change in behavior at all.
 
 This proposal does add two functions with special meaning. One of them is in the reserved space, so should
-not break anything. If an existing struct has a function called `opMove`, however, switching to an implementation that
+not break anything. If an existing struct has a function called `opPostMove`, however, switching to an implementation that
 supports this DIP will break the old code.
 
 Since it is generally understood by D programmers that `op*` functions are for operator overloads, this problem should not
