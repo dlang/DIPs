@@ -3,7 +3,8 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1013](./DIP1013.md)|                        The Deprecation Process|Community Review 1|
+|[1013](./DIP1014.md)|              Hooking D's struct move semantics|Post-Community Review 1|
+|[1013](./DIP1013.md)|                        The Deprecation Process|Post-Community Review 1|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|     Formal Review|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1|
