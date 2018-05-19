@@ -1,4 +1,4 @@
-# `ref const(T)` should receive r-values
+# `ref T` accepts r-values
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -12,7 +12,7 @@
 A recurring complaint from users when interacting with functions that receive arguments by `ref` is that given an rvalue as argument, the compiler is unable to create an implicit temporary to perform the function call, and presents the user with a compile error instead.
 This situation leads to a workaround where function parameters must be manually assigned to temporaries prior to the function call, which many users find frustrating.
 
-Another further issue is that because they require special-case handling, this may introduce semantic edge-cases and necessitate undesirable compile-time logic invading the users code, particularly into generic code.
+A further issue is that because this situation require special-case handling, this may introduce semantic edge-cases and necessitate undesirable compile-time logic invading the users code, particularly into generic code.
 
 `ref` args are not as common in conventional idiomatic D as they are in some other languages, but they exist and appear frequently in niche circumstances. As such, this issue is likely to disproportionately affect subsets of users who find themselves using ref arguments more than average.
 
@@ -23,7 +23,10 @@ Here is proposed a strategy to emit implicit temporaries to conveniently interac
 
 ### Reference
 
-Nothing here yet...
+Forum threads:
+
+Issues:
+
 
 ## Contents
 * [Rationale](#rationale)
@@ -36,12 +39,16 @@ Nothing here yet...
 
 ## Rationale
 
-Many functions receive arguments by reference. This may be for a variety of reasons.
-One reason is that the function may want to mutate the caller's data directly or return data via `out` parameters due to ABI limitations regarding multiple return values, another common case is that the cost of copying large structs via the parameter list is expensive, so struct parameters may be received by reference to mitigate this cost.
-In that case, it is conventional to mark the argument `const`, enforcing that the argument is not to be modified by the function and received purely as input.
+When calling functions that receive ref args, D prohibits supplying rvalues. It is suggested that this is to assist the author identifying likely logic errors where an rvalue will expire at the end of the statement, and it doesn't make much sense for a function to mutate a temporary whose life will not extend beyond the function call in question.
 
-When calling functions that receive ref args, D prohibits supplying rvalues as arguments because an rvalue theoretically doesn't have an address, and it doesn't make much sense for a function to mutate a temporary whose life will not extend beyond the function in question.
-While these are sensible defense mechanisms for functions that receive arguments by mutable or `out` ref, it can be very inconvenient where functions receive arguments by `const ref` as pure inputs.
+However, many functions receive arguments by reference, and this may be for a variety of reasons.
+One common reason is that the cost of copying large structs via the parameter list is expensive, so struct parameters may be received by reference to mitigate this cost.
+Another common case is that the function may want to mutate the caller's data directly or return data via `out` parameters due to ABI limitations regarding multiple return values. This is the potential error case that the existing design attempts to mitigate, but in D, pipeline programming is vary popular, and contrary to conventional wisdom where the statement is likely to end at the end of the function call, pipeline expressions may result in single statements performing a lot of work, mutating state as it passes down the pipeline.
+
+A related issue is with relation to generic code which reflects or received a function by alias. Such generic code may want to call that function, but it is often the case that details about the ref-ness of arguments lead to incorrect semantic expressions in the generic code depending on the arguments, necessitating additional compile-time logic to identify the ref-ness of function arguments and implement appropriate workarounds on these conditions. This leads to longer, more brittle, and less-maintainable generic code. It is also much harder to write correctly the first time, and such issues may only emerge in niche use cases at a later time.
+
+With these cases in mind, the existing rule feels out-dated or inappropriate, and the presence of the rule may often lead to aggravation while trying to write simple, readable code.
+Calling a function should be simple and orthogonal, generic code should not have to concern itself with details about ref-ness of function parameters, and users should not be required to jump through hoops when ref appears in API's they encounter.
 
 Consider the example:
 ```d
@@ -49,9 +56,9 @@ void fun(int x);
 
 fun(10); // <-- this is how simple calling a function should be
 ```
-But when a const-ref is involved:
+But when a ref is involved:
 ```d
-void fun(ref const(int) x);
+void fun(ref int x);
 
 fun(10); // <-- compile error; not an lvalue!!
 ```
@@ -71,14 +78,50 @@ fun(x + y);    // expressions
 fun(my_short); // implicit type conversions (ie, short->int promotion)
 // etc... (basically, most things you pass to functions)
 ```
-The work-around can bloat the number of lines around the call-site significantly, and the user needs to declare names for all the temporaries, polluting the local namespace, and often for moments in calculations (expressions) where no meaningful name exists.
+The work-around can bloat the number of lines around the call-site significantly, and the user needs to declare names for all the temporaries, polluting the local namespace, and often for expressions where no meaningful name exists, leading to.
 
-This work-around damages readability and brevity, and it's frustrating to implement repeatedly.
+The generic case may appear in a form like this:
+```d
+void someMeta(alias userFun)()
+{
+    userFun(getValue());
+}
+
+void fun(int x);
+void gun(ref const(int) x);
+
+unittest
+{
+    someMeta!(fun)(); // no problem
+    someMeta!(gun)(); // oh no, can't receive rvalue!
+}
+```
+Necessitating a workaround that may look like:
+```d
+void someMeta(alias userFun)()
+{
+    std.algorithm : canFind;
+    static if(canFind(__traits(getParameterStorageClasses, userFun, 0), "ref"))
+    {
+        auto x = getValue();
+        userFun(x);
+    }
+    else
+    {
+        userFun(getValue());
+    }
+}
+```
+This example situation is simplified, but it is often that such issues appear in complex aggregate meta, which may be difficult to understand, or the issue is caused indirectly at some layer the user did not author.
+
+These work-arounds damage readability and brevity, they make authoring correct code more difficult, increase the probability of brittle meta, and it's frustrating to implement repeatedly.
 
 ## Proposal
 
-Calls with `ref const(T)` arguments supplied with rvalues are effectively rewritten to emit a temporary automatically, for example:
+Calls with `ref T` arguments supplied with rvalues are effectively rewritten to emit a temporary automatically, for example:
 ```d
+void fun(ref int x);
+
 fun(10);
 ```
 Is rewritten:
@@ -88,11 +131,11 @@ Is rewritten:
   fun(__temp0 := 10);
 }
 ```
-Where `T` is the function argument type.
+Where `T` is the *function argument type*.
 
 To mitigate confusion, I have used `:=` in this example to express the initial construction, and not a copy operation as would be expected if this code were written with an `=` expression.
 
-In the edge case where a function initialises an output variable:
+In the case where a function output initialises an variable:
 ```d
 R result = fun(10);
 ```
@@ -106,12 +149,11 @@ R result = void;
 ```
 Again, where initial construction of `result` should be performed at the moment of assignment, as usual and expected.
 
-It is important that `T` be defined as the argument type, and not `auto`, because it will allow for implicit conversions to occur naturally as if the argument was not a ref.
-The user should not experience edge cases, or differences in functionality when calling `fun(const(int) x)` vs `fun(ref const(int)x)`.
+It is important that `T` be defined as the argument type, and not `auto`, because it will allow implicit conversions to occur naturally, with identical behaviour as when argument was not a ref. The user should not experience edge cases, or differences in functionality when calling `fun(int x)` vs `fun(ref int x)`.
 
 ## Temporary destruction
 
-Destruction of any temporaries occurs naturally at the end of the scope, as usual.
+Destruction of any temporaries occurs naturally at the end of the introduced scope.
 
 ## Function calls as arguments
 
@@ -139,8 +181,8 @@ Given the expansion shown above for cascading function calls, `return ref` works
 
 For example:
 ```d
-void fun(ref const(int) x);
-ref const(int) gun(return ref const(int) y);
+void fun(ref int x);
+ref int gun(return ref int y);
 
 fun(gun(10));
 ```
@@ -153,10 +195,33 @@ This correct expansion is:
 ```
 The lifetime of `__gun_temp0` is satisfactory for any conceivable calling construction.
 
+This is particularly useful when pipeline programming.
+It is common that functions are invoked which create and return a range which is then used in a pipeline operation:
+```d
+MyRange makeRange();
+MyRange transform(MyRange r, int x);
+
+auto results = makeRange().transform(10).array;
+```
+But if the transform receives a range by ref, the pipeline syntax breaks down:
+```d
+MyRange makeRange();
+ref MyRange mutatingTransform(return ref MyRange r, int x);
+
+auto results = makeRange().transform(10).array; // error, not an lvalue!
+
+// necessitate workaround:
+auto tempRange = makeRange(); // satisfy the compiler
+auto results = tempRange.mutatingTransform(10).array;
+```
+There are classes of range where the source range should be mutated through the pipeline. It is also possible that this pattern may be implemented for efficiency, since copying ranges at each step may be expensive.
+
+It is unfortunate that `ref` adds friction to one of D's greatest programming paradigms this way.
+
 ## Interaction with other attributes
 
 Interactions with other attributes should follow all existing rules.
-Any code that wouldn't compile in the event the user were to perform the rewrite manually will fail the same way, emitting the same error messages the user would expect.
+Any code that wouldn't compile in the event the user were to perform the proposed rewrites manually will fail in the same way, emitting the same error messages the user would expect.
 
 ## Overload resolution
 
@@ -170,23 +235,23 @@ void fun(ref const(int)); // D
 
 int t = 10;
 const(int) u = 10;
-fun(10);            // choose A
-fun(const int(10)); // choose B
-fun(t);             // choose C
-fun(u);             // choose D
+fun(10);            // rvalue; choose A
+fun(const int(10)); // rvalue; choose B
+fun(t);             // lvalue; choose C
+fun(u);             // lvalue; choose D
 ```
 This follows existing language rules. No change is proposed here.
 
-Overloading with `auto ref` equally preserves current rules, which is to emit an ambiguous call when it collides with an explicit overload:
+Overloading with `auto ref` preserves existing rules, which is to emit an ambiguous call when it collides with an explicit overload:
 ```d
-void fun(const(int));            // A
-void fun(ref const(int));        // B
-void fun()(auto ref const(int)); // C
+void fun(ref int);        // A
+void fun()(auto ref int); // B
 
 int t = 10;
-fun(10);    // error: ambiguous call between A and C
-fun(t);     // error: ambiguous call between B and C
+fun(10);    // chooses B: auto ref resolves by-value given an rvalue, prefer exact match as above
+fun(t);     // error: ambiguous call between A and B
 ```
+No change to existing behaviour is proposed.
 
 ## Default arguments
 
@@ -194,7 +259,7 @@ In satisfying the statement above "The user should not experience edge cases, or
 
 If the user does not supply an argument and a default arg is specified, the default arg is selected as usual and populates a temporary, just as if the user supplied a literal manually.
 
-In this case, an interesting circumstantial opportunity appears where the compiler may discern that construction is expensive, and construct a single static instance intended for reuse.
+In this case, an interesting circumstantial opportunity appears where the compiler may discern that construction is expensive, and construct a single immutable instance for reuse.
 This shall not be specified functionality, but it may be a nice opportunity nonetheless.
 
 ## `@safe`ty implications
@@ -203,21 +268,6 @@ There are no implications on `@safe`ty. There are no additions or changes to all
 D already states that arguments received by ref shall not escape, so passing temporaries is not dangerous from an escaping/dangling-reference point of view.
 
 The user is able to produce the implicit temporary described in this proposal manually, and pass it with identical semantics; any potential safety implications are already applicable to normal stack args. This proposal adds nothing new.
-
-## Why `const`?
-
-Due to the nature of D's restrictive `const`, this proposal has been criticised as being so restrictive to inhibit some potentially useful programs.
-
-I suggest this proposal only applies to `const ref` arguments, because it's a guarantee that the parameter is used strictly as an input argument, rather than some form of output.
-In the case where the parameter is used as an output argument, this proposal doesn't make sense because the output would be immediately discarded; such a function call given an rvalue as argument likely represents an accidental mistake on the users part, and we can catch that invalid code.
-
-That said, D has the `out` attribute, which is a semantic statement of this intent. It could be that this proposal is amended to include non-const ref arguments, expecting that `out` shall be used exclusively to mark this intent.
-If we assume that world, and `out` is deployed appropriately, there are 2 cases where mutable-ref may be used:
- 1. When the function *modifies* the input; not a strict output parameter, but still outputs new information
- 2. Still used as input, but a user is trying to subvert the restrictiveness of D's `const`
-
-The proposal could be amended to accept mutable ref's depending on the value-judgement balancing these 2 use cases.
-Sticking with `const` requires no such value judgement to be made at this time, and it's much easier to relax the spec in the future with emergence of evidence to do so.
 
 ## Why not `auto ref`?
 
@@ -239,26 +289,16 @@ Any (or many) of these reasons may apply, eliminating `auto ref` from the soluti
 
 ## Key use cases
 
-By comparison, C++ has a very high prevalence of `const&` args and classes with virtual functions, and when interfacing with C++, those functions are mirrored to D. The issue addressed in this DIP becomes magnified significantly to this set of users.
+Pipeline programming expressions often begin with a range returned from a function. There are constructs where transform functions need to take the range by reference. Such cases currently break the pipeline and introduce a temporary. This proposal improves the pipeline-programming experience.
 
-The D community has invested significant resources in improving interaction with C++; either co-existing or simplifying a migration, and thereby make D attractive to the C++ audience.
-The importance of this initiative is widely agreed; it has featured prominently in the bi-annual game-plans documents, and comprehensive interaction with even the C++ standard library has attracted funding from the D foundation.
-This DIP offers a lot for interaction with C++ APIs.
+Generic programming is one of D's biggest success stories, and tends to work best when interfaces and expressions are orthogonal and with as few as possible edge-cases. Certain forms of meta find that `ref`-ness is a key edge-case which requires special case handling and may often lead to brittle generic code to be discovered by an unhappy niche user at some future time.
+
+Another high-impact case is OOP, where virtual function APIs inhibit the use of templates (ie, auto ref).
+
+By comparison, C++ has a very high prevalence of `const&` args and classes with virtual functions, and when interfacing with C++, those functions are mirrored to D. The issue addressed in this DIP becomes magnified significantly to this set of users. This DIP reduces inconvenience when interacting with C++ API's.
 
 This issue is also likely to appear more frequently for vendors with tight ABI requirements.
 Users of closed-source libraries distributed as binary libs, or libraries distributes as DLLs are more likely to encounter these challenges interacting with those APIs as well.
-
-Another high-probability occurrence is OOP, where virtual function APIs inhibit the use of templates.
-
-## Anecdotes
-
-As a user with numerous counts of attempted C++ interactions and migrations in the workplace, and in my own projects, I can add some anecdotal observations.
-My attempts to introduce D to the workplace are interesting, because they involve building interest and selling D's merits to my colleagues in order to be successful. Expansion of D in my workplaces depends on this target audience assessing that D is a superior choice compared to the de-facto establishment of C++. There are some major factors that will motivate this opinion, but mostly it is an aggregate of minor improvements, coupled with satisfaction that existing comforts and workflow will be left mostly unchanged.
-
-With respect to this issue, in all attempts, I have quickly demonstrated that the work-around presented above severely impact the quality of users experience with D when interacting with C++.
-A large bulk of any migration task tends to involve responding to ongoing compile errors by copy-pasting function arguments to lines above the call, and assigning them temporary names. The resulting code is unappealing, bloated, and the experience is unsatisfying.
-The take-away from this experience to a C++ programmer who is investigating D, is that the equivalent D code is objectively worse than the C++ code, and strongly undermines our ability to make a positive impression on that audience during the critical 'first-5-minutes'.
-In my experience, this issue is almost enough on its own to call for immediate dismissal. Often expressed with vibrantly colourful language.
 
 ## Copyright & License
 
@@ -280,4 +320,4 @@ A few examples of typical C++ APIs that exhibit this issue:
  - Bullet (Physics Lib): http://bulletphysics.org/Bullet/BulletFull/classbtBroadphaseInterface.html
 
 In these examples of very typical C++ code, you can see a large number of functions receive arguments by reference.
-Complex objects are likely to be fetched via getters/properties. Simple objects like math vectors/matrices are likely to be called with literals, or properties.
+Complex objects are likely to be fetched via getters/properties. Simple objects like math vectors/matrices are likely to be called with literals, properties, or expressions.
