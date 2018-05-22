@@ -262,7 +262,19 @@ fun(const int(10)); // rvalue; choose B
 fun(t);             // lvalue; choose C
 fun(u);             // lvalue; choose D
 ```
-This follows existing language rules. No change is proposed here.
+This follows existing language rules, with one notable change; the text "rvalues should *prefer* by-value functions" allows that rvalues *may* now choose a by-ref function if no by-val overload is present, where it was previously a compile error.
+
+It has been noted that is it possible to perceive the current usage of `ref` in lieu of a by-val overload as an 'lvalues-only restriction', which may be useful in some constructions. That functionality can be preserved using a `@disable` mechanic:
+```d
+void lval_only(int x) @disable;
+void lval_only(ref int x);
+
+int x = 10;
+lval_only(x);  // ok: choose by-ref
+lval_only(10); // error: literal matches by-val, which is @disabled
+```
+It may be considered an advantage that using this construction, the intent to restrict the argument in this way is made explicit.  
+The symmetrical 'rvalue-only restriction' is also possible to express in the same way.
 
 Overloading with `auto ref` preserves existing rules, which is to emit an ambiguous call when it collides with an explicit overload:
 ```d
