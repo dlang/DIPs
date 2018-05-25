@@ -20,20 +20,25 @@ Examples of workarounds/hack
 https://github.com/atilaneves/automem/blob/master/source/automem/utils.d
 
 ## Contents
-* [Rationale](#rationale)
 * [Description](#description)
-* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [Acknowledgements](#acknowledgements)
+* [List of possible solutions] (#solutions)
 * [Reviews](#reviews)
 
-## Rationale
+## List of possible solutions
 
-*TODO
+-Separate the destructor and finalizer
+Pros:
+Destructor for deterministic memory, finalizer for non-deterministic memory.
+Cons:
+May introduce breaking changes
 
-## List of possible solutions with descriptions with the possibility of breaking changes and Deprecations
+-Make the destructor an actual virtual function like c++ destructor
+Pros: Years of experiences regrading usage of c++ destructor
+Cons: Will introduce breaking changes
 
-*TODO
-
+-Extend the functionality of destroy by only calling symobls that is marked with a given attribute.(Example: destroy(@safe))
+Pros: No breaking changes
+Cons: Possibility that an object may not have all its destructors called. 
 ## Copyright & License
 
 Copyright (c) 2018 by the D Language Foundation
