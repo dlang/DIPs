@@ -6,7 +6,7 @@
 | Review Count:   | 0                                                               |
 | Author:         | Yuxuan Shui (yshuiv7@gmail.com)                                 |
 | Implementation: | N/A                                                             |
-| Status:         |                                                                 |
+| Status:         | Draft                                                                |
 
 ## Abstract
 
