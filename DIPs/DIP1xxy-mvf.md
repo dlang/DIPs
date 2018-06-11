@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This DIP proposes deprecation and removal of implicit conversion from integer and character literals to `bool` in order to close a hole in the type system and resolve overload resolution bugs.  For the purpose of this document, *Integer literals* are literals of type `int`, `uint`, `long` or `ulong` and *Character literals* are literals of type `char`, `wchar`, or `dchar`.
+This DIP proposes the deprecation and removal of implicit conversion from integer and character literals to `bool`, thereby closing a hole in the type system and resolving overload resolution bugs.  For the purpose of this document, *Integer literals* are literals of type `int`, `uint`, `long` or `ulong` and *Character literals* are literals of type `char`, `wchar`, or `dchar`.
 
 ### Links
 
@@ -43,7 +43,7 @@ This DIP proposes deprecation and removal of implicit conversion from integer an
 D's existing implementation implicitly converts integer and character literals that evaluate to 0 and 1 to `false` and `true` respectively.
 
 ### Example A
-The following Example currently compiles in the existing implementation.
+The following example currently compiles in the existing implementation.
 ```D
 void main()
 {
@@ -73,9 +73,9 @@ void main()
     boolValue = 1UL;
 }
 ```
-The implicit conversion of character literals to `bool` is questionable, as there is no intrinsic relationship between  characters `'\0'` and `'\1'`, and boolean states false and true.  This behavior may actually be simply an unintended consequence of [integer promotion in D](https://dlang.org/spec/type.html#integer-promotions) and implicit integer literal conversion to `bool`.  The reader of such code would be right to question whether such expressions are actually programming errors or the author's intent, as they circumvent the type system without an explicit cast.
+The implicit conversion of character literals to `bool` is questionable, as there is no intrinsic relationship between the characters `'\0'` and `'\1'`, and the boolean states false and true.  This behavior may be an unintended consequence of [integer promotion in D](https://dlang.org/spec/type.html#integer-promotions) and implicit integer literal conversion to `bool`.  The reader of such code would be right to question whether such expressions are actually programming errors or the author's intent, as they circumvent the type system without an explicit cast.
 
-It is not clear how the implicit conversion of integer literals to `bool` came to be a feature in D.  It may be a historical leftover from a time when [D had a 1-bit integer, `bit`, that was later replaced by `bool`](https://issues.dlang.org/show_bug.cgi?id=9999#c9).  It may also be a carry-over from D's roots in C, the way conditionals are evaluated in C, and the conventions that were employed over the years to use integer values to compensate for C's lack of a boolean type.  Regardless, unlike C, D has a boolean type `bool`, boolean literals `false` and `true`, and also supports explicit casting of integers to `bool`, so implicit conversion from integer literals to `bool` is unnecessary, and even problematic as demonstrated below.
+Unlike C, D has a boolean type `bool`, boolean literals `false` and `true`, and also supports explicit casting of integers to `bool`, so implicit conversion from integer literals to `bool` is unnecessary, and even problematic as demonstrated below.
 
 Issues [9999](https://issues.dlang.org/show_bug.cgi?id=9999) and [10560](https://issues.dlang.org/show_bug.cgi?id=10560) document how implicit conversion of integer literals to `bool` causes the compiler to make an assumption possibly contrary to what the programmer intended.
 
@@ -99,7 +99,7 @@ void main()
     assert(f(E.c) == 2);   // called f(int)
 }
 ```
-Since there is no `f(E)` overload, and `E` inherits from `int`, it would be logical to expect any call to `f` with an argument of type `E` to call the `f(int)` overload.  However, due to value range propagation and the implicit conversion of integer literals to `bool`, under the existing implementation, the `f(bool)` overload is called.
+Since there is no `f(E)` overload, and `E` inherits from `int`, it would be logical to expect the compiler to select the `f(int)` overload in any call to `f` with an argument of type `E`.  However, due to value range propagation and the implicit conversion of integer literals to `bool`, under the existing implementation, the `f(bool)` overload is selected.
 
 ### Example C
 The following example is similar to [Example B](#example-b) but with a slight nuance.  Under the existing implementation, it produces no assertion failures.
@@ -115,17 +115,17 @@ int d = 1;
 
 void main()
 {
-    // a - b evaluated at compile-time
+    // a - b evaluated at compile time
     assert(f(a - b) == 1); // Potential Bug: calls f(bool).  Did the author intend to call f(long)?
 
-    // c - d evaluated at run-time
+    // c - d evaluated at run time
     assert(f(c - d) == 2); // calls f(long)
 }
 ```
-The overload called depends on whether the subtraction expression is evaluated at compile-time or run-time.  If evaluated at compile-time, due to value range propagation and implicit conversion of integer literals to `bool`, the `f(bool)` overload is called.  If evaluated at run-time, the `f(long)` overload is called.
+Which overload the compiler selects is dependent on whether the subtraction expression is evaluated at compile time or run time.  If evaluated at compile time, due to value range propagation and implicit conversion of integer literals to `bool`, the `f(bool)` overload is called.  If evaluated at run time, the `f(long)` overload is called.
 
 ### Summary
-D already has boolean literals `true` and `false`, so the implicit conversions of integer literals to `bool` are not necessary; they only introduce ambiguity in the source code, circumvent the type system, and through bad interplay with value range propagation, cause unintuitive behavior in overload resolution.
+D already has boolean literals `true` and `false`, so the implicit conversion of integer literals to `bool` is not necessary; they only introduce ambiguity in the source code, circumvent the type system, and through bad interplay with value range propagation, cause unintuitive behavior in overload resolution.
 
 If required, users can always resort to explicit casts (e.g. `cast(bool)0`) to take control and convey their intent.
 
@@ -133,14 +133,14 @@ If required, users can always resort to explicit casts (e.g. `cast(bool)0`) to t
 
 As illustrated in [Example D](#example-d) below, the scope of the proposed change is targeted and precise.
 
-This DIP proposes a 2 stage implementations.  In stage 1, the compiler will emit a deprecation warning for any expression that directly or indirectly makes an implicit cast from an integer literal to a `bool`.  In stage 2, the compiler will emit an error for said expressions.
+This DIP proposes a two-stage implementation.  In stage 1, the compiler will emit a deprecation warning for any expression that directly or indirectly makes an implicit cast from an integer literal to a `bool`.  In stage 2, the compiler will emit an error for said expressions.
 
-Only literals that evaluate to 0 or 1 are affected; all other literals are to remain unchanged.
+Only literals that evaluate to `0` or `1` are affected; all other literals are to remain unchanged.
 
 Only implicit conversions are affected; explicit casts are to remain unchanged.
 
 ### Example D
-The following example illustrates the type of expressions affected by this proposal, how they will respond to the proposed change, and how the user can remedy their code to make it compatible.
+The following example illustrates the type of expressions affected by this proposal, how they will respond to the proposed change, and how users can modify existing code to make it compatible.
 ```D
 int f(bool b) { return 1; }
 int f(int i) { return 2; }
@@ -271,9 +271,9 @@ enum YesNo : bool { no, yes } // Existing implementation: OK
                               // Remedy: `enum YesNo : bool { no = false, yes = true }`
 
 ```
-Stage 1's implementation will require updating the [Deprecated Features](https://dlang.org/deprecate.html) page, an update to the [language specification](https://dlang.org/spec/type.html#bool), and en entry in the changelog.
+Stage 1's implementation will require updating the [Deprecated Features](https://dlang.org/deprecate.html) page, an update to the [language specification](https://dlang.org/spec/type.html#bool), and an entry in the changelog.
 
-Stage 2's implementation will require finalizing the [Deprecated Features](https://dlang.org/deprecate.html) page, and an entry in the changelog.
+Stage 2's implementation will require updating the [Deprecated Features](https://dlang.org/deprecate.html) page, and adding an entry to the changelog.
 
 This proposed change may cause existing code to no longer compile, or in some cases, change behavior, but such code is arguably already ambiguous, and it would only benefit users to require them to remove such ambiguity from their code by stating their intent through explicit casts.  Furthermore, this deprecation closes a hole in the type system, making the D programming language just that much more robust for writing safe and reliable code.
 
@@ -291,7 +291,7 @@ This proposed change may cause existing code to no longer compile, or in some ca
 
 Walter identified the fundamental source of the problem to be the implicit conversion of integer literals to `bool`.
 
-A change to the overload resolution rules would still break code relying on the existing overload resolution behavior illustrated in [Example B](#example-b) and [Example C](#example-c), resulting in a deprecation process similar, if not the same, to that of the proposed solution, but would not close the hole in the type system.
+A change to the overload resolution rules would still break code relying on the existing overload resolution behavior illustrated in [Example B](#example-b) and [Example C](#example-c), resulting in a deprecation process similar to, if not the same as, that of the proposed solution, but would not close the hole in the type system.
 
 #### Disallow implicit conversion of integer literals to `bool`, but only for overloaded functions
 
@@ -299,24 +299,24 @@ It may be possible to fix the bugs documented in [issue 9999](https://issues.dla
 
 This was rejected for similar reasons as the former; it complicates the compiler's implementation with special cases that need to be implemented, documented, explained, and understood.
 
-Also, like the former, it would still break code relying on the existing overload resolution behavior illustrated in [Example B](#example-b) and [Example C](#example-c), resulting in a deprecation process similar, if not the same, to that of the proposed solution, but would not close the hole in the type system.
+Also, like the former, it would still break code relying on the existing overload resolution behavior illustrated in [Example B](#example-b) and [Example C](#example-c), resulting in a deprecation process similar to, if not the same as, that of the proposed solution, but would not close the hole in the type system.
 
-This solution was also not analyzed in enough detail to determine whether it would even scale.
+This solution was also not analyzed in enough detail to determine whether it would scale.
 
 ### Breaking changes / deprecation process
 
 The proposed implementation is to be rolled out through a sequence of steps to minimize any disruption.
 
-1.  If and when this DIP is approved, an announcement will be made on the D programming language forum to raise awareness of the change in the community.  Users will have a link to this DIP and the implementation so they can understand how to mitigate breakage in their code, and monitor the timing of the subsequent releases.
+1.  An announcement will be made on the D programming language forum to raise awareness of the change in the community.  Users will have a link to this DIP and the implementation so they can understand how to mitigate breakage in their code, and monitor the timing of the subsequent releases.
 
 2.  After approval of this DIP, code in DMD's test suite, Phobos, and DRuntime will be updated with the appropriate remedies documented in [Description](#description) to avoid deprecation warnings or errors in the stage 1 and stage 2 releases.  Preemptive pull requests anticipating the change proposed in this DIP have already been merged for [Phobos](https://github.com/dlang/phobos/pull/5019) and [DRuntime](https://github.com/dlang/druntime/pull/1732), but another pass will need to be made.
 
-4.  After the changes in step 2 have been pulled, stage 1 can be pulled.  From that point on the compiler will emit deprecation warnings when an implicit conversion from an integer literal to `bool` is encountered.  This will precisely identify instances in users' code that will no longer compile when stage 2 is released, but will still perform the conversion, buying users time to update their code. The deprecation will remain in place for a time period to be decided by the language authors at the time of this DIP's formal review.
+4.  After the changes in step 2 have been merged, stage 1 can be merged.  From that point on the compiler will emit deprecation warnings when an implicit conversion from an integer literal to `bool` is encountered.  This will precisely identify instances in users' code that will no longer compile when stage 2 is released, but will still perform the conversion, buying users time to update their code. The deprecation will remain in place for a time period to be decided by the language maintainers at the time of this DIP's formal assessment.
 
 5.  After the time period specified in step 4 has elapsed, stage 2 can be pulled.  From that point on the compiler will emit errors when an implicit conversion from an integer literal to `bool` is encountered.
 
 ## Copyright & License
 
-Copyright (c) 2017 by the D Language Foundation
+Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
