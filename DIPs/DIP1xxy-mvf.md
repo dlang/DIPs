@@ -12,7 +12,7 @@
 
 This DIP proposes the deprecation and removal of implicit conversion from integer and character literals to `bool`, thereby closing a hole in the type system and resolving overload resolution bugs.  For the purpose of this document, *Integer literals* are literals of type `int`, `uint`, `long` or `ulong` and *Character literals* are literals of type `char`, `wchar`, or `dchar`.
 
-### Links
+### Reference
 
 #### Relevant D programming language specifications
 
@@ -303,7 +303,9 @@ Also, like the former, it would still break code relying on the existing overloa
 
 This solution was also not analyzed in enough detail to determine whether it would scale.
 
-### Breaking changes / deprecation process
+## Breaking Changes and Deprecations
+
+The proposed implementation will cause any implicit conversion from an integer or character literal to a `bool` to result in a deprecation warning at first, and eventually a compiler error.  Existing code employing said conversions will need to be modified with an explicit cast to remain compilable in the future. See [Example D](#example-d) for specific examples.
 
 The proposed implementation is to be rolled out through a sequence of steps to minimize any disruption.
 
