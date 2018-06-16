@@ -20,6 +20,11 @@ Here is proposed a strategy to emit implicit temporaries to conveniently and uni
 There is a lot of prior discussion on this topic. Much is out of date now due to recent language evolution.  
 Prior discussion involving `scope`, and `auto ref` as solutions are out of date; We have implemented `scope`, `auto ref`, and we also have `return ref` now, which affects prior conversation.
 
+Issues:  
+https://issues.dlang.org/show_bug.cgi?id=6221 - comparison asymmetry  
+https://issues.dlang.org/show_bug.cgi?id=8845 - friction calling with expressions  
+https://issues.dlang.org/show_bug.cgi?id=9238 - competing ideas  
+
 Forum threads:  
 https://forum.dlang.org/thread/mailman.3720.1453131378.22025.digitalmars-d@puremagic.com  
 https://forum.dlang.org/thread/rehsmhmeexpusjwkfnoy@forum.dlang.org  
@@ -34,15 +39,6 @@ https://forum.dlang.org/thread/yhnbcocwxnbutylfeoxi@forum.dlang.org
 https://forum.dlang.org/thread/tkdloxqhtptpifkhvxjh@forum.dlang.org  
 https://forum.dlang.org/thread/mailman.1478.1521842510.3374.digitalmars-d@puremagic.com  
 https://forum.dlang.org/thread/gsdkqnbljuwssslxuglf@forum.dlang.org  
-
-Issues:  
-https://issues.dlang.org/show_bug.cgi?id=9238  
-https://issues.dlang.org/show_bug.cgi?id=8845  
-https://issues.dlang.org/show_bug.cgi?id=6221  
-https://issues.dlang.org/show_bug.cgi?id=6442  
-
-PRs:  
-https://github.com/dlang/dmd/pull/4717  
 
 ## Contents
 * [Rationale](#rationale)
@@ -140,11 +136,11 @@ It is worth noting that `ref` args are not so common in conventional idiomatic D
 It is suggested that the reason this limitation exists is to assist with identifying 
 a class of bug where a function returns state by mutating an argument, but the programmer _accidentally_ passes an expiring rvalue, the function results are discarded, and statement has no effect.
 
-With the introduction of `return ref`, it is potentially possible that a supplied rvalue may by mutated and returned to propagate its affect.
+With the introduction of `return ref`, it is potentially possible that a supplied rvalue may by mutated and returned to propagate its effect.
 
 Modern D has firmly embraced pipeline programming. With this evolution, statements are often constructed by chaining function calls, so the presumption that the statement ends with the function is no longer reliable.
 
-This DIP proposes that we reconsider the choice to receive an argument by value or by reference is a detail that the API *author* selects with respect to criteria relevant to their project or domain. Currently the semantic impact is not worn by the API author, but rather by the API user, who may be required to jump through hurdles to interface the API with their local code.
+This DIP proposes that we reconsider the choice to receive an argument by value or by reference is a detail that the API *author* selects with respect to criteria relevant to their project or domain. Currently the semantic impact is not worn by the API author, but rather by the API user, who may be required to jump hurdles to interface the API with their local code.
 
 It would be ideal if the decision to receive arguments by value or by reference were a detail for the API, and not increase the complexity of the users code.
 
@@ -192,8 +188,8 @@ Destruction of any temporaries occurs naturally at the end of the introduced sco
 It is important to note that a single scope is introduced to enclose the entire statement. The pattern should not cascade when nested calls exist in the parameter list within a single statement.  
 For calls that contain cascading function calls, ie:
 ```d
-void fun(ref const(int) x, ref const(int) y);
-int gun(ref const(int) x);
+void fun(ref int x, ref int y);
+int gun(ref int x);
 
 fun(10, gun(20));
 ```
@@ -240,7 +236,7 @@ But if the transform receives a range by `ref`, the pipeline syntax breaks down:
 MyRange makeRange();
 ref MyRange mutatingTransform(return ref MyRange r, int x);
 
-auto results = makeRange().transform(10).array; // error, not an lvalue!
+auto results = makeRange().mutatingTransform(10).array; // error, not an lvalue!
 
 // necessitate workaround:
 auto tempRange = makeRange(); // satisfy the compiler
@@ -330,6 +326,14 @@ There are many reasons why every function can't or shouldn't be a template.
 8. Is larger-than-inline scale; engineer assesses that reducing instantiation bloat has greater priority than maximising parameter passing efficiency in select cases
 
 Any (or many) of these reasons may apply, eliminating `auto ref` from the solution space.
+
+### Why not `const` like C++?
+
+It was debated whether this proposal should apply to `ref const` like C++, or to `ref` more generally.
+
+Satisfying arguments in favour of extending the pattern beyond `const` include:
+* D has `return ref`, and a tendency towards pipeline programming, making mutation of `ref` rvalue arguments a valid and valuable pattern.
+* D's `const` is more restrictive than C++, and limits wide application.
 
 ### Key use cases
 
