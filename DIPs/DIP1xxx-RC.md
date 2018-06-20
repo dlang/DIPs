@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Richard Andrew Cattermole <firstname@lastname.co.nz>            |
 | Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
@@ -25,6 +25,7 @@ A [DIP](https://wiki.dlang.org/DIP88) (88) has been drafted, but never PR'd. Fur
 * [Rationale](#rationale)
 * [Description](#description)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
 ## Rationale
