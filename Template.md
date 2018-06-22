@@ -23,7 +23,7 @@ or any other supplementary materials.
 * [Rationale](#rationale)
 * [Description](#description)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [Acknowledgements](#acknowledgements)
+* [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
 ## Rationale
@@ -60,7 +60,7 @@ Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
-## Review
+## Reviews
 
 The DIP Manager will supplement this section with a summary of each review stage
 of the DIP process beyond the Draft Review.

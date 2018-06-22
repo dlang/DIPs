@@ -3,8 +3,9 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1013](./DIP1014.md)|              Hooking D's struct move semantics|Post-Community 1  |
-|[1013](./DIP1013.md)|                        The Deprecation Process|Post-Community 1  |
+|[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` | Community Round 1|
+|[1014](./DIP1014.md)|              Hooking D's struct move semantics|  Post-Community 1|
+|[1013](./DIP1013.md)|                        The Deprecation Process|        Post-Final|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|     Formal Review|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1|
