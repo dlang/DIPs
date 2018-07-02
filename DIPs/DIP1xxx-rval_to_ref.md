@@ -9,53 +9,49 @@
 
 ## Abstract
 
-Functions that receive arguments by `ref` do not accept rvalues.
+Functions that receive arguments by reference in the form of `ref` parameters do not accept rvalues. This leads to edge cases in calling code with respect to argument passing semantics, requiring an assortment of workarounds which pollute client-side code clarity, e.g. rvalues must first be manually saved in a temporary local variable before being passed as an argument to a function that expects a `ref` parameter.
 
-This leads to edge-cases in calling code with respect to parameter passing semantics, requiring an assortment of workarounds and user-intervention which may be frustrating, and pollute _client-side_ code clarity.
-
-Here is proposed a strategy to emit implicit temporaries to conveniently and uniformly interact with APIs that use `ref` arguments.
+Here is proposed a strategy to emit implicit temporaries when rvalues are bound to `ref` parameters, enabling client code to conveniently and uniformly interact with APIs that use `ref` parameters.
 
 ## Reference
 
-There is a lot of prior discussion on this topic. Much is out of date now due to recent language evolution.  
-Prior discussion involving `scope`, and `auto ref` as solutions are out of date; We have implemented `scope`, `auto ref`, and we also have `return ref` now, which affects prior conversation.
+There is a significant amount of prior discussion on this topic. Much is out of date due to recent language evolution. Prior discussion involving `scope` and `auto ref` as solutions are out of date as both `scope` and `auto ref` have been implemented. `return ref`, which was raised in prior discussion, has also been implemented.
 
-Issues:  
-https://issues.dlang.org/show_bug.cgi?id=6221 - comparison asymmetry  
-https://issues.dlang.org/show_bug.cgi?id=8845 - friction calling with expressions  
-https://issues.dlang.org/show_bug.cgi?id=9238 - competing ideas  
+Issues:
+* [#6221](https://issues.dlang.org/show_bug.cgi?id=6221) - comparison asymmetry
+* [#8845](https://issues.dlang.org/show_bug.cgi?id=8845) - friction calling with expressions
+* [#9238](https://issues.dlang.org/show_bug.cgi?id=9238) - competing ideas
 
-Forum threads:  
-https://forum.dlang.org/thread/mailman.3720.1453131378.22025.digitalmars-d@puremagic.com  
-https://forum.dlang.org/thread/rehsmhmeexpusjwkfnoy@forum.dlang.org  
-https://forum.dlang.org/thread/mailman.577.1410180586.5783.digitalmars-d@puremagic.com  
-https://forum.dlang.org/thread/km4rtm$239e$1@digitalmars.com  
-https://forum.dlang.org/thread/kl4v8r$tkc$1@digitalmars.com  
-https://forum.dlang.org/thread/ylebrhjnrrcajnvtthtt@forum.dlang.org  
-https://forum.dlang.org/thread/ntsyfhesnywfxvzbemwc@forum.dlang.org  
-https://forum.dlang.org/thread/uswucstsooghescofycp@forum.dlang.org  
-https://forum.dlang.org/thread/zteryxwxyngvyqvukqkm@forum.dlang.org  
-https://forum.dlang.org/thread/yhnbcocwxnbutylfeoxi@forum.dlang.org  
-https://forum.dlang.org/thread/tkdloxqhtptpifkhvxjh@forum.dlang.org  
-https://forum.dlang.org/thread/mailman.1478.1521842510.3374.digitalmars-d@puremagic.com  
-https://forum.dlang.org/thread/gsdkqnbljuwssslxuglf@forum.dlang.org  
+Forum threads:
+* [rval->ref const(T), implicit conversions](https://forum.dlang.org/thread/mailman.3720.1453131378.22025.digitalmars-d@puremagic.com)
+* [rvalue references (2015)](https://forum.dlang.org/thread/rehsmhmeexpusjwkfnoy@forum.dlang.org)
+* [rvalues->ref args](https://forum.dlang.org/thread/mailman.577.1410180586.5783.digitalmars-d@puremagic.com)
+* [The liabilities of binding rvalues to ref](https://forum.dlang.org/thread/km4rtm$239e$1@digitalmars.com)
+* [rvalue references (2013)](https://forum.dlang.org/thread/kl4v8r$tkc$1@digitalmars.com)
+* [DIP 36: Rvalue References](https://forum.dlang.org/thread/ylebrhjnrrcajnvtthtt@forum.dlang.org)
+* [My thoughts & tries with rvalue references](https://forum.dlang.org/thread/ntsyfhesnywfxvzbemwc@forum.dlang.org)
+* [Question about auto ref](https://forum.dlang.org/thread/uswucstsooghescofycp@forum.dlang.org)
+* [Settling rvalue to (const) ref parameter binding once and for all](https://forum.dlang.org/thread/zteryxwxyngvyqvukqkm@forum.dlang.org)
+* [Const ref and rvalues again...](https://forum.dlang.org/thread/yhnbcocwxnbutylfeoxi@forum.dlang.org)
+* [Rvalue references (2018)](https://forum.dlang.org/thread/tkdloxqhtptpifkhvxjh@forum.dlang.org)
+* [rvalues -> ref (yup... again!)](https://forum.dlang.org/thread/mailman.1478.1521842510.3374.digitalmars-d@puremagic.com)
+* [Parsing a string from stdin using formattedRead](https://forum.dlang.org/thread/gsdkqnbljuwssslxuglf@forum.dlang.org)
 
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
-* [Temporary destruction]()
-* [`@safe`ty implications](#safety_implications)
-* [Why not `auto ref`?](#auto_ref)
-* [Key use cases](#use_cases)
+* [Temporary destruction](#temporary-destruction)
+* [`@safe`ty implications](#safety-implications)
+* [Why not `auto ref`?](#auto-ref)
+* [Key use cases](#use-cases)
 * [Reviews](#reviews)
 
 ## Rationale
 
-Functions may receive arguments by reference, and this may be for a variety of reasons.  
-One common reason is that the cost of copying or moving large structs via the parameter list is expensive, so struct parameters may be received by reference to mitigate this cost.  
+Functions may receive arguments by reference for a variety of reasons. One common reason is that the cost of copying or moving large structs via the parameter list is expensive, so struct parameters may be received by reference to mitigate this cost.
 Another is that the function may want to mutate the caller's data directly, or return data via `out` parameters due to ABI limitations regarding multiple return values.
 
-A recurring complaint from users when interacting with functions that receive arguments by `ref` is that given an rvalue as argument, the compiler is unable to create an implicit temporary to perform the function call, and presents the user with a compile error instead, invoking the necessity for manual workarounds.
+A recurring complaint from users when interacting with functions that receive arguments by `ref` is that, given an rvalue as the argument, the compiler is unable to create an implicit temporary to perform the function call, and instead presents the user with a compile error. This behavior instigates the necessity for manual workarounds.
 
 Consider the example:
 ```d
@@ -74,9 +70,7 @@ Necessitating the workaround:
 int temp = 10;
 fun(temp);
 ```
-In practise, the argument is likely a struct type rather than 'int', but the inconvenience applies generally.
-
-This inconvenience extends broadly to every manner of thing you pass to functions with the exception of lvalue instances, including:
+This inconvenience extends broadly to every manner of rvalue passed to functions, including:
 ```d
 fun(10);       // literals
 fun(gun());    // return values from functions
@@ -85,11 +79,11 @@ fun(x + y);    // expressions
 fun(my_short); // implicit type conversions (ie, short->int promotion)
 // etc.
 ```
-The work-around bloats the number of lines around the call-site, and the user needs to declare names for all the temporaries, polluting the local namespace, and often for expressions where no meaningful name exists.
+The workaround increases the number of lines around the call site and the user must declare names for all temporaries, polluting the local namespace.
 
 A further issue is that because these situations require special-case handling, they necessitate undesirable and potentially complex compile-time logic being added _prospectively_ to generic code.
 
-An example may be some meta that reflects or receives a function by alias. Such code may want to call that function, but it is often the case that details about the ref-ness of arguments change the way arguments must be supplied, requiring additional compile-time logic to identify the ref-ness of function arguments and implement appropriate action for each case.
+An example may be some meta that reflects or receives a function by alias. Such code may want to call that function, but it is often the case that details about the ref-ness of parameters change the way arguments must be supplied, requiring additional compile-time logic to identify the ref-ness of function parameters and implement appropriate action for each case.
 
 The generic case may appear in a form such as:
 ```d
@@ -123,30 +117,29 @@ void someMeta(alias userFun)()
     }
 }
 ```
-This example situation is simplified. In practise, such issues are often exposed when composing functionality, where a dependent library author did not correctly support `ref` functions. In that case, the end-user will experience the problem, but it may be difficult to diagnose or understand that the problem is not their direct fault.
+This example situation is simplified. In practice, such issues are often exposed when composing functionality, where a dependent library author did not correctly support `ref` parameters. In that case, the end-user will experience the problem, but it may be difficult to diagnose or understand that the fault is not their own.
 
-In general, these work-arounds damage readability, maintainability, and brevity. They make authoring correct code more difficult, increase the probability of brittle meta, and correct code is frustrating to implement repeatedly.
+In general, these workarounds damage readability, maintainability, and brevity. They make authoring correct code more difficult, increase the probability of brittle meta, and correct code is frustrating to implement repeatedly.
 
-Importantly, it is not intuitive to library authors that they should need to handle these cases, those who don't specifically test for `ref` are at high risk of failing to implement the required machinery, leaving the library _user_ in the a position of discovering, and dancing around potential unintended edge-cases.
+It is not intuitive to library authors that they should need to handle these cases; those who don't specifically test for `ref` are at high risk of failing to implement the required machinery, leaving the library _user_ in the a position of discovering, and working around, potential unintended edge cases.
 
-It is worth noting that `ref` args are not so common in conventional idiomatic D, but they appear frequently in niche circumstances. As such, this issue is likely to disproportionately affect subsets of users who find themselves using `ref` arguments more than average.
+It is worth noting that `ref` args are not so common in conventional idiomatic D, but they appear frequently in niche circumstances. As such, this issue is likely to disproportionately affect subsets of users who find themselves using `ref` arguments more than average, e.g. those interacting with C++ libraries where such parameters are more common.
 
 ### Why are we here?
 
-It is suggested that the reason this limitation exists is to assist with identifying 
-a class of bug where a function returns state by mutating an argument, but the programmer _accidentally_ passes an expiring rvalue, the function results are discarded, and statement has no effect.
+It is suggested that the reason this limitation exists is to assist with identifying a class of bug that can occur when a function returns state by mutating an argument. When the programmer _accidentally_ passes an expiring rvalue, the function results are discarded and the statement has no effect.
 
 With the introduction of `return ref`, it is potentially possible that a supplied rvalue may by mutated and returned to propagate its effect.
 
 Modern D has firmly embraced pipeline programming. With this evolution, statements are often constructed by chaining function calls, so the presumption that the statement ends with the function is no longer reliable.
 
-This DIP proposes that we reconsider the choice to receive an argument by value or by reference is a detail that the API *author* selects with respect to criteria relevant to their project or domain. Currently the semantic impact is not worn by the API author, but rather by the API user, who may be required to jump hurdles to interface the API with their local code.
+This DIP proposes that we reconsider the choice to receive an argument by value or by reference as a detail that the API *author* selects with respect to criteria relevant to their project or domain. Currently the semantic impact is not borne by the API author, but rather by the API user, who may be hindered in interfacing the API with their local code.
 
-It would be ideal if the decision to receive arguments by value or by reference were a detail for the API, and not increase the complexity of the users code.
+It would be ideal if the decision to receive arguments by value or by reference were simply a detail of the API and not something that increases the complexity of user code.
 
 ## Description
 
-Calls with `ref T` arguments supplied with rvalues are effectively rewritten to emit a temporary automatically, for example:
+Calls with `ref T` parameters supplied with rvalue arguments are effectively rewritten to emit a temporary automatically, for example:
 ```d
 void fun(ref int x);
 
@@ -163,7 +156,7 @@ Where `T` is the *function argument type*.
 
 To mitigate confusion, I have used `:=` in this example to express the initial construction, and not a copy operation as would be expected if this code were written with an `=` expression.
 
-In the case where a function output initialises an variable:
+In the case where a function output initializes a variable:
 ```d
 R result = fun(10);
 ```
@@ -175,9 +168,9 @@ R result = void;
   result := fun(__temp0 := 10);
 }
 ```
-Again, where initial construction of `result` should be performed at the moment of assignment, as usual and expected.
+Again where initial construction of `result` should be performed at the moment of assignment, as usual and expected.
 
-It is important that `T` be defined as the argument type, and not `auto`, because it will allow implicit conversions to occur naturally, with identical behaviour as when argument was not `ref`. The user should not experience edge cases, or differences in functionality when calling `fun(int x)` vs `fun(ref int x)`.
+It is important that `T` be defined as the argument type, and not `auto`, because it will allow implicit conversions to occur naturally, with identical behavior as when the parameter is not `ref`. The user should not experience edge cases, or differences in functionality when calling `fun(int x)` vs `fun(ref int x)`.
 
 ### Temporary destruction
 
@@ -185,15 +178,14 @@ Destruction of any temporaries occurs naturally at the end of the introduced sco
 
 ### Function calls as arguments
 
-It is important to note that a single scope is introduced to enclose the entire statement. The pattern should not cascade when nested calls exist in the parameter list within a single statement.  
-For calls that contain cascading function calls, ie:
+It is important to note that a single scope is introduced to enclose the entire statement. The pattern should not cascade when nested calls exist in the parameter list within a single statement. For calls that contain cascading function calls, i.e.:
 ```d
 void fun(ref int x, ref int y);
 int gun(ref int x);
 
 fun(10, gun(20));
 ```
-This correct expansion is:
+The correct expansion is:
 ```d
 {
     int __fun_temp0 = void;
@@ -214,7 +206,7 @@ ref int gun(return ref int y);
 
 fun(gun(10));
 ```
-This correct expansion is:
+The correct expansion is:
 ```d
 {
     int __gun_temp0 = void;
@@ -223,15 +215,14 @@ This correct expansion is:
 ```
 The lifetime of `__gun_temp0` is satisfactory for any conceivable calling construction.
 
-This is particularly useful when pipeline programming.
-It is common that functions are invoked which create and return a range which is then used in a pipeline operation:
+This is particularly useful in pipeline programming. It is common that functions are invoked to create and return a range which is then used in a pipeline operation:
 ```d
 MyRange makeRange();
 MyRange transform(MyRange r, int x);
 
 auto results = makeRange().transform(10).array;
 ```
-But if the transform receives a range by `ref`, the pipeline syntax breaks down:
+If the transform receives a range by `ref`, the pipeline syntax breaks down:
 ```d
 MyRange makeRange();
 ref MyRange mutatingTransform(return ref MyRange r, int x);
@@ -248,12 +239,11 @@ It is unfortunate that `ref` adds friction to one of D's greatest programming pa
 
 ### Interaction with other attributes
 
-Interactions with other attributes should follow all existing rules.  
-Any code that wouldn't compile in the event the user were to perform the proposed rewrites manually will fail in the same way, emitting the same error messages the user would expect.
+Interactions with other attributes should follow all existing rules. Any code that wouldn't compile if the user were to perform the proposed rewrites manually will fail in the same way, emitting the same error messages the user would expect.
 
 ### Overload resolution
 
-In the interest of preserving optimal calling efficiency, existing language rules continue to apply; lvalues should prefer by-ref functions, and rvalues should prefer by-value functions.  
+In the interest of preserving optimal calling efficiency, existing language rules continue to apply; lvalues should prefer by-ref functions, and rvalues should prefer by-value functions.
 Consider the following overload set:
 ```d
 void fun(int);            // A
@@ -279,8 +269,7 @@ int x = 10;
 lval_only(x);  // ok: choose by-ref
 lval_only(10); // error: literal matches by-val, which is @disabled
 ```
-It may be considered an advantage that using this construction, the intent to restrict the argument in this way is made explicit.  
-The symmetrical 'rvalue-only restriction' is also possible to express in the same way.
+It may be considered an advantage that by using this construction, the intent to restrict the argument in this way is made explicit. The symmetrical 'rvalue-only restriction' is also possible to express in the same way.
 
 Overloading with `auto ref` preserves existing rules, which is to emit an ambiguous call when it collides with an explicit overload:
 ```d
@@ -291,27 +280,23 @@ int t = 10;
 fun(10);    // chooses B: auto ref resolves by-value given an rvalue, prefer exact match as above
 fun(t);     // error: ambiguous call between A and B
 ```
-No change to existing behaviour is proposed.
+No change to existing behavior is proposed.
 
 ### Default arguments
 
-In satisfying the goal that 'the user should not experience edge cases, or differences in functionality', it should be that default args are applicable to `ref` args as with non-`ref` args.
+In satisfying the goal that 'the user should not experience edge cases, or differences in functionality', it should be the case that default arguments are applicable to `ref` parameters as with non-`ref` parameters. If the user does not supply an argument and a default argument is specified, the default argument is selected as usual and populates a temporary, just as if the user supplied the argument manually.
 
-If the user does not supply an argument and a default arg is specified, the default arg is selected as usual and populates a temporary, just as if the user supplied the argument manually.
-
-In this case, an interesting circumstantial opportunity appears where the compiler may discern that construction is expensive, and construct a single immutable instance for reuse.  
-This shall not be specified functionality, but it may be a nice opportunity nonetheless.
+In this case, an interesting circumstantial opportunity appears where the compiler may discern that construction is expensive, and construct a single immutable instance for reuse. This shall not be specified functionality, but it may be a nice opportunity nonetheless.
 
 ### `@safe`ty implications
 
-There are no implications on `@safe`ty. There are no additions or changes to allocation or parameter passing schemes.  
-D already states that arguments received by `ref` shall not escape, so passing temporaries is not dangerous from an escaping/dangling-reference point of view.
+There are no implications from this proposal for `@safe`ty. There are no additions or changes to allocation or parameter passing schemes. D already states that arguments received by `ref` shall not escape, so passing temporaries is not dangerous from an escaping/dangling-reference point of view.
 
-The user is able to produce the implicit temporary described in this proposal manually, and pass it with identical semantics; any potential safety implications are already applicable to normal stack args. This proposal adds nothing new.
+The user is able to produce the implicit temporary described in this proposal manually, and pass it with identical semantics; any potential safety implications are already applicable to normal stack arguments. This proposal adds nothing new.
 
 ### Why not `auto ref`?
 
-A frequently proposed solution to this situation is to receive the arg via `auto ref`.
+A frequently proposed solution to this situation is to receive the argument via `auto ref`.
 
 `auto ref` solves a different set of problems; those may include "pass this argument in the most efficient way", or "forward this argument exactly how I received it". The implementation of `auto ref` requires that every function also be a template.
 
@@ -322,31 +307,30 @@ There are many reasons why every function can't or shouldn't be a template.
 4. Is virtual
 5. Is extern(C++)
 6. Intent to capture function pointers or delegates
-7. Has many args; unreasonable combinatorial explosion
-8. Is larger-than-inline scale; engineer assesses that reducing instantiation bloat has greater priority than maximising parameter passing efficiency in select cases
+7. Has many arguments; unreasonable combinatorial explosion
+8. Is larger-than-inline scale; engineer assesses that reducing instantiation bloat has greater priority than maximizing parameter passing efficiency in select cases
 
-Any (or many) of these reasons may apply, eliminating `auto ref` from the solution space.
+One or more of these reasons may apply, thereby eliminating `auto ref` from the solution space.
 
 ### Why not `const` like C++?
 
 It was debated whether this proposal should apply to `ref const` like C++, or to `ref` more generally.
 
-Satisfying arguments in favour of extending the pattern beyond `const` include:
+Satisfying arguments in favor of extending the pattern beyond `const` include:
 * D has `return ref`, and a tendency towards pipeline programming, making mutation of `ref` rvalue arguments a valid and valuable pattern.
-* D's `const` is more restrictive than C++, and limits wide application.
+* D's `const` is more restrictive than that of C++ and limits wide application.
 
 ### Key use cases
 
-Pipeline programming expressions often begin with a range returned from a function (an rvalue). Transform functions may receive their argument by reference. Such cases currently break the pipeline and introduce a manual temporary. This proposal improves the pipeline-programming experience.
+Pipeline programming expressions often begin with a range returned from a function (an rvalue). Transform functions may receive their argument by reference. Such cases currently break the pipeline and introduce a manual temporary. This proposal improves the pipeline programming experience.
 
-Generic programming is one of D's biggest success stories, and tends to work best when interfaces and expressions are orthogonal and with as few as possible edge-cases. Certain forms of meta find that `ref`-ness is a key edge-case which requires special case handling and may often lead to brittle generic code to be discovered by a niche end-user at some future time.
+Generic programming is one of D's biggest success stories and tends to work best when interfaces and expressions are orthogonal, with as few edge cases as possible . Certain forms of meta find that `ref`-ness is a key edge case which requires special case handling and may often lead to brittle generic code to be discovered by a niche end user at some future time.
 
 Another high-impact case is OOP, where virtual function APIs inhibit the use of templates (ie, `auto ref`).
 
-By comparison, C++ has a very high prevalence of `const&` args, classes with virtual functions, and default args supplied to ref. When interfacing with C++, those functions are mirrored to D. The issue addressed in this DIP becomes magnified significantly to this set of users. C++ interaction is a key initiative, this DIP reduces inconvenience when interacting with C++ API's, and improves the surface area we are able to express.
+By comparison, C++ has a very high prevalence of `const&` arguments, classes with virtual functions, and default arguments supplied to reference parameters. When interfacing with C++, those functions are mirrored to D. The issue addressed in this DIP becomes magnified significantly to this set of users. C++ interaction is a key initiative; this DIP reduces inconvenience when interacting with C++ APIs, and improves the surface area we are able to express.
 
-This issue is also likely to appear more frequently for vendors with tight ABI requirements.  
-Lack of templates at ABI boundary lead to users of closed-source libraries distributed as binary or DLLs being more likely to encounter challenges interacting with such APIs.
+This issue is also likely to appear more frequently for vendors with tight ABI requirements. Lack of templates at ABI boundaries lead to users of closed-source libraries distributed as binaries being more likely to encounter challenges interacting with such APIs.
 
 ## Copyright & License
 
@@ -361,11 +345,10 @@ of the DIP process beyond the Draft Review.
 
 ## Appendix
 
-A few examples of typical C++ APIs that exhibit this issue:
+A few examples of typical C++ APIs that would exhibit the issues described in this proposal if they were in D:
  - PhysX (Nvidia): http://docs.nvidia.com/gameworks/content/gameworkslibrary/physx/apireference/files/classPxSceneQueryExt.html
  - NaCl (Google): https://developer.chrome.com/native-client/pepper_stable/cpp/classpp_1_1_instance
  - DirectX (Microsoft): https://github.com/Microsoft/DirectXMath/blob/master/Inc/DirectXCollision.h
  - Bullet (Physics Lib): http://bulletphysics.org/Bullet/BulletFull/classbtBroadphaseInterface.html
 
-In these examples of very typical C++ code, you can see a large number of functions receive arguments by reference.  
-Complex objects are likely to be fetched via getters/properties. Simple objects like math vectors/matrices are likely to be called with literals, properties, or expressions.
+In these examples of very typical C++ code, a large number of functions receive arguments by reference. Complex objects are likely to be fetched via getters/properties. Simple objects like math vectors/matrices are likely to be called with literals, properties, or expressions.
