@@ -51,13 +51,13 @@ Forum threads:
 Functions may receive arguments by reference for a variety of reasons. One common reason is that the cost of copying or moving large structs via the parameter list is expensive, so struct parameters may be received by reference to mitigate this cost.
 Another is that the function may want to mutate the caller's data directly, or return data via `out` parameters due to ABI limitations regarding multiple return values.
 
-A recurring complaint from users when interacting with functions that receive arguments by `ref` is that, given an rvalue as the argument, the compiler is unable to create an implicit temporary to perform the function call, and instead presents the user with a compile error. This behavior instigates the necessity for manual workarounds.
+A recurring complaint from users when interacting with functions that receive arguments by `ref` is that, given an rvalue as the argument, the compiler is unable to create an implicit temporary to perform the function call, and instead presents the user with a compile error. This behavior necessitates manual workarounds.
 
 Consider the example:
 ```d
 void fun(int x);
 
-fun(10); // <-- this is how users expect to call a function
+fun(10); // <-- this is how users expect to call a typical function
 ```
 But when `ref` is present:
 ```d
@@ -97,8 +97,8 @@ void gun(ref const(int) x);
 
 unittest
 {
-    someMeta!(fun)(); // no problem
-    someMeta!(gun)(); // error: not an lvalue!
+    someMeta!fun(); // no problem
+    someMeta!gun(); // error: not an lvalue!
 }
 ```
 Necessitating a workaround that may look like:
@@ -284,7 +284,7 @@ No change to existing behavior is proposed.
 
 ### Default arguments
 
-In satisfying the goal that 'the user should not experience edge cases, or differences in functionality', it should be the case that default arguments are applicable to `ref` parameters as with non-`ref` parameters. If the user does not supply an argument and a default argument is specified, the default argument is selected as usual and populates a temporary, just as if the user supplied the argument manually.
+In satisfying the goal that 'the user should not experience edge cases, or differences in functionality', it should be the case that default arguments are applicable to `ref` parameters as with non-`ref` parameters. If the user does not supply an argument and a default argument is specified, the default argument expression is selected as usual and populates a temporary, just as if the user supplied the argument manually.
 
 In this case, an interesting circumstantial opportunity appears where the compiler may discern that construction is expensive, and construct a single immutable instance for reuse. This shall not be specified functionality, but it may be a nice opportunity nonetheless.
 
@@ -324,7 +324,7 @@ Satisfying arguments in favor of extending the pattern beyond `const` include:
 
 Pipeline programming expressions often begin with a range returned from a function (an rvalue). Transform functions may receive their argument by reference. Such cases currently break the pipeline and introduce a manual temporary. This proposal improves the pipeline programming experience.
 
-Generic programming is one of D's biggest success stories and tends to work best when interfaces and expressions are orthogonal, with as few edge cases as possible . Certain forms of meta find that `ref`-ness is a key edge case which requires special case handling and may often lead to brittle generic code to be discovered by a niche end user at some future time.
+Generic programming is one of D's biggest success stories and tends to work best when interfaces and expressions are orthogonal, with as few edge cases as possible. Certain forms of meta find that `ref`-ness is a key edge case which requires special case handling and may often lead to brittle generic code to be discovered by a niche end user at some future time.
 
 Another high-impact case is OOP, where virtual function APIs inhibit the use of templates (ie, `auto ref`).
 
