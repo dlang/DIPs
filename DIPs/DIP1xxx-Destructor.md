@@ -25,12 +25,12 @@ such as calling the hidden symbol .__dtor directly. This limitation hinders the 
 A reasonable solution to this is to have the programmer opt-in the static type checking for the given class. The reason for the opt-in is to avoid code breakage, and to avoided unneeded static checking in cases where it is not suitable or needed. No need for static checking for @nogc in a non-@nogc context for example. The static checking will be determined by a constant string that contain the names of the attributes.
 
 ## Description
-'''d
+```d
 @nogc fun(C c)
 {
   destroy(c, "@nogc"); // Static type checking C for @nogc attributes
 }
-'''
+```
 There are 3 phases of the static checking:
 * Checks the destructors of parents that the current class have inheranted
 * Checks the destructors of existing child classes that inherent the current class
@@ -44,8 +44,8 @@ The bug in question.
 https://issues.dlang.org/show_bug.cgi?id=15246
 
 Example of workarounds/hack
-https://github.com/atilaneves/automem/blob/master/source/automem/utils.d
-https://www.auburnsounds.com/blog/2016-11-10_Running-D-without-its-runtime.html
+* https://github.com/atilaneves/automem/blob/master/source/automem/utils.d
+* https://www.auburnsounds.com/blog/2016-11-10_Running-D-without-its-runtime.html
 
 ## Copyright & License
 
