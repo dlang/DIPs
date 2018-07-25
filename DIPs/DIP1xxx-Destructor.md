@@ -36,7 +36,7 @@ There are 3 phases of the static checking:
 * Checks the destructors of existing child classes that inherent the current class
 * Checks the member variables of the current class for class/struct types and static type check them dynamically to avoid infinite recursion.
 
- 'Destructor_hook()' function behaves similarly to the destroy function, only it calls functions that are marked with the given attribute.
+ `Destructor_hook()` function behaves similarly to the destroy function, only it calls functions that are marked with the given attribute.
  The reason for this function is for situations where you don't have source code access to the API that your class is inherent from, and you know that not calling them won't causes any issues for your 
  program.
 ### Reference
