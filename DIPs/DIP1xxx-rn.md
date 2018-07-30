@@ -33,7 +33,6 @@ to the design flaws and inherent limitations of the postblit.
 * [Rationale and Motivation](#rationale-and-motivation)
 * [Description](#description)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [Future Directions](#future-directions)
 * [Acknowledgements](#acknowledgements)
 * [Reviews](#reviews)
 
@@ -267,9 +266,9 @@ struct A {
 }
 void main()
 {
-    immutable A a1;
-    A a2 = A(a1);
-    A a3 = a1;
+    immutable A ia;
+    A a = A(ia);
+    A b = ia;
 }
 ```
 
@@ -320,11 +319,11 @@ struct C
 
 void main()
 {
-    C a, b;
-    A aa;
+    C c, d;
+    A a;
 
-    a = b;        // ok
-    a = aa;       // error
+    c = d;        // ok
+    c = a;        // error
 }
 ```
 2. It is illegal to declare a copy constructor for a struct that has a postblit defined and vice versa:
@@ -373,8 +372,8 @@ void main()
     A a, b;
     a = b;     // error: disabled copy construction
 
-    immutable A c;
-    A d = c;  // ok
+    immutable A ia;
+    A c = ia;  // ok
 
 }
 ```
