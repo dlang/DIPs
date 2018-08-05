@@ -94,13 +94,13 @@ All references to `Constraint` in the spec now reference `Constraints`.
 ```
 Constraint:
   if ( Expression )
-``
+```
 to 
 ```
 Constraint:
   if ( Expression )
   if ( Expression , Expression )
-``
+```
 
 and `Constraints` is defined as 
 ```
