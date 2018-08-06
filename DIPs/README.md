@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1016](./DIP1016.md)|                       `ref T` accepts r-values| Community Round 1|
+|[1016](./DIP1016.md)|                       `ref T` accepts r-values| Post Community s 1|
 |[1014](./DIP1014.md)|              Hooking D's struct move semantics|        Post-Final|
 |[1013](./DIP1013.md)|                        The Deprecation Process|        Post-Final|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
