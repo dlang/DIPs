@@ -58,7 +58,7 @@ each with an optional message, such that the compiler is much better placed to p
 such as:
 
 * indicating if a clause is satisfied, 
-* indicating if a clause is the same as another overload (e.g. range functions and `isRange!Range`)
+* indicating if a clause is the same as another overload (e.g. range functions and `isRange!Range`) (not implemented yet)
 
 Using the particularly egregious example of the first overload of `std.algorithm.searching.countUntil`,
 its current signature of
