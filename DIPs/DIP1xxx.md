@@ -110,6 +110,7 @@ if (constraint1!T &&
     constraint2!T &&
     constraint3!T)
 ```
+The same is true for constraints on template functions, methods, classes and structs.
 
 The optional constraint message can be used to provide a more easily uderstood description of why a 
 constraint has not been met.
