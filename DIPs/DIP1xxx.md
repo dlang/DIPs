@@ -87,6 +87,7 @@ and would print on error using `countUntil("foo", notARange)` (with the current 
 ```
 example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduce function from argument types !()(string,NotARange), candidates are: 
 /path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+            satisfied: isForwardRange!R
             satisfied: need a needle to countUntil with
         not satisfied: each needle in `needles` must be a forward range
         not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
