@@ -51,7 +51,7 @@ have failed and why, because a constraint may have an arbitrary combination of l
 majority of constraints are expressed in Conjuntive Normal Form (CNF). In this case it is definitely 
 possible to provide better daignostics as to which clauses have failed. However the current grammer
 provides no way to translate particularly verbose constraints to a user not intimately familiar with 
-the constraint e.g. `is(typeof(unaryFun!pred(range.front))` (TODO: more examples).
+the constraint.
 
 This DIP therefore proposes to formalise the use of CNF constraints by allowing multiple `if` constraints,
 each with an optional message, such that the compiler is much better placed to provide better diagnostics,
@@ -60,6 +60,39 @@ such as:
 * indicating if a clause is satisfied, 
 * indicating if a clause is the same as another overload (e.g. range functions and `isRange!Range`)
 
+Using the particularly egregious example of the first overload of `std.algorithm.searching.countUntil`,
+its current signature of
+
+```D
+ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+if (isForwardRange!R
+&& Rs.length > 0
+&& isForwardRange!(Rs[0]) == isInputRange!(Rs[0])
+&& is(typeof(startsWith!pred(haystack, needles[0])))
+&& (Rs.length == 1
+|| is(typeof(countUntil!pred(haystack, needles[1 .. $])))))
+```
+
+would be be written as 
+
+```D
+ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+if (isForwardRange!R)
+if (Rs.length > 0, "need a needle to countUntil with")
+if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "each needle in `needles` must be a forward range") //TODO: is this actually what this means?
+if (is(typeof(startsWith!pred(haystack, needles[0]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`")
+if (Rs.length == 1 || is(typeof(countUntil!pred(haystack, needles[1 .. $]))),"multiple needles requires all constraints for all needles to be satisfied")
+```
+and would print on error using `countUntil("foo", notARange)` (with the current implementation of this DIP)
+```
+example.d(42): Error: template `countUntil("foo", notARange)` cannot deduce function from argument types !()(string), candidates are: 
+/path/to/std/algorithm/searching.d(747): ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+            satisfied: need a needle to countUntil with
+        not satisfied: each needle in `needles` must be a forward range
+        not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
+            satisfied: multiple needles requires all constraints for all needles to be satisfied
+/path/to/std/algorithm/searching.d(835): ptrdiff_t countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
+```
 ## Description
 
 Template constraints are changed to allow multiple multiple `if` template constraints with an optional message.
