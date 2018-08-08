@@ -167,9 +167,9 @@ Constraint:
 (or with  static foreach
 ```
 Constraint:
-if ( Expression )
-if ( AssignExpression , AssignExpression )
-StaticForeach Constraint 
+  if ( Expression )
+  if ( AssignExpression , AssignExpression )
+  StaticForeach Constraint 
 ```
 )
 and `Constraints` is defined as 
