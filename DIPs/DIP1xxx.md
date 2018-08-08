@@ -93,7 +93,7 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
         not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
             satisfied: multiple needles requires all constraints for all needles to be satisfied
 /path/to/std/algorithm/searching.d(835): std.algorithm.searching.countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
-``
+```
 ## Description
 
 Template constraints are changed to allow multiple multiple `if` template constraints with an optional message.
