@@ -104,18 +104,22 @@ One way to get better error mesage would be to enable static foreach:
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
 if (isForwardRange!R)
 if (Rs.length > 0, "need a needle to countUntil with")
-static foreach (i,alias N; Rs) 
-    if (isForwardRange!(N) == isInputRange!(N), "`needles` that are ranges must be forward ranges"), 
-    if (is(typeof(startsWith!pred(haystack, needles[i]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle[i])`) 
+static foreach (alias N; Rs) 
+    if (isForwardRange!(N) == isInputRange!(N), "needles that are ranges must be forward ranges")
+static foreach (n; needles)
+    if (is(typeof(startsWith!pred(haystack, n))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, "~n.stringof~"`)) 
 ```
 such that the supplemental message for `countUntil("foo", "bar", inputRangeofChar)` could be 
 ```
 /path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
             satisfied: isForwardRange!R
             satisfied: Rs.length > 0
-    static foreach (i,alias N; Rs)
-            satisfied, not satisfied: `needles` that are ranges must be forward ranges":
-            satisfied,     satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle[i])` 
+    static foreach (alias N; Rs)
+            satisfied: needles that are ranges must be forward ranges":
+        not satisfied: needles that are ranges must be forward ranges":
+    static foreach (n; needles)
+            satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, "bar")`
+            satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, inputRangeofChar)`
 ```
 ## Description
 
