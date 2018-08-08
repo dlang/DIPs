@@ -93,6 +93,29 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
         not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
             satisfied: multiple needles requires all constraints for all needles to be satisfied
 /path/to/std/algorithm/searching.d(835): std.algorithm.searching.countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
+``
+
+###Optional additional proposal: make static foreach work with constraints
+
+While this deals nicely with the first four constraints of `countUntil`, errors due to the last constraint are still difficult to understand.
+One way to get better error mesage would be to enable static foreach:
+
+```D
+ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+if (isForwardRange!R)
+if (Rs.length > 0, "need a needle to countUntil with")
+static foreach (i,alias N; Rs) 
+    if (isForwardRange!(N) == isInputRange!(N), "`needles` that are ranges must be forward ranges"), 
+    if (is(typeof(startsWith!pred(haystack, needles[i]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle[i])`) 
+```
+such that the supplemental message for `countUntil("foo", "bar", inputRangeofChar)` could be 
+```
+/path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+            satisfied: isForwardRange!R
+            satisfied: Rs.length > 0
+    static foreach (i,alias N; Rs)
+            satisfied, not satisfied: `needles` that are ranges must be forward ranges":
+            satisfied,     satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle[i])` 
 ```
 ## Description
 
@@ -137,6 +160,14 @@ Constraint:
   if ( AssignExpression , AssignExpression )
 ``
 
+(or with  static foreach
+```
+Constraint:
+if ( Expression )
+if ( AssignExpression , AssignExpression )
+StaticForeach Constraint 
+```
+)
 and `Constraints` is defined as 
 ```
 Constraints:
