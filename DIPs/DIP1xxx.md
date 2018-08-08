@@ -177,10 +177,7 @@ Constraints:
 
 ## Breaking Changes and Deprecations
 
-N/A. This DIP is purely additive. However in order to make use of this DIP, library writers will need 
-to update the constraints from CNF to one clause per `if` constraint which is a backwards incompatible change.
-This is not a problem for Phobos, since it is released in sync with the compiler.
-
+N/A. This DIP is purely additive.
 
 ## Copyright & License
 
