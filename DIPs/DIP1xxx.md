@@ -79,7 +79,7 @@ would be be written as
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
 if (isForwardRange!R)
 if (Rs.length > 0, "need a needle to countUntil with")
-if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "each needle in `needles` must be a forward range") //TODO: is this actually what this means?
+if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "`needles` that are ranges must be forward ranges") 
 if (is(typeof(startsWith!pred(haystack, needles[0]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`")
 if (Rs.length == 1 || is(typeof(countUntil!pred(haystack, needles[1 .. $]))),"multiple needles requires all constraints for all needles to be satisfied")
 ```
@@ -89,7 +89,7 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
 /path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
             satisfied: isForwardRange!R
             satisfied: need a needle to countUntil with
-        not satisfied: each needle in `needles` must be a forward range
+        not satisfied: `needles` that are ranges must be forward ranges"
         not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
             satisfied: multiple needles requires all constraints for all needles to be satisfied
 /path/to/std/algorithm/searching.d(835): std.algorithm.searching.countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
