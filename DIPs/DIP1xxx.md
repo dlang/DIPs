@@ -79,7 +79,7 @@ would be be written as
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
 if (isForwardRange!R)
 if (Rs.length > 0)
-if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "`needles` that are ranges must be forward ranges") 
+if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "needles that are ranges must be forward ranges") 
 if (is(typeof(startsWith!pred(haystack, needles[0]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`")
 if (Rs.length == 1 || is(typeof(countUntil!pred(haystack, needles[1 .. $]))),"multiple needles requires all constraints for all needles to be satisfied")
 ```
@@ -93,9 +93,9 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
         not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
             satisfied: multiple needles requires all constraints for all needles to be satisfied
 /path/to/std/algorithm/searching.d(835): std.algorithm.searching.countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
-``
+```
 
-###Optional additional proposal: make static foreach work with constraints
+###Optional additional proposal: make static foreach work with constraints (not implemented yet)
 
 While this deals nicely with the first four constraints of `countUntil`, errors due to the last constraint are still difficult to understand.
 One way to get better error mesage would be to enable static foreach:
