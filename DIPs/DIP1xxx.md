@@ -134,8 +134,8 @@ to
 ```
 Constraint:
   if ( Expression )
-  if ( Expression , Expression )
-```
+  if ( AssignExpression , AssignExpression )
+``
 
 and `Constraints` is defined as 
 ```
