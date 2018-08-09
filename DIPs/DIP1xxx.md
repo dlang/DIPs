@@ -83,7 +83,7 @@ if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "needles that are ranges mus
 if (is(typeof(startsWith!pred(haystack, needles[0]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`")
 if (Rs.length == 1 || is(typeof(countUntil!pred(haystack, needles[1 .. $]))),"multiple needles requires all constraints for all needles to be satisfied")
 ```
-and would print on error using `countUntil("foo", notARange)` (with the current implementation of this DIP)
+and would print on error using `countUntil("foo", notARangeOrChar)` (with the current implementation of this DIP)
 ```
 example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduce function from argument types !()(string,NotARange), candidates are: 
 /path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
@@ -93,6 +93,7 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
         not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
             satisfied: multiple needles requires all constraints for all needles to be satisfied
 /path/to/std/algorithm/searching.d(835): std.algorithm.searching.countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
+/path/to/std/algorithm/searching.d(913): std.algorithm.searching.countUntil(alias pred, R)(R haystack) if (isInputRange!R && is(typeof(unaryFun!pred(haystack.front)) : bool))
 ```
 
 ###Optional additional proposal: make static foreach work with constraints (not implemented yet)
