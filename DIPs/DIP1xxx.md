@@ -6,7 +6,7 @@
 | Review Count:   | 0                                                               |
 | Author:         | Nicholas Wilson                                                 |
 | Implementation: | https://github.com/thewilsonator/dmd/tree/template-constraint-dip |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
