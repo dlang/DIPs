@@ -3,12 +3,13 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1016](./DIP1016.md)|                       `ref T` accepts r-values| Post Community s 1|
+|[1017](./DIP1017.md)|                                Add Bottom Type| Community Round 1|
+|[1016](./DIP1016.md)|                       `ref T` accepts r-values|  Post-Community 1|
+|[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` | Post-Community 1|
 |[1014](./DIP1014.md)|              Hooking D's struct move semantics|        Post-Final|
 |[1013](./DIP1013.md)|                        The Deprecation Process|        Post-Final|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|     Formal Review|
-|[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` | Post-Community 1|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1|
