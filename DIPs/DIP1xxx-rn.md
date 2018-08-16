@@ -288,6 +288,65 @@ qualifiers are optional.
 This sections discusses all the aspects regarding the semantic analysis and interaction with other
 components of the copy constructor
 
+#### Copy constructor usage
+
+The copy constructor is implicitly used by the compiler whenever a struct variable is initialized
+as a copy of another variable of the same unqualified type:
+
+1. When a variable is explicitly initialized:
+
+```d
+struct A
+{
+    @implicit this(ref A another) {}
+}
+
+void main()
+{
+    A a;
+    A b = a; // copy constructor gets called
+    b = a;   // assignment, not initialization
+}
+```
+
+2. When a parameter is passed by value to a function:
+
+```
+struct A
+{
+    @implicit this(ref A another) {}
+}
+
+void fun(A a) {}
+
+void main()
+{
+    A a;
+    fun(a);    // copy constructor gets called
+}
+```
+
+3. When a parameter is returned by value from a function:
+
+```
+struct A
+{
+    @implicit this(ref A another) {}
+}
+
+A fun()
+{
+    A a;
+    return a;
+}
+
+void main()
+{
+    A a;
+    a = fun();   // copy constructor gets called
+}
+```
+
 #### Requirements
 
 1. The type of the parameter to the copy constructor needs to be identical to `typeof(this)`; an error is issued
@@ -319,11 +378,10 @@ struct C
 
 void main()
 {
-    C c, d;
+    C c;
+    C d = c;   // ok
     A a;
-
-    c = d;        // ok
-    c = a;        // error
+    C e = a;   // error
 }
 ```
 2. It is illegal to declare a copy constructor for a struct that has a postblit defined and vice versa:
@@ -353,7 +411,7 @@ struct B
 }
 ```
 
-#### Semantics
+#### Type checking
 
 The copy constructor typecheck is identical to the constructor one [[6](https://dlang.org/spec/struct.html#struct-constructor)]
 [[7](https://dlang.org/spec/struct.html#field-init)].
@@ -418,26 +476,152 @@ treated the same:
 ```d
 struct A
 {
-    @implicit this(ref inout A another) immutable
-    {
-    }
+    @implicit this(ref inout A another) immutable {}
 }
 
 void main()
 {
-    A a;
-    const A b;
     immutable A c, r1, r2, r3;
 
-    // All call the same copy construcor because `inout` acts like a wildcard
-    a = r1;
-    b = r2;
-    c = r3;
+    // All call the same copy constructor because `inout` acts like a wildcard
+    A a = r1;
+    const A b = r2;
+    immutable A c = r3;
 }
 ```
 
 In case of partial matching, the existing overloading and implicit conversions
 apply to the argument.
+
+#### Copy constructor call vs. Standard copying (memcpy)
+
+When a copy constructor is not defined for a struct, initializations are treated
+by copying the contents from the memory location of the right-hand side expression
+to the memory location of the left-hand side one (called "standard copying"):
+
+```d
+struct A
+{
+    int[] a;
+}
+
+void main()
+{
+    A a = A([7]);
+    A b = a;                 // mempcy(&b, &a)
+    immutable A c = A([12]);
+    immutable A d = c;       // memcpy(&d, &c)
+}
+```
+
+In C++, when a copy constructor is defined, initializations which fall under the stated categories
+are lowered to a copy constructor call. If this design would be implemented, situations like these
+would occur:
+
+```d
+struct A
+{
+    int[] a;
+    @implicit this(ref immutable A) {}
+}
+
+void fun(A a)
+{}
+
+void main()
+{
+    A a;
+    A b = a;    // error: cannot call `@implicit this(immutable(A))` with type `A`
+    fun(a)      // ditto
+}
+```
+
+Because all expressions that result in initialization by copying are lowered to a copy
+constructor call, by defining a specific copy constructor the struct loses the posibility
+of any standard copying. This is not acceptable, because we want the user to define only
+the situations that are of interest and have the compiler generate the code for the default
+cases.
+
+In order to solve this problem, there are 2 solutions:
+
+1. When at least one copy constructor is defined by a user, generate all copy constructors
+with the signature `@implicit this(ref $q S) $q`. This solution has the advantage that
+all initializations by copying can be directly lowered to a copy constructor call without
+any other checks, but has the disadvantage that for any struct that defines one copy
+constructor, another 8 have to be generated (mutable, `const`, `const inout`, `inout`, `immutable`,
+`const inout shared`, `inout shared`, `const shared`, `shared`), regardless of the fact that
+none might be used. This can be optimized by generating a templated copy constructor which will
+be instantiated depending on the use case, but this still is not optimal in terms of compilation
+time.
+
+2. Whenever an initialization by copying is encountered, a call to a copy constructor is tried
+and if a matching copy constructor is found it is used, otherwise if no copy constructor is
+suitable, standard copying is employed (and if that also fails, an error is issued).
+This solution has the advantage that no copy constructor is generated `apriori` and all
+undefined copies are treated by the standard copying (if possible). This solution is optimal
+in terms of compilation time, since no code is generated at all, therefore it is the one
+chosen in the design of the copy constructor.
+
+#### Overload resolution in the presence of parameters with copy constructors
+
+For a function in an overload set each argument is matched against the parameter the following way:
+
+1. Check if the argument type is a direct match to the parameter type.
+2. If not, check if the argument is implicitly convertible to the parameter type.
+3. If not, check if the argument has a copy constructor that converts to the parameter type.
+
+In the first 2 situations, if the check is true for a specific overload and that overload
+is selected to be called, if any of the parameters have a matching copy constructor, it will get called,
+otherwise, standard copying is employed. In the third situation, the overload matches based on
+conversion resulted from the copy constructor:
+
+```d
+struct A
+{
+    int[] a;
+    @implicit this(ref shared A) immutable {}
+}
+
+void fun(const A a) {}                  // 1
+void fun(immutable A a) {}              // 2
+
+struct B
+{
+    int a[];
+    @implicit this(ref A) shared {}             // ctor1
+    @implicit this(ref A) const {}              // ctor2
+    @implicit this(ref shared A) shared {}      // ctor3
+    @implicit this(ref immutable A) const {}    // ctor4
+}
+
+void gun(shared A) {}    // 3
+void gun(const A) {}     // 4
+
+void main()
+{
+    A a;
+    fun(a);             // calls 1 - conversion to const match; standard copying
+
+    const A a1;
+    fun(a1);             // calls 1 - direct match; standard copying
+
+    shared A a2;
+    fun(a2);             // calls 2 - conversion with copy ctor match; call copy ctor on parameter
+
+    B b;
+    fun(b);              // error: both gun functions match, because copy
+                         // ctor matches both ctor1 and ctor2
+
+    const B b1;
+    fun(b1)               // calls 4 - direct match; standard copying
+
+    immutable B b2;
+    fun(b2);              // calls 4 - conversion to const match; call ctor4
+
+    shared B b3;
+    fun(b3);              // calls 4 - direct match; call ctor3
+}
+```
 
 #### Interaction with `alias this`
 
@@ -474,12 +658,11 @@ struct B
 
 void main()
 {
-    A a;
     immutable A ia;
-    a = ia;            // 1 - calls copy constructor
+    A a = ia;            // 1 - calls copy constructor
 
-    B b, bc;
-    b = bc;            // 2 - b is evaluated to B.fun
+    B bc;
+    B b = bc;            // 2 - b is evaluated to B.fun
 }
 ```
 
@@ -509,7 +692,7 @@ struct A
         this.a = rhs.a;
         this.b = rhs.b;
     }
-    void opAssign(S rhs)
+    void opAssign(A rhs)
     {
         this.a = rhs.a;
     }
@@ -519,7 +702,6 @@ void main()
 {
     A a = A(2);
     A b = a;      // calls copy constructor;
-    a.a = 5;
     b = a;        // calls opAssign;
 }
 ```
@@ -552,7 +734,6 @@ void main()
 {
     A a = A(2);
     A b = a;      // calls copy constructor;
-    a.a = 5;
     b = a;        // calls opAssign;
 }
 ```
