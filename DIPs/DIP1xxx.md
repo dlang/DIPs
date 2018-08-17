@@ -1,4 +1,4 @@
-# Multiple template constraints
+# Expression and Block Statement Template Constraints
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -10,10 +10,13 @@
 
 ## Abstract
 
-Allow multiple `if` template constraints with an optional message to be printed in the 
-event that overload resolution fails (similar to `static assert`). The template is 
-considered a valid overload iff each of the constraints is satified.
+Allow multiple expression based `if` template constraints with an optional message to be printed in the 
+event that overload resolution fails (similar to `static assert`) as well as block statement  form that allows the use of `static foreach`.
+That is to say, template constraint `if` becomes to `static foreach` and `static assert` as contract precondition `in`
+is to `foreach` and `assert`.
+The template is considered a valid overload iff each of the constraints is satified.
 
+Expression form:
 ```D
 template all(alias pred)
 {
@@ -23,6 +26,37 @@ template all(alias pred)
         "`" ~ pred.stringof[1..$-1] ~ "` isn't a unary predicate function for range.front"))
     {
     }
+}
+``
+
+Block statement form:
+```D
+ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+if 
+{
+    static assert(isForwardRange!R);
+    static assert(Rs.length > 0, "need a needle to countUntil with");
+    static foreach (alias N; Rs) 
+        static assert(isForwardRange!(N) == isInputRange!(N), "needles that are ranges must be forward ranges");
+    static foreach (n; needles)
+        static assert(is(typeof(startsWith!pred(haystack, n))), 
+                      "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, "~n.stringof~"`));
+}
+```
+
+Mixed:
+
+```D
+ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
+if(isForwardRange!R)
+if(Rs.length > 0, "need a needle to countUntil with")
+if 
+{
+    static foreach (alias N; Rs) 
+        static assert(isForwardRange!(N) == isInputRange!(N), "needles that are ranges must be forward ranges");
+    static foreach (n; needles)
+        static assert(is(typeof(startsWith!pred(haystack, n))), 
+                "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, "~n.stringof~"`));
 }
 ```
 
@@ -53,12 +87,13 @@ possible to provide better daignostics as to which clauses have failed. However 
 provides no way to translate particularly verbose constraints to a user not intimately familiar with 
 the constraint.
 
-This DIP therefore proposes to formalise the use of CNF constraints by allowing multiple `if` constraints,
-each with an optional message, such that the compiler is much better placed to provide better diagnostics,
-such as:
-
-* indicating if a clause is satisfied, 
-* indicating if a clause is the same as another overload (e.g. range functions and `isRange!Range`) (not implemented yet)
+This DIP therefore proposes to formalise the use of CNF constraints by allowing multiple expression `if` constraints,
+each with an optional message (similar to what was done with contracts in DIP1009), as well as adding a block statement form that 
+allows the use of static foreach to eliminate the need for recursive templates in template constrains 
+(similar to the `in` contract form prior to DIP1009).
+This will put the compiler in a much better position to provide useful diagnostics, such as indicating which clauses are not satisfied 
+and allowing the template author to provide messages in the case of non-intuitive formulations of constraints
+e.g. `if(isForwardRange!(R) == isInputRange!(R), "needles that are ranges must be forward ranges")`.
 
 Using the particularly egregious example of the first overload of `std.algorithm.searching.countUntil`,
 its current signature of
@@ -73,55 +108,37 @@ if (isForwardRange!R
 || is(typeof(countUntil!pred(haystack, needles[1 .. $])))))
 ```
 
-would be be written as 
+would be be written using the block statement form to elimiate the recursive constraint as  
 
 ```D
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
-if (isForwardRange!R)
-if (Rs.length > 0)
-if (isForwardRange!(Rs[0]) == isInputRange!(Rs[0]), "needles that are ranges must be forward ranges") 
-if (is(typeof(startsWith!pred(haystack, needles[0]))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`")
-if (Rs.length == 1 || is(typeof(countUntil!pred(haystack, needles[1 .. $]))),"multiple needles requires all constraints for all needles to be satisfied")
+if(isForwardRange!R)
+if(Rs.length > 0, "need a needle to countUntil with")
+if 
+{
+    static foreach (n; needles)
+    {
+        static assert(isForwardRange!(typeof(n)) == isInputRange!(typeof(n)), 
+                        "`"~n.stringof ~"`: needles that are ranges must be forward ranges");
+        static assert(is(typeof(startsWith!pred(haystack, n))), 
+                        "predicate `" ~ pred.stringof "` must be valid for"~
+                        "`startsWith!pred(haystack, "~n.stringof~"`));
+    }
+}
 ```
-and would print on error using `countUntil("foo", notARangeOrChar)` (with the current implementation of this DIP)
+the first two constraints do not require the use of the block statement form to use a static foreach so 
+they can be done in the expression style.
+
+This could print on error using `countUntil("foo", inputRangeOfInt)` 
 ```
 example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduce function from argument types !()(string,NotARange), candidates are: 
 /path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
-            satisfied: isForwardRange!R
-            satisfied: Rs.length > 0
-        not satisfied: needles that are ranges must be forward ranges"
-        not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, needle)` for each needle in `needles`
-            satisfied: multiple needles requires all constraints for all needles to be satisfied
+        not satisfied: `inputRangeOfInt`: needles that are ranges must be forward ranges
+        not satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, inputRangeOfInt)`
 /path/to/std/algorithm/searching.d(835): std.algorithm.searching.countUntil(alias pred = "a == b", R, N)(R haystack, N needle) if (isInputRange!R && is(typeof(binaryFun!pred(haystack.front, needle)) : bool))
 /path/to/std/algorithm/searching.d(913): std.algorithm.searching.countUntil(alias pred, R)(R haystack) if (isInputRange!R && is(typeof(unaryFun!pred(haystack.front)) : bool))
 ```
 
-###Optional additional proposal: make static foreach work with constraints (not implemented yet)
-
-While this deals nicely with the first four constraints of `countUntil`, errors due to the last constraint are still difficult to understand.
-One way to get better error mesage would be to enable static foreach:
-
-```D
-ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
-if (isForwardRange!R)
-if (Rs.length > 0, "need a needle to countUntil with")
-static foreach (alias N; Rs) 
-    if (isForwardRange!(N) == isInputRange!(N), "needles that are ranges must be forward ranges")
-static foreach (n; needles)
-    if (is(typeof(startsWith!pred(haystack, n))), "predicate `" ~ pred.stringof "` must be valid for `startsWith!pred(haystack, "~n.stringof~"`)) 
-```
-such that the supplemental message for `countUntil("foo", "bar", inputRangeofChar)` could be 
-```
-/path/to/std/algorithm/searching.d(747): std.algorithm.searching.countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
-            satisfied: isForwardRange!R
-            satisfied: Rs.length > 0
-    static foreach (alias N; Rs)
-            satisfied: needles that are ranges must be forward ranges":
-        not satisfied: needles that are ranges must be forward ranges":
-    static foreach (n; needles)
-            satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, "bar")`
-            satisfied: predicate `a == b` must be valid for `startsWith!pred(haystack, inputRangeofChar)`
-```
 ## Description
 
 Template constraints are changed to allow multiple multiple `if` template constraints with an optional message.
@@ -149,40 +166,63 @@ template foo(T)
 if (constraint1!T, " Constraint1 not met for " ~ T.stringof) 
 ```
 
-###Template Grammar changes
+###Grammar changes
 
-All references to `Constraint` in the spec now reference `Constraints`.
+```diff
++Constraints:
++   Constraint
++   Constraint Constraints
 
-`Constraint` is changed from 
-```
 Constraint:
-  if ( Expression )
-```
-to 
-```
-Constraint:
-  if ( Expression )
-  if ( AssignExpression , AssignExpression )
+-  if ( Expression )
++   if ( AssertArguments )
++   if BlockStatement
+
+FuncDeclaratorSuffix:
+    Parameters MemberFunctionAttributes[opt]
+-   TemplateParameters Parameters MemberFunctionAttributes[opt] Constraint[opt]
++   TemplateParameters Parameters MemberFunctionAttributes[opt] Constraints[opt]
+
+TemplateDeclaration:
+-   template Identifier TemplateParameters Constraint[opt] { DeclDefs[opt] }
++   template Identifier TemplateParameters Constraints[opt] { DeclDefs[opt] }
+
+ConstructorTemplate:
+-   this TemplateParameters Parameters MemberFunctionAttributes[opt] Constraint[opt] :
+-   this TemplateParameters Parameters MemberFunctionAttributes[opt] Constraint[opt] FunctionBody
++   this TemplateParameters Parameters MemberFunctionAttributes[opt] Constraints[opt] :
++   this TemplateParameters Parameters MemberFunctionAttributes[opt] Constraints[opt] FunctionBody
+
+ClassTemplateDeclaration:
+-   class Identifier TemplateParameters Constraint[opt] BaseClassList[opt] AggregateBody
+-   class Identifier TemplateParameters BaseClassList[opt] Constraint[opt] AggregateBody
++   class Identifier TemplateParameters Constraints[opt] BaseClassList[opt] AggregateBody
++   class Identifier TemplateParameters BaseClassList[opt] Constraints[opt] AggregateBody
+
+InterfaceTemplateDeclaration:
+-   interface Identifier TemplateParameters Constraint[opt] BaseInterfaceList[opt] AggregateBody
+-   interface Identifier TemplateParameters BaseInterfaceList Constraint AggregateBody
++   interface Identifier TemplateParameters Constraints[opt] BaseInterfaceList[opt] AggregateBody
++   interface Identifier TemplateParameters BaseInterfaceList Constraints AggregateBody
+
+StructTemplateDeclaration:
+-   struct Identifier TemplateParameters Constraint[opt] AggregateBody
++   struct Identifier TemplateParameters Constraints[opt] AggregateBody
+
+UnionTemplateDeclaration:
+-   union Identifier TemplateParameters Constraint[opt] AggregateBody
++   union Identifier TemplateParameters Constraints[opt] AggregateBody
+
+TemplateMixinDeclaration:
+-   mixin template Identifier TemplateParameters Constraint[opt] { DeclDefs[opt] }
++   mixin template Identifier TemplateParameters Constraints[opt] { DeclDefs[opt] }
+
 ```
 
-(or with  static foreach
-```
-Constraint:
-  if ( Expression )
-  if ( AssignExpression , AssignExpression )
-  StaticForeach Constraint 
-```
-)
-and `Constraints` is defined as 
-```
-Constraints:
-  Constraint
-  Constraint Constraints
-```
 
 ## Breaking Changes and Deprecations
 
-N/A. This DIP is purely additive.
+N/A. The current template constraint syntax becomes a single expression constraint.
 
 ## Copyright & License
 
