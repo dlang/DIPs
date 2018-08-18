@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Elijah Stone <elronnd@elronnd.net>                              |
 | Implementation: | None yet (TODO)                                                 |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft  |
 
 ## Abstract
 
