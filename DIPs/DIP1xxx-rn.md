@@ -427,8 +427,8 @@ struct A
 
 void main()
 {
-    A a, b;
-    a = b;     // error: disabled copy construction
+    A b;
+    A a = b;     // error: disabled copy construction
 
     immutable A ia;
     A c = ia;  // ok
@@ -457,13 +457,13 @@ struct A
 
 void main()
 {
-    A a, b, a1;
-    immutable A ia, ib, ia1;
+    A a;
+    immutable A ia;
 
-    a = b;      // calls 1
-    a1 = ia;     // calls 2
-    ia = a;     // calls 3
-    ia1 = ib;    // calls 4
+    A a2 = a;      // calls 1
+    A a3 = ia;     // calls 2
+    immutable A a4 = a;     // calls 3
+    immutable A a5 = ia;    // calls 4
 }
 ```
 The proposed model enables the user to define the copying from an object of any qualified type
