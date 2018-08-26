@@ -174,10 +174,10 @@ if
 }
 ```
 may contain only `static assert`, `static foreach` and `static if` statements and `enum` and `alias` declarations.
-Each `static assert` in the block statement, including those in unrolled `static foreach`statements and satisfied 
-`static if`statements, must pass for the template to be a viable overload.
+Each `static assert` in the block statement, including those in unrolled `static foreach` statements and satisfied 
+`static if` statements, must pass for the constraint to be satisfied.
 
-All `static assert` must pass for the template to be viable.
+All constraints must be satisfied for the template to be viable.
 
 This also applies to constraints on template mixins, functions, methods, classes, interfaces, structs and unions.
 
