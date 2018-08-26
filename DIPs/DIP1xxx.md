@@ -166,7 +166,7 @@ may contain only `static assert`s, `enum` and `alias` declarations and `static f
 Each `static assert` in the block statement, including those in unrolled `static foreach`statements and satisfied 
 `static if`statements, must pass for the template to be a viable overload.
 
-This also applies to constraints on template functions, methods, classes and structs.
+This also applies to constraints on template functions, methods, classes, interfaces, structs and unions.
 
 The optional constraint message can be used to provide a more easily uderstood description of why a 
 constraint has not been met.
