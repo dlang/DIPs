@@ -27,7 +27,7 @@ template all(alias pred)
     {
     }
 }
-``
+```
 
 Block statement form:
 ```D
