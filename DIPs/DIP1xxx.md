@@ -78,7 +78,7 @@ the compiler will print out all the in scope overloads and their constraints, wi
 of which constraints have failed.
 
 While it is not possible in the general case to provide useful information as to what constraints
-have failed and why, because a constraint may have an arbitrary combination of logic. However the vast 
+have failed and why, because a constraint may have an arbitrary combination of logic, the vast 
 majority of constraints are expressed in Conjuntive Normal Form (CNF). In this case it is definitely 
 possible to provide better daignostics as to which clauses have failed. However the current grammer
 provides no way to translate particularly verbose constraints to a user not intimately familiar with 
