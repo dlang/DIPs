@@ -10,10 +10,11 @@
 
 ## Abstract
 
-Allow multiple expression based `if` template constraints with an optional message to be printed in the 
-event that overload resolution fails (similar to `static assert`) as well as block statement  form that allows the use of `static foreach`.
-That is to say, template constraint `if` becomes to `static foreach` and `static assert` as contract precondition `in`
-is to `foreach` and `assert`.
+Allow multiple `if` template constraints, for the expression form allow an optional message to be printed in the 
+event that overload resolution fails (similar to `static assert`), as well as a block statement
+form of template constraint that allows the use of `static foreach`.
+That is to say, template constraint `if` becomes the static form of contract precondition `in`.
+
 The template is considered a valid overload iff each of the constraints is satified.
 
 Expression form:
