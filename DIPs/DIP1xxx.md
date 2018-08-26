@@ -143,29 +143,31 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
 
 ## Description
 
-Template constraints are changed to allow multiple `if` template constraints. The expression form:
+Template constraints are changed to allow multiple `if` template constraints. 
+All constraints must be satisfied for the template to be viable.
+Examples given are for `template`s but also apply to constraints on template mixins, functions, methods, classes, 
+interfaces, structs and unions.
+
+### Expression Form
+
+The expression form is:
 ```D
 template foo(T) 
 if (constraint1!T) 
 if (constraint2!T)
 if (constraint3!T) { ... }
 ```
-is semantically equivalent to 
-```D
-template foo(T) 
-if (constraint1!T &&
-    constraint2!T &&
-    constraint3!T)
-```
-The optional constraint message can be used to provide a more easily uderstood description of why a 
+
+An optional constraint message can be used to provide a more easily uderstood description of why a 
 constraint has not been met.
 
 ```D
 template foo(T) 
 if (isForwardRange!T == isInputRange!T, T.stringof ~" must be a forward range if it is a range") 
 ```
+###Block Statement Form
 
-The block statement form:
+The block statement form is:
 ```D
 template foo(T) 
 if 
@@ -173,13 +175,10 @@ if
    ...constraints...
 }
 ```
-may contain only `static assert`, `static foreach` and `static if` statements and `enum` and `alias` declarations.
-Each `static assert` in the block statement, including those in unrolled `static foreach` statements and satisfied 
-`static if` statements, must pass for the constraint to be satisfied.
-
-All constraints must be satisfied for the template to be viable.
-
-This also applies to constraints on template mixins, functions, methods, classes, interfaces, structs and unions.
+where `...constraints...` may contain only `static assert`, `static foreach` and `static if` statements and `enum` and `alias` declarations. 
+The declarations are local to the scope of the constraint or `static foreach` or `static if` they are declared in.
+Each `static assert` in the block statement in satisfied `static if` statements,
+including those in unrolled `static foreach` statements, must pass for the constraint to be satisfied.
 
 ###Grammar changes
 
