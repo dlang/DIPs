@@ -63,6 +63,10 @@ if
 
 ### Reference
 
+https://github.com/dlang/phobos/pull/6607
+
+https://issues.dlang.org/show_bug.cgi?id=13683
+
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
