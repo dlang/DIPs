@@ -89,9 +89,9 @@ possible to provide better daignostics as to which clauses have failed. However 
 provides no way to translate particularly verbose constraints to a user not intimately familiar with 
 the constraint.
 
-This DIP therefore proposes to formalise the use of CNF constraints by allowing multiple expression `if` constraints,
-each with an optional message (similar to what was done with contracts in DIP1009), as well as block statements that 
-allows the use of `static foreach` and declare `alias`es and `enum`s to eliminate the need for recursive templates in template constrains 
+This DIP therefore proposes to formalise the use of CNF constraints by allowing multiple `if` constraints,
+the expression form with an optional message (similar to what was done with contracts in DIP1009), as well as block statements that 
+allows the use of `static foreach` and to declare `alias`es and `enum`s to eliminate the need for recursive templates in template constrains 
 (similar to the `in` contract form prior to DIP1009).
 This will put the compiler in a much better position to provide useful diagnostics, such as indicating which clauses are not satisfied 
 and allowing the template author to provide messages in the case of non-intuitive formulations of constraints
@@ -143,8 +143,7 @@ example.d(42): Error: template `std.algorithm.searching.countUntil` cannot deduc
 
 ## Description
 
-Template constraints are changed to allow multiple multiple `if` template constraints with an optional message.
-Each constraint must be satisfied to be a viable overload candiate. That is 
+Template constraints are changed to allow multiple `if` template constraints. The expression form:
 ```D
 template foo(T) 
 if (constraint1!T) 
@@ -158,21 +157,6 @@ if (constraint1!T &&
     constraint2!T &&
     constraint3!T)
 ```
-
-The block statement form 
-```D
-template foo(T) 
-if 
-{
-   ...constraints...
-}
-```
-may contain only `static assert`s, `enum` and `alias` declarations and `static foreach` and `static if` statements.
-Each `static assert` in the block statement, including those in unrolled `static foreach`statements and satisfied 
-`static if`statements, must pass for the template to be a viable overload.
-
-This also applies to constraints on template mixins, functions, methods, classes, interfaces, structs and unions.
-
 The optional constraint message can be used to provide a more easily uderstood description of why a 
 constraint has not been met.
 
@@ -180,6 +164,22 @@ constraint has not been met.
 template foo(T) 
 if (isForwardRange!T == isInputRange!T, T.stringof ~" must be a forward range if it is a range") 
 ```
+
+The block statement form:
+```D
+template foo(T) 
+if 
+{
+   ...constraints...
+}
+```
+may contain only `static assert`, `static foreach` and `static if` statements and `enum` and `alias` declarations.
+Each `static assert` in the block statement, including those in unrolled `static foreach`statements and satisfied 
+`static if`statements, must pass for the template to be a viable overload.
+
+All `static assert` must pass for the template to be viable.
+
+This also applies to constraints on template mixins, functions, methods, classes, interfaces, structs and unions.
 
 ###Grammar changes
 
