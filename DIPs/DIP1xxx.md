@@ -153,14 +153,27 @@ if (constraint1!T &&
     constraint2!T &&
     constraint3!T)
 ```
-The also applies to constraints on template functions, methods, classes and structs.
+
+The block statement form 
+```D
+template foo(T) 
+if 
+{
+   ...constraints...
+}
+```
+may contain only `static assert`s, `enum` and `alias` declarations and `static foreach` and `static if` statements.
+Each `static assert` in the block statement, including those in unrolled `static foreach`statements and satisfied 
+`static if`statements, must pass for the template to be a viable overload.
+
+This also applies to constraints on template functions, methods, classes and structs.
 
 The optional constraint message can be used to provide a more easily uderstood description of why a 
 constraint has not been met.
 
 ```D
 template foo(T) 
-if (constraint1!T, " Constraint1 not met for " ~ T.stringof) 
+if (isForwardRange!T == isInputRange!T, T.stringof ~" must be a forward range if it is a range") 
 ```
 
 ###Grammar changes
@@ -213,7 +226,6 @@ UnionTemplateDeclaration:
 TemplateMixinDeclaration:
 -   mixin template Identifier TemplateParameters Constraint[opt] { DeclDefs[opt] }
 +   mixin template Identifier TemplateParameters Constraints[opt] { DeclDefs[opt] }
-
 ```
 
 
