@@ -62,9 +62,6 @@ if
 
 ### Reference
 
-Optional links to reference material such as existing discussions, research papers
-or any other supplementary materials.
-
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
