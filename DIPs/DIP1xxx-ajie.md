@@ -1,57 +1,108 @@
-# (Your DIP title)
+# Inferred foreach ref const
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | (your name and contact data)                                    |
-| Implementation: | (links to implementation PR if any)                             |
+| Author:         | Ate Eskola (ajieskola@gmail.com)                                |
+| Implementation: | None yet                                                        |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
 
-Required.
+This DIP proposes that foreach loops should infer ref for their element variables when
+it has no effect on semantics.
 
-Short and concise description of the idea in a few lines.
+This is to allow iteration over a range of non-copyable elements without explicit need
+to adapt the code for that.
 
 ### Reference
 
-Optional links to reference material such as existing discussions, research papers
-or any other supplementary materials.
+- [1] A pull request for DMD to disallow iteration by reference when the aggregate
+ does not support it:
+    * https://github.com/dlang/dmd/pull/8437
+
+- [2] Emsi-containers GitHub repository
+    * https://github.com/dlang-community/containers
 
 ## Contents
-* [Rationale](#rationale)
 * [Description](#description)
-* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Rationale](#rationale)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
-## Rationale
-
-Required.
-
-A short motivation about the importance and benefits of the proposed change.  An existing,
-well-known issue or a use case for an existing projects can greatly increase the
-chances of the DIP being understood and carefully evaluated.
-
 ## Description
 
-Required.
+This DIP proposes, that when the compiler encounters a foreach statement
+(example)
 
-Detailed technical description of the new semantics. Language grammar changes
-(per https://dlang.org/spec/grammar.html) needed to support the new syntax
-(or change) must be mentioned. Examples demonstrating the new semantics will
-strengthen the proposal and should be considered mandatory.
+```D
+foreach (loopVariable; range)
+{
+    loopVariable.doSomething();
+}
+```
 
-## Breaking Changes and Deprecations
+...that satisfies the following conditions:
 
-This section is not required if no breaking changes or deprecations are anticipated.
+    1. `loopVariable` is not annotated with `ref`.
+    2. The will not compile without annotating `loopVariable` with `ref`, because
+        `loopVariable` is a struct with a disabled postblit
+    3. If `loopVariable` would be annotated with `ref const`, the code would compile.
+        This implies that the foreach body does not mutate `loopVariable`
+    4. `loopVariable` is not `shared` and annotating `loopVariable` with `ref` would
+        not make it `shared`.
 
-Provide a detailed analysis on how the proposed changes may affect existing
-user code and a step-by-step explanation of the deprecation process which is
-supposed to handle breakage in a non-intrusive manner. Changes that may break
-user code and have no well-defined deprecation process have a minimal chance of
-being approved.
+...the compiler must implicitly annotate `loopVariable` with `ref const`.
+
+If conditions 1, 3 and 4 are satisfied but 2. is not, the compiler may decide
+whether to add the aforementioned annotation.
+
+## Rationale
+
+There are two ways to iterate over a range using foreach loop: By value and by
+reference.
+
+One is forced to iterate the range by reference if the element type is a struct with
+a disabled postblit, since iteration by value constructs the iteration variable by
+copy. As of DMD 2.082.0, you can iterate any range by reference, but there already
+is a pull request [1] to disallow such iteration for ranges which's front returns
+by value. That pull request is approved by Andrei Alexandrescu, implying that
+at least it's concept is officially accepted.
+
+But in cases where the programmer does not modify the iteration variable, he/she does
+not care whether the iteration is done by reference or by value. Thus, there should
+be a way to iterate that works both with elements that are iterable only by
+value, and with non-copyable elements that can be iterated by reference.
+
+Since `foreach` by value is considered the de-facto default loop, it can be considered
+the best canditate to become such a way. With high likelihood many existing `foreach`
+loops will start to function with non-copyable `structs` without changes.
+
+Non-copyable structs are an excellent aid when designing containers for RAII (Resource-
+Acquisition-Is-Initialization) principle. EMSI-Containers [2] are good examples of such
+non-copyable RAII containers. When one has many of those containers, it is natural to
+put them in a range. And with ranges comes the need to iterate.
+
+### Alternatives
+
+- The plan to disable by-reference iteration of rvalue ranges [1] could be cancelled.
+    This has the disadvantage that it encourages annotating `foreach` loop variables
+    with `ref` needlessly, which increases risk of accidental mutation of the `foreach`
+    aggregate. Additionally, it's slightly more verbose than the proposed solution.
+
+- A programmer can use introspection to select whether to operate by reference
+    or by value. This will make coding general-purpose loops a lot more difficult
+    compared to this proposal, and greatly decreases the likelihood of third-party code
+    accepting ranges with non-copyable members.
+
+- `for` loops could be used instead of `foreach`. The disadvantages are same as above.
+
+- A library solution could be made that takes an `alias` compile-time parameter and
+    chooses the iteration method on behalf of the programmer. This has the disadvantages
+    of making error messages harder to read than with normal loops, disallowing
+    `goto` and `return` inside the loop and causing needless heap allocations if local
+    variables outside the loop body are accessed.
 
 
 ## Copyright & License
