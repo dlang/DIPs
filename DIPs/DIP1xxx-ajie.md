@@ -78,17 +78,22 @@ foreach (loopVariable; range)
 ...that satisfies the following conditions:
 
 1. `loopVariable` is not annotated with `ref`.
-2. The will not compile without annotating `loopVariable` with `ref`, because
-    `loopVariable` is a `struct` with a disabled postblit.
-3. If `loopVariable` has `ref const` annotation added, the code will compile.
-    This implies that the foreach body does not mutate `loopVariable`.
-4. `loopVariable` is not `shared` and annotating `loopVariable` with `ref const`
-    will not make it `shared`.
+2. `loopVariable` is a `struct` with a disabled postblit, so it can not compile
+    with value semantics.
+3. If `loopVariable` had `ref` annotation added, the code would compile.
+4. The compiler can prove foreach body does not mutate `loopVariable`. Mutation
+    of memory referred by `loopVariable` should be allowed through, if there are
+    no other langague constructs that prevent that, such as `loopVariable` being
+    annotated as `const`.
+5. `loopVariable` is not `shared` and annotating `loopVariable` with `ref` will
+    not make it `shared`.
 
-...the compiler must implicitly annotate `loopVariable` with `ref const`.
+...the compiler must implicitly annotate `loopVariable` with `ref`.
 
-If conditions 1, 3 and 4 are satisfied but 2. is not, the compiler may decide
-whether to add the aforementioned annotation.
+This DIP realizes that with type system of the D programming language, checking
+`loopVariable` against mutation while still allowing mutating data by indirection
+via it may be difficult to implement. The paper accepts transitive check against
+mutation by `const` as a temporary solution.
 
 ## Alternatives
 
