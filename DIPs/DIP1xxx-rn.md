@@ -343,7 +343,34 @@ A fun()
 void main()
 {
     A a;
-    a = fun();   // copy constructor gets called
+    a = fun();      // copy constructor gets called
+}
+```
+
+The parameter of the copy constructor is passed by reference, so initializations are going
+to be lowered to copy constructor calls only if the source is an lvalue. Although this can be
+worked around by declaring temporary lvalues which can be forwarded to the copy constructor,
+binding rvalues to lvalues is beyond the scope of this DIP.
+
+Note that when a function returns a struct that defines a copy constructor, the copy constructor
+is called on the callee site, before actually returning:
+
+```d
+struct A
+{
+    @implicit this(ref A rhs) {}
+}
+
+A fun()
+{
+    A a;
+    return a;      // lowered to return tmp.copyCtor(a)
+    // return A();  // rvalue, no copyCtor called
+}
+
+void main()
+{
+    A b = fun();    // the return value of fun() is moved to the location of b
 }
 ```
 
@@ -830,61 +857,16 @@ copy constructor when the `struct` contains only assignable (mutable) fields.
 2. The copy constructor signature is : `@implicit this(ref $q1 S rhs) $q2`, where `q1` and `q2` represent the
 qualifiers that can be applied to the function and the parameter (`const`, `immutable`, `shared`, etc.). The
 problem that arises is: depending on the values of `$q1` and `$q2` what should the signature of `opAssign` be?
-
 A solution might be to generate for every copy constructor its counterpart `opAssign`: `void opAssign(ref $q1 S rhs) $q2`.
 However, when is a `const`/`immutable` `opAssign` needed? There might be obscure cases when that is useful, but those are
 niche situations where the user must step it and clarify what the desired outcome is and define its own `opAssign`. For
 the sake of simplicity, `opAssign` will be generated solely for copy constructors that have a missing `$q2`.
 
-3. If the struct that has a copy constructor does not define a destructor, it is easy to create the body of the
-above-mentioned `opAssign`:
-
-```d
-void opAssign(ref $q1 S rhs)    // version 1
-{
-    S tmp = rhs;        // copy constructor is called
-    memcpy(this, tmp);  // blit it into this
-}
-```
-
-If the `struct` does define a destructor, it has to get called on the destination:
-
-```d
- void opAssign(ref $q1 S rhs)   // version 2
-{
-    this.__dtor;           // ensure the dtor is called
-    memcpy(this, S.init)   // bring the object in the initial state
-    this.copyCtor(rhs);    // call constructor on object in .init state
-}
-```
-
-The problem with the above solution is that it does not take into account the fact
-that the copyCtor may throw and if it does, then the object will be in a partially
-initialized state. In order to overcome this, two temporaries are used:
-
-```d
-void opAssign(ref $q1 S rhs)    // version 3
-{
-    S tmp1 = rhs;                // call copy constructor
-    S tmp2;
-
-    // swapbits(tmp1, this);
-    memcpy(tmp2, this);
-    memcpy(this, tmp1);
-    memcpy(tmp1, tmp2);
-
-    tmp1.__dtor();
-}
-```
-
-In this version, if the copy constructor throws the object will still be in a valid state.
-
-If the copy constructor is marked `nothrow` and the struct defines a destructor, then
-`version 2` is used, otherwise `version 3`. If the `struct` does not define a destructor,
-`version 1` is used.
-
-The generated `opAssign` functions inffer their attributes based on the copy constructor
-and destructor attributes.
+Taking into account the above mentioned restrictions we can generate a single `opAssign` function
+and leverage the existing `opAssign` generation logic for the [[postblit](https://github.com/dlang/dmd/pull/8505)].
+Because `opAssing` is generated only if there are copy constructors that create a mutable object, the copy
+constructor is going to be called (if possible) when the source is passed as a parameter to the `opAssign`
+function.
 
 ## Breaking Changes and Deprecations
 
