@@ -1,4 +1,4 @@
-# Inferred foreach ref const
+# Inferred foreach ref variable
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -78,12 +78,13 @@ foreach (loopVariable; range)
 ...that satisfies the following conditions:
 
 1. `loopVariable` is not annotated with `ref`.
-2. `loopVariable` is a `struct` with a disabled postblit, so it can not compile
-    with value semantics.
+2. `typeof(loopVariable)` is a `struct` with a disabled (1: postblit or 2:
+    [copy constructor](https://github.com/dlang/DIPs/pull/129) ) that prevents
+    compilation with value semantics.
 3. If `loopVariable` had `ref` annotation added, the code would compile.
 4. The compiler can prove foreach body does not mutate `loopVariable`. Mutation
-    of memory referred by `loopVariable` should be allowed through, if there are
-    no other langague constructs that prevent that, such as `loopVariable` being
+    of memory referred by `loopVariable` members should be allowed through, if there
+    are no other langague constructs that prevent that, such as `loopVariable` being
     annotated as `const`.
 5. `loopVariable` is not `shared` and annotating `loopVariable` with `ref` will
     not make it `shared`.
