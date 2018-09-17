@@ -10,7 +10,7 @@
 
 ## Abstract
 
-Named arguments adds a way to annotate the arguments passed to functions. It makes the intention of passed arguments more clear, which should results in code been more readable.
+Named arguments adds a way to annotate the arguments passed to functions. It makes the intention of passed arguments more clear, which should results in code been more readable. It also allows the order of arguments being changed on the callee side without breaking user code.
 
 ### Reference
 
@@ -25,13 +25,13 @@ There are also a couple DIPs proposed or in development, see [DIP88](https://wik
 * [Description](#description)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Reviews](#reviews)
-* [Appendix](#appendix)
+* [Appendix](#appendix-grammar-changes)
 
 ## Rationale
 
 Named arguments is a common programming language feature found in various dynamic or compiled languages. There are various motivation behind that, such as to make code more readable, and to pass arguments in arbitrary order.
 
-Unlike named arguments in other languages and previous DIPs, this DIP only aim to address the readability issue. This is to increase the chance of adaptation, while still keeping one of the major niceties of this feature.
+Unlike named arguments in other languages and previous DIPs, this DIP mainly aim to address the readability issue. This is to increase the chance of adaptation, while still keeping one of the major niceties of this feature.
 
 Consider this example:
 
@@ -56,28 +56,13 @@ The bird's eye view of this change is simple. In function calls, the arguments p
 
 However, there are quite a bit of details that need to be nailed down.
 
+### Completeness of the names
+
+When you choose to label any of the arguments, you would also need to label all of the other ones.
+
 ### Ordering of arguments
 
-As stated before, this DIP only tries to address the readability issue, therefore passing arguments in different order than in the function definition is not allowed. All arguments have to be passed in the same order as defined in function parameter list, optionally they can be prefixed with a name.
-
-### Overloading and name mangling
-
-Two functions with only their parameter names different is **not** considered to be different during overload resolution, even when called with named parameters. For example:
-
-```d
-int add(int a, int b) {...}
-int add(int b, int a) {...}
-void main() {
-    add(a: 1, b: 2); // Error: 'add' called with arguments types '(int, int)' matches both
-}
-
-// However, forward declarations with different parameter names are fine
-// Importance of this will become clear later
-int add(int a, int b);
-int add(int b, int a) { ... }
-```
-
-Because of this, parameter names don't need to participate in name mangling.
+Arguments can be rearranged in the argument list.
 
 ### Parameter name lock in
 
@@ -90,11 +75,12 @@ This seems to be the biggest concern among people who are against named argument
 ```d
 int add(int x, int y);
 @named:
-int add(int a, int b);
+int add(int c, int d);
 int add(int b, int a) { ... }
 void main() {
     add(a: 1, b: 1); // fine
     add(b: 1, a: 1); // fine too
+    add(d: 0, c: 10); // fine
     add(x: 1, y: 1); // error
     add(x: 1, b: 1); // error
 }
@@ -102,6 +88,20 @@ void main() {
 ```
 
 With this, backward compatibility can be maintained after changing parameter names by keeping the old prototype around.
+
+### Overloading and name mangling
+
+The usual overload set will first be filtered by the names in the argument list. If a function in the overload set does not contain all names the caller specified, it is removed from the overload set.
+
+```d
+int add(int a, int b) {...}
+int add(int c, int d) {...} // not in the overload set
+void main() {
+    add(a: 1, b: 2);
+}
+```
+
+It might be useful to have parameter names included in the mangled name of a function, so changing the ordering of parameters won't break existing binaries. However, this is out of the scope of this DIP. But a future DIP can amended this problem, so this shouldn't be a blocking issue. As a provision for this future change, you are not allowed to define two `@named` functions whose parameter lists are reordering of each other.
 
 ## Alternatives
 
@@ -115,6 +115,10 @@ args!(add, a=>1, b=>1); // Too much noises, and no UFCS
 
 Another solution is to use comments. However, comments still contain noise (i.e. opening and closing comment blocks). And there is no guarantee enforced by the compiler that arguments aren't passed with a wrong order.
 
+## Provisions for future changes
+
+This DIP includes provision for adding partially specify parameter names with reordering, as well as including naming information inside the mangled names. Adding named template instantiation should also remain possible with this DIP implemented.
+
 ## Breaking Changes and Deprecations
 
 No breaking changes are expected.
@@ -125,7 +129,7 @@ Copyright (c) 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
-## Review
+## Reviews
 
 The DIP Manager will supplement this section with a summary of each review stage
 of the DIP process beyond the Draft Review.
