@@ -123,6 +123,11 @@ mutation by `const` as a temporary solution.
     - Needless heap allocations are caused if local variables outside the loop body
         are accessed.
 
+- `auto ref` could be allowed as an annotion for `foreach` iteration variables. This has
+    the downside of being more verbose than the default way, and requiring the user to
+    explicitly annotate the variable as `const` to protect the `foreach` aggregate from
+    accidental mutation. This paper considered this the best alternative, because it would
+    be consistent with handling of function calls.
 
 ## Copyright & License
 
