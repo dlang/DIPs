@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1014](./DIP1014.md)|              Hooking D's struct move semantics| Formal Assessment|
 |[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` | Formal Assessment|
 |[1016](./DIP1016.md)|                       `ref T` accepts r-values|  Post-Community 1|
 |[1017](./DIP1017.md)|                                Add Bottom Type|  Post-Community 1|
@@ -23,6 +22,7 @@
 |[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept|
 |[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax|
 |[1010](./accepted/DIP1010.md)|                        Static foreach|
+|[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
