@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` | Formal Assessment|
 |[1016](./DIP1016.md)|                       `ref T` accepts r-values|  Post-Community 1|
 |[1017](./DIP1017.md)|                                Add Bottom Type|  Post-Community 1|
 |[1013](./DIP1013.md)|                        The Deprecation Process|        Post-Final|
@@ -29,3 +28,4 @@
 |-----------------------------|--------------------------------------|
 |[1001](./rejected/DIP1001.md)|                          DoExpression|
 |[1002](./rejected/DIP1002.md)|                     TryElseExpression|
+|[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
