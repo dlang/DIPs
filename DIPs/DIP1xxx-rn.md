@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This document proposes the copy constructor semantics as an alternative
+This document proposes copy constructor semantics as an alternative
 to the design flaws and inherent limitations of the postblit.
 
 ### Reference
@@ -38,9 +38,9 @@ to the design flaws and inherent limitations of the postblit.
 
 ## Rationale and Motivation
 
-This section highlights the existing problems with the postblit and motivates
+This section highlights the existing problems with the postblit and demonstrates
 why the implementation of a copy constructor is more desirable than an attempt
-to fix all the postblit issues.
+to resolve all the postblit issues.
 
 ### Overview of this(this)
 
@@ -54,8 +54,8 @@ struct B { this(this) immutable {} }
 struct C { this(this) shared {} }
 ```
 
-Since the semantics of the postblit in the presence of qualifiers was
-not defined and most likely not intended, this led to a series of problems:
+Since the semantics of the postblit in the presence of qualifiers is
+not defined and most likely not intended, a series of problems has arisen:
 
 * `const` postblits are not able to modify any fields in the destination
 * `immutable` postblits never get called (resulting in compilation errors)
@@ -64,10 +64,10 @@ not defined and most likely not intended, this led to a series of problems:
 #### `const`/`immutable` postblits
 
 The solution for `const` and `immutable` postblits is to type check them as normal
-constructors where the first assignment of a member is treated as an initialization
+constructors, where the first assignment of a member is treated as an initialization
 and subsequent assignments are treated as modifications. This is problematic because
 after the blitting phase, the destination object is no longer in its initial state
-and subsequent assignments to its fields will be regarded as modifications making
+and subsequent assignments to its fields will be regarded as modifications, making
 it impossible to construct `immutable`/`const` objects in the postblit. In addition,
 it is possible for multiple postblits to modify the same field. Consider:
 
@@ -103,21 +103,20 @@ When `B c = b;` is encountered, the following actions are taken:
 2. A's postblit is called
 3. B's postblit is called
 
-After `step 1`, the object `c` has the exact contents as `b` but it is not
+After `step 1`, the object `c` has the exact contents as `b`, but it is not
 initialized (the postblits still need to fix it) nor uninitialized (the field
 `B.a` does not have its initial value). From a type checking perspective
-this is a problem because the assignment inside A's postblit is breaking immutability.
+this is a problem, because the assignment inside A's postblit is breaking immutability.
 This makes it impossible to postblit objects that have `immutable`/`const` fields.
 To alleviate this problem we can consider that after the blitting phase the object is
 in a raw state, therefore uninitialized; this way, the first assignment of `B.a.a`
-is considered an initialization. However, after this step, the field
+is considered an initialization. However, after this step the field
 `B.a.a` is considered initialized, therefore how is the assignment inside B's postblit
 supposed to be type checked ? Is it breaking immutability or should
-it be legal? Indeed it is breaking immutability because it is changing an immutable
-value, however being part of initialization (remember that `c` is initialized only
+it be legal? Indeed, it is breaking immutability because it is changing an immutable
+value. However as this is part of initialization (remember that `c` is initialized only
 after all the postblits are ran) it should be legal, thus weakening the immutability
-concept and creating a different strategy from the one that normal constructors
-implement.
+concept and creating a different strategy from that implemented by normal constructors.
 
 #### Shared postblits
 
@@ -141,19 +140,19 @@ void fun()
 }
 ```
 
-Let's consider the above code is ran in a multithreaded environment
-When `A b = a;` is encountered the following actions are taken:
+Let's consider the above code is run in a multithreaded environment
+When `A b = a;` is encountered, the following actions are taken:
 
 * `a`'s fields are copied to `b`
-* the user code defined in this(this) is called
+* the user code defined in `this(this)` is called
 
-In the blitting phase no synchronization mechanism is employed, which means
-that while the copying is done, another thread may modify `a`'s data resulting
-in the corruption of `b`. In order to fix this issue there are 4 possibilities:
+In the blitting phase, no synchronization mechanism is employed, which means
+that while the copying is in progress, another thread may modify `a`'s data, resulting
+in the corruption of `b`. There four possible approaches to fixing this issue:
 
-1. Make shared objects larger than 2 words uncopyable. This solution cannot be
+1. Make shared objects larger than two words uncopyable. This solution cannot be
 taken into account because it imposes a major arbitrary limitation: almost all
-structs will become uncopyable.
+`struct`s will become uncopyable.
 
 2. Allow incorrect copying and expect that the user will
 do the necessary synchronization. Example:
@@ -178,51 +177,51 @@ void fun()
 }
 ```
 
-Although this solution solves our synchronization problem it does it in a manner
+Although this solution solves our synchronization problem, it does so in a manner
 that requires unencapsulated attention at each copy site. Another problem is
-represented by the fact that the mutex release is done after the postblit was
-ran which imposes some overhead. The release may be done right after the blitting
-phase (first line of the postblit) because the copy is thread-local, but then
-we end up with non-scoped locking: the mutex is released in a different scope
-than the scope in which it was acquired. Also, the mutex is automatically
-(wrongfully) copied.
+represented by the fact that the mutex release occurs after the postblit is
+run, which imposes some overhead. The release may occur immediately following
+the blitting phase (the first line of the postblit) because the copy is
+thread-local, but this results in non-scoped locking: the mutex is released
+in a different scope than that in which it was acquired. Also, the mutex is
+automatically (wrongfully) copied.
 
 3. Introduce a preblit function that will be called before blitting the fields.
-The purpose of the preblit is to offer the possibility of preparing the data
+The purpose of the preblit is to offer the possibility of preparing data
 before the blitting phase; acquiring the mutex on the `struct` that will be
 copied is one of the operations that the preblit will be responsible for. Later
 on, the mutex will be released in the postblit. This approach has the benefit of
-minimizing the mutex protected area in a manner that offers encapsulation, but
-suffers the disadvantage of adding even more complexity on top of existing one by
-introducing a new concept which requires typecheking of disparate sections of
-code (need to typecheck across preblit, mempcy and postblit).
+minimizing the mutex-protected area in a manner that offers encapsulation, but
+suffers the disadvantage of adding even more complexity by introducing a new
+concept which requires type checking disparate sections of code (need to type check
+across preblit, `mempcy` and postblit).
 
 4. Use an implicit global mutex to synchronize the blitting of fields. This approach
 has the advantage that the compiler will do all the work and synchronize all blitting
-phases (even if the threads don't actually touch each other's data) at the cost
-of performance. Python implements a global interpreter lock and it was proven
-to cause unscalable high contention; there are ongoing discussions of removing it
-from the Python implementation [5].
+phases (even if the threads don't actually touch each other's data) at a cost to
+performance. Python implements a global interpreter lock which was proven to cause
+unscalable high contention; there are ongoing discussions of removing it from the Python
+implementation [5].
 
 ### Introducing the copy constructor
 
 As stated above, the fundamental problem with the postblit is the automatic blitting
-of fields which makes it impossible to type check and cannot be synchronized without
+of fields, which makes type checking impossible and cannot be synchronized without
 additional costs.
 
 As an alternative, this DIP proposes the implementation of a copy constructor. The benefits
 of this approach are the following:
 
 * it is a known concept. C++ has it [3];
-* it can be typechecked as a normal constructor (since no blitting is done, the data is
-initialized as if it were in a normal constructor); this means that `const`/`immutable`/`shared`
+* it can be type checked as a normal constructor (since no blitting is done, the data are
+initialized as if they were in a normal constructor); this means that `const`/`immutable`/`shared`
 copy constructors will be type checked exactly as their analogous constructors
 * offers encapsulation
 
-The downside of this solution is that the user must do all the field copying by hand
-and every time a field is added to a struct, the copy constructor must be modified.
-However, this can be easily bypassed by D's introspection mechanisms. For example,
-this simple code may be used as a language idiom or library function:
+The downside of this solution is that the user must copy all fields by hand, and every
+time a field is added to a `struct`, the copy constructor must be modified. However, this
+can be easily bypassed by D's introspection mechanisms. For example, this simple code
+may be used as a language idiom or library function:
 
 ```D
 foreach (i, ref field; src.tupleof)
@@ -231,9 +230,9 @@ foreach (i, ref field; src.tupleof)
 
 As shown above, the single benefit of the postblit can be easily substituted with a
 few lines of code. On the other hand, to fix the limitations of the postblit it is
-required that more complexity is added for little to no benefit. In these circumstances,
+required that more complexity be added for little to no benefit. In these circumstances,
 for the sake of uniformity and consistency, replacing the postblit constructor with a
-copy constructor is the reasonable thing to do.
+copy constructor is a reasonable approach.
 
 ## Description
 
@@ -243,8 +242,8 @@ of the copy constructor.
 ### Syntax
 
 A declaration is a copy constructor declaration if it is a constructor declaration that takes only one
-parameter by reference that is of the same type as `typeof(this)`. Declaring a copy constructor as
-mentioned has the advantage that the parser does not get modified at all, thus leaving the language grammar
+parameter by reference that is of the same type as `typeof(this)`. Declaring a copy constructor in this
+manner has the advantage that no parser modifications are required, thus leaving the language grammar
 unchanged.
 
 ```d
@@ -266,35 +265,34 @@ void main()
 The copy constructor may also be called explicitly since it is also a constructor.
 
 The argument to the copy constructor is passed by reference in order to avoid infinite recursion (passing by
-value would require a copy of the `struct` which would be made by calling the copy constructor, thus leading
+value would require a copy of the `struct`, which would be made by calling the copy constructor, thus leading
 to an infinite chain of calls).
 
-The type qualifiers may be applied to the parameter of the copy constructor, but also to the function itself
+Type qualifiers may be applied to the parameter of the copy constructor, but also to the function itself,
 in order to facilitate the ability to describe copies between objects of different mutability levels. The type
 qualifiers are optional.
 
 ### Semantics
 
-This section discusses all the aspects regarding the semantic analysis and interaction with other
-components of the copy constructor.
+This section discusses all the aspects of the semantic analysis and interaction between the copy
+constructor and other components.
 
 #### Copy constructor and postblit cohabitation
 
 In order to assure a smooth transition from postblit to copy constructor, the following
 strategy is employed: if a `struct` defines a postblit (user-defined or generated) all
 copy constructor definitions will be ignored for that particular `struct` and the postblit
-is going to be used. Existing codebases that didn't use the postblit may start using the
-copy constructor without any problems, while codebases that did rely on the postblit may
-start writing new code using the copy constructor while removing the deprecated postblit
+will be preferred. Existing code bases that do not use the postblit may start using the
+copy constructor without any problems, while codebases that rely on the postblit may
+start writing new code using the copy constructor and remove the deprecated postblit
 from their code.
 
-Transitioning from using a postblit to using a copy constructor may simply be done by
-replacing the postblit declaration `this(this)` with `this(ref inout(typeof(this)) rhs)
-inout`.
+The transition from postblit to copy constructor may be simply achieved by replacing the postblit
+declaration `this(this)` with `this(ref inout(typeof(this)) rhs) inout`.
 
 #### Copy constructor usage
 
-The copy constructor is implicitly used by the compiler whenever a struct variable is initialized
+The copy constructor is implicitly used by the compiler whenever a `struct` variable is initialized
 as a copy of another variable of the same unqualified type:
 
 1. When a variable is explicitly initialized:
@@ -362,13 +360,13 @@ void main()
 }
 ```
 
-The parameter of the copy constructor is passed by reference, so initializations are going
+The parameter of the copy constructor is passed by reference, so initializations will be
 to be lowered to copy constructor calls only if the source is an lvalue. Although this can be
 worked around by declaring temporary lvalues which can be forwarded to the copy constructor,
 binding rvalues to lvalues is beyond the scope of this DIP.
 
-Note that when a function returns a struct that defines a copy constructor and NRVO cannot be
-performed, the copy constructor is called on the callee site, before actually returning. If NRVO
+Note that when a function returns a `struct` instace that defines a copy constructor and NRVO cannot be
+performed, the copy constructor is called at the callee site before returning. If NRVO
 may be performed, then the copy is elided:
 
 ```d
@@ -392,10 +390,10 @@ void main()
 
 #### Type checking
 
-The copy constructor typecheck is identical to the constructor one [[6](https://dlang.org/spec/struct.html#struct-constructor)]
+The copy constructor type-check is identical to that of the constructor [[6](https://dlang.org/spec/struct.html#struct-constructor)]
 [[7](https://dlang.org/spec/struct.html#field-init)].
 
-The copy constructor overloads can be explicitly disabled:
+Copy constructor overloads can be explicitly disabled:
 
 ```d
 struct A
@@ -415,14 +413,14 @@ void main()
 }
 ```
 
-In order to disable copy construction, all copy constructor overloads need to be disabled.
+In order to disable copy construction, all copy constructor overloads must be disabled.
 In the above example, only copies from mutable to mutable are disabled; the overload for
 immutable to mutable copies is still callable.
 
 #### Overloading
 
 The copy constructor can be overloaded with different qualifiers applied to the parameter
-(copying from qualified source) or to the copy constructor itself (copying to qualified
+(copying from a qualified source) or to the copy constructor itself (copying to a qualified
 destination):
 
 ```d
@@ -445,11 +443,11 @@ void main()
     immutable A a5 = ia;    // calls 4
 }
 ```
-The proposed model enables the user to define the copying from an object of any qualified type
-to an object of any qualified type: any combination of 2 between mutable, `const`, `immutable`, `shared`,
+The proposed model enables the user to define the copy from an object of any qualified type
+to an object of any qualified type: any combination of two among mutable, `const`, `immutable`, `shared`,
 `const shared`.
 
-The `inout` qualifier may be used for the copy constructor parameter in order to specify that mutable, `const` or `immutable` types are
+The `inout` qualifier may be applied to the copy constructor parameter in order to specify that mutable, `const`, or `immutable` types are
 treated the same:
 
 ```d
@@ -471,14 +469,14 @@ void main()
 }
 ```
 
-In case of partial matching, the existing overloading and implicit conversions
+In the case of partial matching, existing overloading and implicit conversions
 apply to the argument.
 
-#### Copy constructor call vs. Blitting
+#### Copy constructor call vs. blitting
 
-When a copy constructor is not defined for a struct, initializations are treated
+When a copy constructor is not defined for a `struct`, initializations are handled
 by copying the contents from the memory location of the right-hand side expression
-to the memory location of the left-hand side one (called "blitting"):
+to the memory location of the left-hand side expression (i.e. "blitting"):
 
 ```d
 struct A
@@ -495,8 +493,8 @@ void main()
 }
 ```
 
-Whenever a copy constructor is defined for a struct all implicit blitting is disabled for
-that struct:
+When a copy constructor is defined for a `struct`, all implicit blitting is disabled for
+that `struct`:
 
 ```d
 struct A
@@ -516,8 +514,8 @@ void main()
 
 #### Interaction with `alias this`
 
-There are situations in which a struct defines both an `alias this` and a copy constructor, and
-for which assignments to variables of the struct type may lead to ambiguities:
+A `struct` may define both an `alias this` and a copy constructor for which assignments to variables
+of the `struct` type may lead to ambiguities:
 
 ```d
 struct A
@@ -536,9 +534,9 @@ struct A
 struct B
 {
     int a;
-    A fun()
+    B fun()
     {
-        return A(7);
+        return B(7);
     }
 
     alias fun this;
@@ -551,20 +549,20 @@ void main()
     immutable A ia;
     A a = ia;            // 1 - calls copy constructor
 
-    A bc;
-    A b = bc;            // 2 - calls B.fun
+    B bc;
+    B b = bc;            // 2 - calls B.fun
 }
 ```
 
-In situations where both the copy constructor and `alias this` are suitable
-to solve the assignment (1), the copy constructor takes precedence over `alias this`
-because it is considered more specialized (the sole purpose of the copy constructor is to
-create copies). However, if no copy constructor in the overload set matches the exact
-qualified types of the source and the destination, the `alias this` is preferred (2).
+When both the copy constructor and `alias this` are suitable to resolve the assignment (1),
+the copy constructor takes precedence over `alias this` as it is considered more
+specialized (the sole purpose of the copy constructor is to create copies). If no
+copy constructor in the overload set matches the exact qualified types of the source and the
+destination, the `alias this` is preferred (2).
 
 #### Generating copy constructors
 
-A copy constructor is generated for a `struct` S  if one of S's fields defines
+A copy constructor is generated for a `struct S`  if any member of S defines
 a copy constructor that S does not define.
 
 A field of a `struct` may define multiple copy constructors. In this situation,
@@ -588,8 +586,7 @@ struct S
 }
 ```
 
-The body of all the generated copy constructors does memberwise initialization for all
-the fields:
+The body of all the generated copy constructors performs memberwise initialization for each field:
 
 ```d
 {
@@ -599,13 +596,12 @@ the fields:
 }
 ```
 
-Inside the body of the generated copy constructors, for the fields that define a copy
-constructor, the assignment will be rewritten to a call to it; for those that do not,
-blitting is employed, if possible. If certain fields cannot perform copies
-(for example: the copy constructor is disabled), the generated copy constructor will be
-annotated with `@disable`.
+Inside the body of the generated copy constructors, the assignment will be rewritten as a call
+to the copy constructor of each field that defines one; blitting is employed where possible for
+each field which does not define a copy constructor. If any field is uncopyable (e.g. the
+copy constructor is disabled), the generated copy constructor will be annotated with `@disable`.
 
-If copy constructors for fields intersect, a single copy constructor is generated:
+If the copy constructors of any fields, a single copy constructor is generated:
 
 ```d
 struct A
@@ -675,11 +671,10 @@ void main()
 }
 ```
 
-The reason why both the copy constructor and the `opAssign` method are needed is because
-the two are type checked differently: `opAssign` is type checked as a normal function whereas
-the copy constructor is type checked as a constructor (where the first assignment of non-mutable
-fields is allowed). However, in the majority of cases, the copy constructor body is identical
-to the `opAssign` one:
+Both the copy constructor and the `opAssign` method are needed because they are type checked
+differently: `opAssign` is type checked as a normal function, whereas the copy constructor is type
+checked as a constructor (where the initial assignment of non-mutable fields is allowed). In many
+cases, the body of the copy constructor will be identical to that of `opAssign`:
 
 ```d
 struct A
@@ -707,33 +702,32 @@ void main()
 }
 ```
 
-In order to avoid the code duplication resulting from such situations, ideally, the user could
-define a single method that deals with both copy construction and normal copying. This is possible
-in certain situations which will be discussed below:
+In order to avoid such code duplication, the user could ideally define a single method that deals with
+both copy construction and normal copying. This is possible if the following conditions are met:
 
-1. If the struct contains any `const`/`immutable` fields, it is impossible to use the copy constructor
-for `opAssign`, because the copy constructor might initialize them. Even if the copy constructor doesn't
-modify the `const`/`immutable` fields the compiler has to analyze the function body to know that, which
+1. If the `struct` contains any `const`/`immutable` fields, it is impossible to use the copy constructor
+for `opAssign` as the copy constructor might initialize the fields. The compiler must analyze the function
+body to very that the copy constructor does not modify `const`/`immutable` fields, which
 is problematic in situations when the body is missing. In conclusion, `opAssign` can be generated from the
 copy constructor when the `struct` contains only assignable (mutable) fields.
 
 2. The copy constructor signature is: `this(ref $q1 S rhs) $q2`, where `q1` and `q2` represent the
-qualifiers that can be applied to the function and the parameter (`const`, `immutable`, `shared`, etc.). The
-problem that arises is: depending on the values of `$q1` and `$q2` what should the signature of `opAssign` be?
-A solution might be to generate for every copy constructor its counterpart `opAssign`: `void opAssign(ref $q1 S rhs) $q2`.
-However, when is a `const`/`immutable` `opAssign` needed? There might be obscure cases when that is useful, but those are
-niche situations where the user must step it and clarify what the desired outcome is and define its own `opAssign`. For
+qualifiers that can be applied to the function and its parameter (`const`, `immutable`, `shared`, etc.).
+Depending on the values of `$q1` and `$q2`, what should the signature of `opAssign` be?
+A solution might be to generate the counterpart `opAssign` for each copy constructor, e.g. `void opAssign(ref $q1 S rhs) $q2`.
+However, when is a `const`/`immutable` `opAssign` needed? There might be obscure cases when it is useful, but those are
+niche situations where the user must step in to clarify the desired outcome, and define its own `opAssign`. For
 the sake of simplicity, `opAssign` will be generated solely for copy constructors that have a missing `$q2`.
 
-Taking into account the above mentioned restrictions we can generate a single `opAssign` function
+Taking into account the above restrictions, we can generate a single `opAssign` function
 and leverage the existing `opAssign` generation logic for the [[postblit](https://github.com/dlang/dmd/pull/8505)].
-Because `opAssing` is generated only if there are copy constructors that create a mutable object, the copy
-constructor is going to be called (if possible) when the source is passed as a parameter to the `opAssign`
+Because `opAssign` is generated only if there are copy constructors that create a mutable object, the copy
+constructor will be called (if possible) when the source is passed as a parameter to the `opAssign`
 function.
 
 ### POD (Plain Old Data)
 
-A struct that defines a copy constructor is not POD.
+A `struct` that defines a copy constructor is not POD.
 
 ## Breaking Changes and Deprecations
 
@@ -759,11 +753,11 @@ void main()
 ```
 
 A solution to this might be to make the reference `const`, but that would make code like
-`this.a = another.a` inside the copy constructor illegal. Of course, this can be solved by means
-of casting : `this.a = cast(int[])another.a`.
+`this.a = another.a` inside the copy constructor illegal. This can be solved with a cast, e.g.
+`this.a = cast(int[])another.a`.
 
 2. This DIP changes the semantic of constructors which receive a parameter by reference of type
-`typeof(this)`. The consequence is that the constructor might get called implicitly in some
+`typeof(this)`. The consequence is that existing constructors might be called implicitly in some
 situations:
 
 ```d
@@ -785,9 +779,9 @@ void main()
 }
 ```
 
-Before this DIP this code would not print anything, while after it will print "Yo". However, a case can be
+This will print "Yo" subsequent to the implementation of this DIP, where before it printed nothing. A case can be
 made that a constructor with the above definition could not be correctly used as anything else than a copy
-constructor, in which case the current DIP, although surprising, actually fixes the code.
+constructor, in which case this DIP  actually fixes the code.
 
 ## Copyright & License
 
