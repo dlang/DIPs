@@ -5,7 +5,7 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1016](./DIP1016.md)|                       `ref T` accepts r-values|  Post-Community 1|
 |[1017](./DIP1017.md)|                                Add Bottom Type|  Post-Community 1|
-|[1013](./DIP1013.md)|                        The Deprecation Process|        Post-Final|
+|[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|     Formal Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|     Formal Review|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1|
