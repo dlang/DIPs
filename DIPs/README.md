@@ -32,4 +32,4 @@
 |-----------------------------|--------------------------------------|
 |[1001](./rejected/DIP1001.md)|                          DoExpression|
 |[1002](./rejected/DIP1002.md)|                     TryElseExpression|
-|[1015](./DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
+|[1015](./rejected/DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
