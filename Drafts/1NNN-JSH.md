@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This DIP proposes adding string interpolation (hereby referred to as SI").
+This DIP proposes adding a "tuple/sequence literal" to D, which opens up tons up possibities, including string interpolation.
 
 ### Reference
 
@@ -28,8 +28,6 @@ This DIP proposes adding string interpolation (hereby referred to as SI").
 * [Reviews](#reviews)
 
 ## Rationale
-
-SI allows writing code that is more concise, readable, and maintanable whenever data needs to be embedded in a string.
 
 (we should find some examples in the phobos or dmd source that would benefit a lot from SI and put them here)
 
