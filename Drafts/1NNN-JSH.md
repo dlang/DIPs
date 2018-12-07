@@ -19,6 +19,9 @@ This DIP proposes adding a "tuple/sequence literal" to D, which opens up tons up
 - https://forum.dlang.org/thread/qpuxtedsiowayrhgyell@forum.dlang.org
 - https://forum.dlang.org/thread/ncwpezwlgeajdrigegee@forum.dlang.org
 - https://dlang.typeform.com/report/H1GTak/PY9NhHkcBFG0t6ig (#3 in "What language features do you miss?")
+- Exploration: https://github.com/marler8997/interpolated_strings
+- Example Library Solution: https://github.com/dlang/phobos/pull/6339/files
+- Implementation: https://github.com/dlang/dmd/pull/7988
 
 ## Contents
 * [Rationale](#rationale)
@@ -37,12 +40,30 @@ chances of the DIP being understood and carefully evaluated.
 
 ## Description
 
-Required.
+Lexer Change:
 
-Detailed technical description of the new semantics. Language grammar changes
-(per https://dlang.org/spec/grammar.html) needed to support the new syntax
-(or change) must be mentioned. Examples demonstrating the new semantics will
-strengthen the proposal and should be considered mandatory.
+Current:
+
+```
+Token:
+   ...
+   StringLiteral
+   ...
+```
+New:
+
+```
+Token:
+   ...
+   StringLiteral
+   i StringLiteral
+   ...
+```
+
+No change to grammar. Implementation consists of a small change to `lex.d` to detect when string literals are prefixed with the `i` character.  It adds a boolean flag to string literals to keep track of which ones are "interpolated".  Then in the parse stage, if a string literal is marked as "interpolated" then it lowers it to a tuple of strings and expressions.
+
+Implementation and tests can be found here: https://github.com/dlang/dmd/pull/7988/files
+
 
 ## Breaking Changes and Deprecations
 None. :)
