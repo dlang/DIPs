@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Jason Hansen                                                    |
+| Author:         | Jason Hansen, Jonathan Marler                                   |
 | Implementation: | https://git.io/fpSUA                                            |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
