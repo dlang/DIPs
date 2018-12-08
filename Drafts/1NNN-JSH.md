@@ -47,6 +47,7 @@ descriptions of possible applications).
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
+* [Language vs Library Feature](#language-feature-vs-library-feature)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
@@ -79,7 +80,31 @@ With syntax highlighting:<br>
 TODO: ...
 
 
-(also, add other use cases)
+NOTE:(also, add other use cases)
+
+
+## Language Feature vs Library Feature
+
+It has been brought up that this could be done as a library. Here is a breakdown of the pros and cons of a library implementation as opposed to a language implementation:
+
+:white_check_mark: Library Pros:
+- Requires no language changes
+
+:x: Library Cons:
+- Awkward syntax
+- Bad performance
+- Depends on a library for a trivial feature
+- Cannot be used with betterC
+
+
+:white_check_mark: Language Pros:
+- High performance
+- Nice syntax
+- Better integration (IDEs, syntax highlighting, autocompletion)
+
+:x: Language Cons:
+
+NOTE:(Should we have pros/cons for both, or only one?)
 
 ## Description
 
@@ -109,7 +134,7 @@ Implementation and tests can be found here: https://github.com/dlang/dmd/pull/79
 
 
 ## Breaking Changes and Deprecations
-None. :smile:
+None :smile:
 
 ## Copyright & License
 
