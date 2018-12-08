@@ -1,4 +1,4 @@
-# String Sequence Literals
+# String Syntax for Compile-Time Sequences
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
