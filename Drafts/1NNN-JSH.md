@@ -30,8 +30,8 @@ usually local variables.
 
 Note that the compiler does not perform any string interpolation; it merely
 segments the literal into a sequence of strings and aliases.  The intent is for
-further processing to be done in library code (see [rationale](#rationale) for more detailed
-descriptions of possible applications).
+further processing to be done in library code (see [rationale](#rationale) for a more detailed
+description of possible applications).
 
 ### Reference
 
