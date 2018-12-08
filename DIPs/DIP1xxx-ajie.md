@@ -1,4 +1,4 @@
-# Inferred foreach ref variable
+# Foreach auto ref
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -10,8 +10,8 @@
 
 ## Abstract
 
-This DIP proposes that foreach loops should infer ref for their element variables when
-it has no effect on semantics.
+This DIP proposes that foreach loops should have an option to be annotated
+as `auto ref`, which works for both referrable and non-referrable elements.
 
 This is to allow iteration over a range of non-copyable elements without explicit need
 to adapt the code for that.
@@ -49,9 +49,11 @@ not care whether the iteration is done by reference or by value. Thus, there sho
 be a way to iterate that works both with elements that are iterable only by
 value, and with non-copyable elements that can be iterated by reference.
 
-Since `foreach` by value is considered the de-facto default loop, it can be considered
-the best canditate to become such a way. With high likelihood many existing `foreach`
-loops will start to function with non-copyable `struct`s without changes.
+For function calls with a similar problem, there is already the `auto ref` keyword.
+For consistency, a similar keyword for `foreach` loop variables can be considered the
+best canditate to become such a way. On the other hand, if loop functionality excepts
+to be able to mutate the `foreach` aggreagate, existing `ref` could still be used,
+so the code will fail to compile if range elementscannot be mutated.
 
 Non-copyable `struct`s are an excellent aid when designing containers for RAII (Resource-
 Acquisition-Is-Initialization) principle. EMSI-Containers [2] are good examples of such
@@ -65,45 +67,46 @@ to needless changes in code when maintenance is done.
 
 ## Description
 
-This DIP proposes, that when the compiler encounters a foreach statement
+This DIP proposes, that when the compiler encounters a foreach statement:
 (example)
 
 ```D
-foreach (loopVariable; range)
+foreach (auto ref loopVariable; aggregate)
 {
     loopVariable.doSomething();
 }
 ```
 
-...that satisfies the following conditions:
+...then if, and only if, elements of `aggregate` are lvalues, the compiler must treat the
+above statement exactly as if it was written like this:
 
-1. `loopVariable` is not annotated with `ref`.
-2. `typeof(loopVariable)` is a `struct` with a disabled (1: postblit or 2:
-    [copy constructor](https://github.com/dlang/DIPs/pull/129) ) that prevents
-    compilation with value semantics.
-3. If `loopVariable` had `ref` annotation added, the code would compile.
-4. The compiler can prove foreach body does not mutate `loopVariable`. Mutation
-    of memory referred by `loopVariable` members should be allowed through, if there
-    are no other langague constructs that prevent that, such as `loopVariable` being
-    annotated as `const`.
-5. `loopVariable` is not `shared` and annotating `loopVariable` with `ref` will
-    not make it `shared`.
+```D
+foreach (ref loopVariable; aggregate)
+{
+    loopVariable.doSomething();
+}
+```
 
-...the compiler must implicitly annotate `loopVariable` with `ref`.
+Otherwise, the compiler must rewrite the statement as:
 
-This DIP realizes that with type system of the D programming language, checking
-`loopVariable` against mutation while still allowing mutating data by indirection
-via it may be difficult to implement. The paper accepts transitive check against
-mutation by `const` as a temporary solution.
+```D
+foreach (loopVariable; aggregate)
+{
+    loopVariable.doSomething();
+}
+```
+
+`auto ref` should work in both generic and non-generic functions, and also when iterating
+over a tuple. It should also be allowed to be used used in `static foreach` but with no
+effect, as elements of compile-time aggregates can never be lvalues.
 
 ## Alternatives
 
 - The plan to disable by-reference iteration of rvalue ranges [1] could be cancelled.
-    This has the disadvantage that it encourages annotating `foreach` loop variables
-    with `ref` needlessly, which increases risk of accidental mutation of the `foreach`
-    aggregate. The purpose of the loop will become harder to see because one cannot
-    assume that `ref` means that the loop might change something. Additionally, it's
-    slightly more verbose than the proposed solution.
+    This has the disadvantage that the purpose of the loop will become harder to see,
+    because one cannot assume that `ref` means that the loop excepts reference semantics.
+    On the other hand, if [DIP1016](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1016.md)
+    gets accepted, this might be the most consistent alternative.
 
 - Programmers could be intstructed to use introspection to select whether to iterate by
     reference or by value. This will make coding general-purpose non-mutating loops a
@@ -123,11 +126,11 @@ mutation by `const` as a temporary solution.
     - Needless heap allocations are caused if local variables outside the loop body
         are accessed.
 
-- `auto ref` could be allowed as an annotion for `foreach` iteration variables. This has
-    the downside of being more verbose than the default way, and requiring the user to
-    explicitly annotate the variable as `const` to protect the `foreach` aggregate from
-    accidental mutation. This paper considered this the best alternative, because it would
-    be consistent with handling of function calls.
+- The compiler could try to detect if a `foreach` loop by value can be silently rewritten
+    with reference semantics without effect to program output, and allow non-copyable
+    range elements if this is the case.This was originally suggested by this DIP, but it
+    was found that it cannot be practically implemented without restricting otherwise valid
+    code in the `foreach` body.
 
 ## Copyright & License
 
