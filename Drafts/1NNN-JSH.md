@@ -71,7 +71,6 @@ Becomes:<br>
 With syntax highlighting:<br>
 ![https://i.imgur.com/KTcOS0F.png](https://i.imgur.com/KTcOS0F.png)
 
-Note that because string sequence tuples do not actually lower to individual strings, the `text` call (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
 
 
 #### Database Queries
@@ -178,6 +177,9 @@ writeln(x); // writes "a + b is 54"
 ```
 
 The concept would be a *new* feature of D, for lack of a better name, called lazy aliases. If syntax is desired, the term `lazy alias` seems like a natural fit. Essentially, it does the same thing as `lazy` parameters, but is an alias, and therefore has no runtime type or function. The expression is simply evaluated whenever used.
+
+<br>
+Because string sequence tuples do not actually lower to individual strings, a call to `std.conv.text` (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
 
 ## Breaking Changes and Deprecations
 None :smile:
