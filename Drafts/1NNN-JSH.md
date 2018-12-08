@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Jason Hansen, Jonathan Marler                                   |
+| Author:         | Jason Hansen                                                    |
 | Implementation: | https://git.io/fpSUA                                            |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
@@ -74,7 +74,12 @@ With syntax highlighting:<br>
 
 
 #### Database Queries
-TODO: ...
+NOTE: Add a couple sentances about why this use case is beneficial
+
+`db.exec("UPDATE Foo SET a = ?, b = ?, c = ?, d = ? WHERE id = ?", aval, bval, cval, dval, id);`<br>
+Becomes:<br>
+`db.exec(i"UPDATE Foo SET a = $aval, b = $bval, c = $cval, d = $dval WHERE id = $id");`
+
 
 
 NOTE:(also, add other use cases)
@@ -119,7 +124,7 @@ writeln(i"a + 1 is ${a+1}"); // OK, prints "a + 1 is 6"
 alias seq = AliasSeq!(i"a + 1 is ${a+1})"; // Error, cannot read `a` at compile time
 ```
 
-See optional improvements for possible solutions.
+See [Possible Improvements](#possible-improvements) for possible solutions.
 
 ## Language Feature vs Library Feature
 
@@ -143,6 +148,7 @@ It has been brought up that this could be done as a library. Here is a breakdown
 :x: Language Cons:
 
 NOTE:(Should we have pros/cons for both, or only one?)
+<br>
 NOTE:(We should explain why the listed pros/cons make language feature a better choice)
 
 ## Possible Improvements
