@@ -111,21 +111,6 @@ No change to grammar. Implementation consists of a small change to `lex.d` to de
 
 Implementation and tests can be found here: https://github.com/dlang/dmd/pull/7988/files
 
-#### Expressions
-
-Expressions are not bindable to aliases, unless the expression is evaluatable at compile-time. For the purposes of simplicity, this proposal does not require any new mechanism, but any such mechanism to bind expressions to aliases would benefit this proposal.
-
-Because of this, arbitrary expressions based on runtime data are allowed only when used in a runtime argument list.
-
-Example:
-```D
-int a = 5;
-writeln(i"a + 1 is ${a+1}"); // OK, prints "a + 1 is 6"
-alias seq = AliasSeq!(i"a + 1 is ${a+1})"; // Error, cannot read `a` at compile time
-```
-
-See [Possible Improvements](#possible-improvements) for possible solutions.
-
 ## Language Feature vs Library Feature
 
 It has been brought up that this could be done as a library. Here is a breakdown of the pros and cons of a library implementation as opposed to a language implementation:
