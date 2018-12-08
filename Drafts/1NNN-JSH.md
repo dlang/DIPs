@@ -159,7 +159,7 @@ It has been brought up that this could be done as a library. Here is a breakdown
 NOTE:(Should we have pros/cons for both, or only one?)
 NOTE:(We should explain why the listed pros/cons make language feature a better choice)
 
-## Optional Improvements
+## Possible Improvements
 
 Because aliasing expressions is not allowed, there is no requirement to support them. However, aliasing expressions would be very helpful to this proposal.
 
