@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Jason Hansen                                                    |
+| Author:         | (your name and contact data)                                    |
 | Implementation: | https://git.io/fpSUA                                            |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
@@ -53,7 +53,7 @@ description of possible applications).
 Sequence literals apply to a wide range of use cases. A few of these use cases are outlined below.
 
 #### String Interpolation
-One notable use for sequence literals is in string interpolation, which allows for more concise, readable, and maintanable code. For example:
+One notable use for sequence literals is in string interpolation, which allows for more concise, readable, and maintainable code. For example:
 
 
 src/build.d:556:<br>
