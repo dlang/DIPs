@@ -19,7 +19,7 @@ In a nutshell, this literal:
 i"Hello, ${name}! You have logged on ${count} times."
 ````
 
-is translated to the list:
+is translated to the [compile-time sequence](https://dlang.org/articles/ctarguments.html):
 
 ````D
 "Hello, ", name, "! You have logged on ", count, " times."
@@ -106,20 +106,6 @@ No change to grammar. Implementation consists of a small change to `lex.d` to de
 
 Implementation and tests can be found here: https://github.com/dlang/dmd/pull/7988/files
 
-#### Aliasing
-
-Because the compiler emits basically a list of parameters, the string sequence literal does not have a formal type. However, for convenience, if aliased locally, it will become an `AliasSeq` equivalent.
-
-Example:
-```D
-string name;
-DateTime lastLoggedIn;
-alias seq = i"hello, ${name}, I haven't seen you since ${lastLoggedIn}";
-alias seq2 = AliasSeq!("hello, ", name, ", I haven't seen you since ", lastLoggedIn);
-assert(seq == seq2);
-```
-As usual, if the sequence is passed to compile-time aliases, it will not bind to a single alias (no change in current behavior).
-
 #### Expressions
 
 Expressions are not bindable to aliases, unless the expression is evaluatable at compile-time. For the purposes of simplicity, this proposal does not require any new mechanism, but any such mechanism to bind expressions to aliases would benefit this proposal.
@@ -130,7 +116,7 @@ Example:
 ```D
 int a = 5;
 writeln(i"a + 1 is ${a+1}"); // OK, prints "a + 1 is 6"
-alias seq = i"a + 1 is ${a+1}"; // Error, cannot read `a` at compile time
+alias seq = AliasSeq!(i"a + 1 is ${a+1})"; // Error, cannot read `a` at compile time
 ```
 
 See optional improvements for possible solutions.
@@ -161,24 +147,6 @@ NOTE:(We should explain why the listed pros/cons make language feature a better 
 
 ## Possible Improvements
 
-Because aliasing expressions is not allowed, there is no requirement to support them. However, aliasing expressions would be very helpful to this proposal.
-
-Example:
-
-```D
-int a;
-int b;
-alias x = i"a + b is ${a+b}";
-a = 4;
-b = 6;
-writeln(x); // writes "a + b is 10"
-b = 50;
-writeln(x); // writes "a + b is 54"
-```
-
-The concept would be a *new* feature of D, for lack of a better name, called lazy aliases. If syntax is desired, the term `lazy alias` seems like a natural fit. Essentially, it does the same thing as `lazy` parameters, but is an alias, and therefore has no runtime type or function. The expression is simply evaluated whenever used.
-
-<br>
 Because string sequence tuples do not actually lower to individual strings, a call to `std.conv.text` (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
 
 ## Breaking Changes and Deprecations
