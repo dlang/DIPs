@@ -83,29 +83,6 @@ TODO: ...
 NOTE:(also, add other use cases)
 
 
-## Language Feature vs Library Feature
-
-It has been brought up that this could be done as a library. Here is a breakdown of the pros and cons of a library implementation as opposed to a language implementation:
-
-:white_check_mark: Library Pros:
-- Requires no language changes
-
-:x: Library Cons:
-- Awkward syntax
-- Bad performance
-- Depends on a library for a trivial feature
-- Cannot be used with betterC
-
-
-:white_check_mark: Language Pros:
-- High performance
-- Nice syntax
-- Better integration (IDEs, syntax highlighting, autocompletion)
-
-:x: Language Cons:
-
-NOTE:(Should we have pros/cons for both, or only one?)
-
 ## Description
 
 Lexer Change:
@@ -131,6 +108,31 @@ Token:
 No change to grammar. Implementation consists of a small change to `lex.d` to detect when string literals are prefixed with the `i` character.  It adds a boolean flag to string literals to keep track of which ones are "interpolated".  Then in the parse stage, if a string literal is marked as "interpolated" then it lowers it to a tuple of strings and expressions.
 
 Implementation and tests can be found here: https://github.com/dlang/dmd/pull/7988/files
+
+
+## Language Feature vs Library Feature
+
+It has been brought up that this could be done as a library. Here is a breakdown of the pros and cons of a library implementation as opposed to a language implementation:
+
+:white_check_mark: Library Pros:
+- Requires no language changes
+
+:x: Library Cons:
+- Awkward syntax
+- Bad performance
+- Depends on a library for a trivial feature
+- Cannot be used with betterC
+
+
+:white_check_mark: Language Pros:
+- High performance
+- Nice syntax
+- Better integration (IDEs, syntax highlighting, autocompletion)
+
+:x: Language Cons:
+
+NOTE:(Should we have pros/cons for both, or only one?)
+NOTE:(We should explain why the listed pros/cons make language feature a better choice)
 
 
 ## Breaking Changes and Deprecations
