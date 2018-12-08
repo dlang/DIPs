@@ -10,7 +10,28 @@
 
 ## Abstract
 
-This DIP proposes adding a "string sequence literal"(explain more what this means) to D, which opens up tons up possibilities, including string interpolation.
+This DIP proposes adding a "string sequence literal" to D, primarily inspired
+by string interpolation, but also applicable to a wide variety of use cases.
+
+In a nutshell, this literal:
+
+````
+i"Hello, ${name}! You have logged on ${count} times."
+````
+
+is translated to the template argument list:
+
+````
+AliasSeq!("Hello, ", name, "! You have logged on ", count, " times.")
+````
+
+where `name` and `count` are aliases to symbols in the surrounding scope,
+usually local variables.
+
+Note that the compiler does not perform any string interpolation; it merely
+segments the literal into a sequence of strings and aliases.  The intent is for
+further processing to be done in library code (see below for more detailed
+descriptions of possible applications).
 
 ### Reference
 
