@@ -74,7 +74,7 @@ With syntax highlighting:<br>
 
 
 #### Database Queries
-NOTE: Add a couple sentances about why this use case is beneficial
+NOTE: Add a couple sentences about why this use case is beneficial
 
 `db.exec("UPDATE Foo SET a = ?, b = ?, c = ?, d = ? WHERE id = ?", aval, bval, cval, dval, id);`<br>
 Becomes:<br>
@@ -107,7 +107,7 @@ Token:
    ...
 ```
 
-No change to grammar. Implementation consists of a small change to `lex.d` to detect when string literals are prefixed with the `i` character.  It adds a boolean flag to string literals to keep track of which ones are "interpolated".  Then in the parse stage, if a string literal is marked as "interpolated" then it lowers it to a tuple of strings and expressions.
+No change to grammar. Implementation consists of a small change to `lex.d` to detect when string literals are prefixed with the `i` character.  It adds a boolean flag to string literals to keep track of which ones are "interpolated".  Then in the parse stage, if a string literal is marked as "interpolated", it lowers it to a sequence of strings and expressions.
 
 Implementation and tests can be found here: https://github.com/dlang/dmd/pull/7988/files
 
@@ -153,7 +153,7 @@ NOTE:(We should explain why the listed pros/cons make language feature a better 
 
 ## Possible Improvements
 
-Because string sequence tuples do not actually lower to individual strings, a call to `std.conv.text` (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
+Because string sequence literals do not actually lower to individual strings, a call to `std.conv.text` (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
 
 ## Breaking Changes and Deprecations
 None :smile:
