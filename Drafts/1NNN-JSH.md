@@ -73,34 +73,6 @@ With syntax highlighting:<br>
 
 Note that because string sequence tuples do not actually lower to individual strings, the `text` call (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
 
-#### Aliasing
-
-Because the compiler emits basically a list of parameters, the string sequence literal does not have a formal type. However, for convenience, if aliased locally, it will become an `AliasSeq` equivalent.
-
-Example:
-```D
-string name;
-DateTime lastLoggedIn;
-alias seq = i"hello, ${name}, I haven't seen you since ${lastLoggedIn}";
-alias seq2 = AliasSeq!("hello, ", name, ", I haven't seen you since ", lastLoggedIn);
-assert(seq == seq2);
-```
-As usual, if the sequence is passed to compile-time aliases, it will not bind to a single alias (no change in current behavior).
-
-#### Expressions
-
-Expressions are not bindable to aliases, unless the expression is evaluatable at compile-time. For the purposes of simplicity, this proposal does not require any new mechanism, but any such mechanism to bind expressions to aliases would benefit this proposal.
-
-Because of this, arbitrary expressions based on runtime data are allowed only when used in a runtime argument list.
-
-Example:
-```D
-int a = 5;
-writeln(i"a + 1 is ${a+1}"); // OK, prints "a + 1 is 6"
-alias seq = i"a + 1 is ${a+1}"; // Error, cannot read `a` at compile time
-```
-
-See optional improvements for possible solutions.
 
 #### Database Queries
 TODO: ...
@@ -135,6 +107,34 @@ No change to grammar. Implementation consists of a small change to `lex.d` to de
 
 Implementation and tests can be found here: https://github.com/dlang/dmd/pull/7988/files
 
+#### Aliasing
+
+Because the compiler emits basically a list of parameters, the string sequence literal does not have a formal type. However, for convenience, if aliased locally, it will become an `AliasSeq` equivalent.
+
+Example:
+```D
+string name;
+DateTime lastLoggedIn;
+alias seq = i"hello, ${name}, I haven't seen you since ${lastLoggedIn}";
+alias seq2 = AliasSeq!("hello, ", name, ", I haven't seen you since ", lastLoggedIn);
+assert(seq == seq2);
+```
+As usual, if the sequence is passed to compile-time aliases, it will not bind to a single alias (no change in current behavior).
+
+#### Expressions
+
+Expressions are not bindable to aliases, unless the expression is evaluatable at compile-time. For the purposes of simplicity, this proposal does not require any new mechanism, but any such mechanism to bind expressions to aliases would benefit this proposal.
+
+Because of this, arbitrary expressions based on runtime data are allowed only when used in a runtime argument list.
+
+Example:
+```D
+int a = 5;
+writeln(i"a + 1 is ${a+1}"); // OK, prints "a + 1 is 6"
+alias seq = i"a + 1 is ${a+1}"; // Error, cannot read `a` at compile time
+```
+
+See optional improvements for possible solutions.
 
 ## Language Feature vs Library Feature
 
