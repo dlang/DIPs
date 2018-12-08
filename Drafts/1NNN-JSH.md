@@ -72,6 +72,8 @@ It has been brought up that this could be done as a library. Here is a breakdown
 :x: Library Cons:
 - Awkward syntax
 - Bad performance
+- Depends on a library for a trivial feature
+- Cannot be used with betterC
 
 
 :white_check_mark: Language Pros:
