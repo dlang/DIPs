@@ -19,17 +19,13 @@ In a nutshell, this literal:
 i"Hello, ${name}! You have logged on ${count} times."
 ````
 
-is translated to the template argument list:
+is translated to the list:
 
+````D
+"Hello, ", name, "! You have logged on ", count, " times."
 ````
-AliasSeq!("Hello, ", name, "! You have logged on ", count, " times.")
-````
-
-where `name` and `count` are aliases to symbols in the surrounding scope,
-usually local variables.
-
 Note that the compiler does not perform any string interpolation; it merely
-segments the literal into a sequence of strings and aliases.  The intent is for
+segments the literal into a sequence of strings and expressions.  The intent is for
 further processing to be done in library code (see [rationale](#rationale) for a more detailed
 description of possible applications).
 
@@ -75,6 +71,36 @@ Becomes:<br>
 With syntax highlighting:<br>
 ![https://i.imgur.com/KTcOS0F.png](https://i.imgur.com/KTcOS0F.png)
 
+Note that because string sequence tuples do not actually lower to individual strings, the `text` call (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
+
+#### Aliasing
+
+Because the compiler emits basically a list of parameters, the string sequence literal does not have a formal type. However, for convenience, if aliased locally, it will become an `AliasSeq` equivalent.
+
+Example:
+```D
+string name;
+DateTime lastLoggedIn;
+alias seq = i"hello, ${name}, I haven't seen you since ${lastLoggedIn}";
+alias seq2 = AliasSeq!("hello, ", name, ", I haven't seen you since ", lastLoggedIn);
+assert(seq == seq2);
+```
+As usual, if the sequence is passed to compile-time aliases, it will not bind to a single alias (no change in current behavior).
+
+#### Expressions
+
+Expressions are not bindable to aliases, unless the expression is evaluatable at compile-time. For the purposes of simplicity, this proposal does not require any new mechanism, but any such mechanism to bind expressions to aliases would benefit this proposal.
+
+Because of this, arbitrary expressions based on runtime data are allowed only when used in a runtime argument list.
+
+Example:
+```D
+int a = 5;
+writeln(i"a + 1 is ${a+1}"); // OK, prints "a + 1 is 6"
+alias seq = i"a + 1 is ${a+1}"; // Error, cannot read `a` at compile time
+```
+
+See optional improvements for possible solutions.
 
 #### Database Queries
 TODO: ...
@@ -134,6 +160,24 @@ It has been brought up that this could be done as a library. Here is a breakdown
 NOTE:(Should we have pros/cons for both, or only one?)
 NOTE:(We should explain why the listed pros/cons make language feature a better choice)
 
+## Optional Improvements
+
+Because aliasing expressions is not allowed, there is no requirement to support them. However, aliasing expressions would be very helpful to this proposal.
+
+Example:
+
+```D
+int a;
+int b;
+alias x = i"a + b is ${a+b}";
+a = 4;
+b = 6;
+writeln(x); // writes "a + b is 10"
+b = 50;
+writeln(x); // writes "a + b is 54"
+```
+
+The concept would be a *new* feature of D, for lack of a better name, called lazy aliases. If syntax is desired, the term `lazy alias` seems like a natural fit. Essentially, it does the same thing as `lazy` parameters, but is an alias, and therefore has no runtime type or function. The expression is simply evaluated whenever used.
 
 ## Breaking Changes and Deprecations
 None :smile:
