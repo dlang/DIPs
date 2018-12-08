@@ -78,7 +78,7 @@ NOTE: Add a couple sentences about why this use case is beneficial
 
 `db.exec("UPDATE Foo SET a = ?, b = ?, c = ?, d = ? WHERE id = ?", aval, bval, cval, dval, id);`<br>
 Becomes:<br>
-`db.exec(i"UPDATE Foo SET a = $aval, b = $bval, c = $cval, d = $dval WHERE id = $id");`
+`db.exec(i"UPDATE Foo SET a = $(aval), b = $(bval), c = $(cval), d = $(dval) WHERE id = $(id)");`
 
 
 
