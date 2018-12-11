@@ -242,23 +242,25 @@ of the copy constructor.
 ### Syntax
 
 A declaration is a copy constructor declaration if it is a constructor declaration that takes only one
-parameter by reference that is of the same type as `typeof(this)`. Declaring a copy constructor in this
-manner has the advantage that no parser modifications are required, thus leaving the language grammar
-unchanged.
+non-default parameter by reference that is of the same type as `typeof(this)`, followed by any number
+of default parameters. Declaring a copy constructor in this manner has the advantage that no parser
+modifications are required, thus leaving the language grammar unchanged.
 
 ```d
 import std.stdio;
 
 struct A
 {
-    this(ref A rhs) { writeln("x"); }     // copy constructor
+    this(ref A rhs) { writeln("x"); }                       // copy constructor
+    this(ref A rhs, int b = 7) immutable { writeln(b)}    // copy constructor with default parameter
 }
 
 void main()
 {
     A a;
-    A b = a;        // calls copy constructor implicitly
-    A c = A(b);     // calls constructor explicitly
+    A b = a;            // calls copy constructor implicitly - prints "x"
+    A c = A(b);         // calls constructor explicitly
+    immutable A d = a;  // calls copy constructor implicittly - prints 7
 }
 ```
 
@@ -361,7 +363,7 @@ void main()
 ```
 
 The parameter of the copy constructor is passed by reference, so initializations will be
-to be lowered to copy constructor calls only if the source is an lvalue. Although this can be
+lowered to copy constructor calls only if the source is an lvalue. Although this can be
 worked around by declaring temporary lvalues which can be forwarded to the copy constructor,
 binding rvalues to lvalues is beyond the scope of this DIP.
 
@@ -520,10 +522,10 @@ of the `struct` type may lead to ambiguities:
 ```d
 struct A
 {
-    int a;
+    int *a;
     immutable(A) fun()
     {
-        return immutable A(7);
+        return immutable A();
     }
 
     alias fun this;
@@ -533,201 +535,58 @@ struct A
 
 struct B
 {
-    int a;
-    B fun()
+    int *a;
+    immutable(B) fun()
     {
-        return B(7);
+        return immutable B();
     }
 
     alias fun this;
 
-    this(ref B another) immutable {}
+    this(ref A another) {}
 }
 
 void main()
 {
-    immutable A ia;
-    A a = ia;            // 1 - calls copy constructor
+    A a;
+    immutable A ia = a;    // copy constructor
 
-    B bc;
-    B b = bc;            // 2 - calls B.fun
+    B b;
+    immutable B ib = b;    // error: copy constructor may not be called for argument types `() immutable`
 }
 ```
 
-When both the copy constructor and `alias this` are suitable to resolve the assignment (1),
-the copy constructor takes precedence over `alias this` as it is considered more
-specialized (the sole purpose of the copy constructor is to create copies). If no
-copy constructor in the overload set matches the exact qualified types of the source and the
-destination, the `alias this` is preferred (2).
+When both the copy constructor and `alias this` are suitable to resolve the
+assignment, the copy constructor takes precedence over `alias this` as it is
+considered more specialized (the sole purpose of the copy constructor is to
+create copies). If no copy constructor in the overload set is matched, an error
+is issued, even though an `alias this` might be used to resolve the assignemnt.
 
 #### Generating copy constructors
 
-A copy constructor is generated for a `struct S`  if any member of S defines
-a copy constructor that S does not define.
+A copy constructor is generated implicitly by the compiler for a `struct S` if:
 
-A field of a `struct` may define multiple copy constructors. In this situation,
-a copy constructor is generated for each overload.
+1. `S` does not define any copy constructors;
+2. `S` does not have an overlapping field that defines a copy constructor;
+3. `S` defines at least one member that has a copy constructor.
+
+If all of the restrictions above are met, the following copy constructor is generated:
 
 ```d
-struct M
+this(ref inout(S) src) inout
 {
-    this(ref immutable M) {}
-    this(ref immutable M) shared {}
-}
-
-struct S
-{
-    M m;
-    this(ref shared S) {}
-    /* The copy constructors with the following signatures are generated:
-        this(ref immutable S)
-        this(ref immutable S) shared
-     */
+    foreach (i, ref inout field; src.tupleof)
+        this.tupleof[i] = field;
 }
 ```
 
-The body of all the generated copy constructors performs memberwise initialization for each field:
-
-```d
-{
-    this.field1 = s.field1;
-    this.field2 = s.field2;
-    ...;
-}
-```
-
-Inside the body of the generated copy constructors, the assignment will be rewritten as a call
-to the copy constructor of each field that defines one; blitting is employed where possible for
-each field which does not define a copy constructor. If any field is uncopyable (e.g. the
-copy constructor is disabled), the generated copy constructor will be annotated with `@disable`.
-
-If the copy constructors of any fields, a single copy constructor is generated:
-
-```d
-struct A
-{
-    int a;
-    this(ref A rhs)
-    {
-        this.a = rhs.a;
-    }
-}
-
-struct B
-{
-    int[] b;
-    this(ref B rhs)
-    {
-        this.b = rhs.b.dup;
-    }
-}
-
-struct C
-{
-    A a;
-    B b;
-    /* the following copy constructor is generated for C:
-
-    this(ref C rhs)
-    {
-        this.a = rhs.a;       // which, in turn, is lowered to a.__copyCtor(rhs.a);
-        this.b = rhs.b;       // which, in turn, is lowered to b.__copyCtor(rhs.b);
-    }
-    */
-}
-```
-
-#### Generating `opAssign` from a copy constructor
-
-The copy constructor is used to initialize an object from another object, whereas `opAssign` is
-used to copy an object to another object that has already been initialized:
-
-```d
-struct A
-{
-    int a;
-    immutable int id;
-    this(int a, int b)
-    {
-        this.a = a;
-        this.b = b;
-    }
-    this(ref A rhs)
-    {
-        this.a = rhs.a;
-        this.b = rhs.b;
-    }
-    void opAssign(A rhs)
-    {
-        this.a = rhs.a;
-    }
-}
-
-void main()
-{
-    A a = A(2);
-    A b = a;      // calls copy constructor;
-    b = a;        // calls opAssign;
-}
-```
-
-Both the copy constructor and the `opAssign` method are needed because they are type checked
-differently: `opAssign` is type checked as a normal function, whereas the copy constructor is type
-checked as a constructor (where the initial assignment of non-mutable fields is allowed). In many
-cases, the body of the copy constructor will be identical to that of `opAssign`:
-
-```d
-struct A
-{
-    int a;
-    this(int a)
-    {
-        this.a = a;
-    }
-    this(ref A rhs)
-    {
-        this.a = rhs.a;
-    }
-    void opAssign(S rhs)
-    {
-        this.a = rhs.a;
-    }
-}
-
-void main()
-{
-    A a = A(2);
-    A b = a;      // calls copy constructor;
-    b = a;        // calls opAssign;
-}
-```
-
-In order to avoid such code duplication, the user could ideally define a single method that deals with
-both copy construction and normal copying. This is possible if the following conditions are met:
-
-1. If the `struct` contains any `const`/`immutable` fields, it is impossible to use the copy constructor
-for `opAssign` as the copy constructor might initialize the fields. The compiler must analyze the function
-body to very that the copy constructor does not modify `const`/`immutable` fields, which
-is problematic in situations when the body is missing. In conclusion, `opAssign` can be generated from the
-copy constructor when the `struct` contains only assignable (mutable) fields.
-
-2. The copy constructor signature is: `this(ref $q1 S rhs) $q2`, where `q1` and `q2` represent the
-qualifiers that can be applied to the function and its parameter (`const`, `immutable`, `shared`, etc.).
-Depending on the values of `$q1` and `$q2`, what should the signature of `opAssign` be?
-A solution might be to generate the counterpart `opAssign` for each copy constructor, e.g. `void opAssign(ref $q1 S rhs) $q2`.
-However, when is a `const`/`immutable` `opAssign` needed? There might be obscure cases when it is useful, but those are
-niche situations where the user must step in to clarify the desired outcome, and define its own `opAssign`. For
-the sake of simplicity, `opAssign` will be generated solely for copy constructors that have a missing `$q2`.
-
-Taking into account the above restrictions, we can generate a single `opAssign` function
-and leverage the existing `opAssign` generation logic for the [[postblit](https://github.com/dlang/dmd/pull/8505)].
-Because `opAssign` is generated only if there are copy constructors that create a mutable object, the copy
-constructor will be called (if possible) when the source is passed as a parameter to the `opAssign`
-function.
-
-### POD (Plain Old Data)
+### Plain Old Data (POD)
 
 A `struct` that defines a copy constructor is not POD.
+
+### Interaction with unions
+
+Unions may not have fields that define a copy constructor.
 
 ## Breaking Changes and Deprecations
 
