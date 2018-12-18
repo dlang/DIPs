@@ -586,7 +586,9 @@ A `struct` that defines a copy constructor is not POD.
 
 ### Interaction with unions
 
-Unions may not have fields that define a copy constructor.
+If an `union S` has fields that define a copy constructor, whevener an object of type
+`S` is initialized by copy, an error will be issued. The same rule applies to overlapped
+fields (anonymous unions).
 
 ## Breaking Changes and Deprecations
 
