@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1018](./DIP1018.md)|                           The Copy Constructor|Community Review Round 1|
 |[1016](./DIP1016.md)|                       `ref T` accepts r-values|        Post-Final|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1017](./DIP1017.md)|                                Add Bottom Type|  Post-Community 1|
