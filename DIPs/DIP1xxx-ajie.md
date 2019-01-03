@@ -25,6 +25,15 @@ to adapt the code for that.
 - [2] Emsi-containers GitHub repository
     * https://github.com/dlang-community/containers
 
+- [3] Meaning of rvalues and lvalues explained
+    * http://ddili.org/ders/d.en/lvalue_rvalue.html
+
+- [4] D Improvement proposal 1016 "`ref T` accepts r-values" by Manu Evans:
+    * https://github.com/dlang/DIPs/blob/master/DIPs/DIP1016.md
+
+- [5] std.algorithm.iteration.each documentation
+    * https://dlang.org/phobos/std_algorithm_iteration.html#.each
+
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
@@ -53,7 +62,7 @@ For function calls with a similar problem, there is already the `auto ref` keywo
 For consistency, a similar keyword for `foreach` loop variables can be considered the
 best canditate to become such a way. On the other hand, if loop functionality excepts
 to be able to mutate the `foreach` aggreagate, existing `ref` could still be used,
-so the code will fail to compile if range elementscannot be mutated.
+so the code will fail to compile if range elements cannot be mutated.
 
 Non-copyable `struct`s are an excellent aid when designing containers for RAII (Resource-
 Acquisition-Is-Initialization) principle. EMSI-Containers [2] are good examples of such
@@ -77,7 +86,7 @@ foreach (auto ref loopVariable; aggregate)
 }
 ```
 
-...then if, and only if, elements of `aggregate` are lvalues, the compiler must treat the
+...then if, and only if, elements of `aggregate` are lvalues [3], the compiler must treat the
 above statement exactly as if it was written like this:
 
 ```D
@@ -105,8 +114,8 @@ effect, as elements of compile-time aggregates can never be lvalues.
 - The plan to disable by-reference iteration of rvalue ranges [1] could be cancelled.
     This has the disadvantage that the purpose of the loop will become harder to see,
     because one cannot assume that `ref` means that the loop excepts reference semantics.
-    On the other hand, if [DIP1016](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1016.md)
-    gets accepted, this might be the most consistent alternative.
+    On the other hand, if DIP1016 [4] gets accepted, this might be the most consistent
+    alternative with rest of the language.
 
 - Programmers could be intstructed to use introspection to select whether to iterate by
     reference or by value. This will make coding general-purpose non-mutating loops a
@@ -118,8 +127,8 @@ effect, as elements of compile-time aggregates can never be lvalues.
 
 - A library solution could be made that takes an `alias` compile-time parameter and
     chooses the iteration method on behalf of the programmer.
-    [`std.algorithm.iteration.each`](https://dlang.org/phobos/std_algorithm_iteration.html#.each)
-    would be a good canditate to become one. This concept has the following disadvantages:
+    `std.algorithm.iteration.each` [5] would be a good canditate to become one. This
+    concept has the following disadvantages:
     - Error messages become harder to read than with normal loops,
     - Using `goto`, labeled `break` and `continue`, and `return` inside the loop to exit
         it becomes impossible.
@@ -128,9 +137,9 @@ effect, as elements of compile-time aggregates can never be lvalues.
 
 - The compiler could try to detect if a `foreach` loop by value can be silently rewritten
     with reference semantics without effect to program output, and allow non-copyable
-    range elements if this is the case.This was originally suggested by this DIP, but it
-    was found that it cannot be practically implemented without restricting otherwise valid
-    code in the `foreach` body.
+    range elements if this is the case. This was originally suggested by this DIP, but it
+    was found that this approach cannot be practically implemented without restricting
+    otherwise valid code in the `foreach` body.
 
 ## Copyright & License
 
