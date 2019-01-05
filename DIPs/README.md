@@ -3,9 +3,9 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1018](./DIP1018.md)|                           The Copy Constructor|Community Review Round 1|
 |[1016](./DIP1016.md)|                       `ref T` accepts r-values| Formal Assessment|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
+|[1018](./DIP1018.md)|                           The Copy Constructor|  Post-Community 1|
 |[1017](./DIP1017.md)|                                Add Bottom Type|  Post-Community 1|
 |[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|    Formal Review`*`|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
