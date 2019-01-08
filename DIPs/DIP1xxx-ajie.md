@@ -109,6 +109,75 @@ foreach (loopVariable; aggregate)
 over a tuple. It should also be allowed to be used used in `static foreach` but with no
 effect, as elements of compile-time aggregates can never be lvalues.
 
+## Example, using EMSI-Containers [2]
+
+Briefly, containers.DynamicArray is an array that automatically allocates
+and deallocates memory it uses without relying on garbage collector. It
+does not allow copying itself, to protect the memory from being accidently
+aliased into a dangling reference.
+
+```D
+import std.algorithm;
+import std.range;
+import std.stdio;
+import containers;
+
+// A helper function to construct an EMSI containers dynamic array
+// within a single statement
+auto dynamicArray(R)(R range)
+{   auto result = DynamicArray!(ElementType!R).init;
+    foreach(el; range) result.put(el);
+    return result;
+}
+
+void writeDeepLengthA(Roi)(Roi rangeOfIterables)
+{   typeof(rangeOfIterables.front.front) sum;
+    foreach(iterable; rangeOfIterables) sum += iterable.length;
+    sum.writeln;
+}
+
+void writeDeepLengthB(Roi)(Roi rangeOfIterables)
+{   typeof(rangeOfIterables.front.front) sum;
+    foreach(ref iterable; rangeOfIterables) sum += iterable.length;
+    sum.writeln;
+}
+
+//Enabled by this DIP
+void writeDeepLengthC(Roi)(Roi rangeOfIterables)
+{   typeof(rangeOfIterables.front.front) sum;
+    foreach(auto ref iterable; rangeOfIterables) sum += iterable.length;
+    sum.writeln;
+}
+
+void main(){
+    // Elements of this range can be copied but have no address
+    auto unaddressedElements = iota(0, 10).map!(i => iota(0, i));
+    // Vice-versa
+    auto uniqueElements =
+    [   only(7, 2, 29, 30).dynamicArray,
+        only(11, 9, 0).dynamicArray,
+        takeNone!(int[]).dynamicArray,
+        only(3, 30, 14, 19, 4, 0, 9).dynamicArray
+    ];
+
+    // Ok, prints 45
+    unaddressedElements.writeDeepLengthA;
+    // Error: struct `containers.dynamicarray.DynamicArray!(int, Mallocator, false).DynamicArray`
+    // is not copyable because it is annotated with @disable
+    uniqueElements.writeDeepLengthA;
+
+    // Will be error after DMD pull request 8437 [1] is merged
+    unaddressedElements.writeDeepLengthA;
+    // Ok, prints 14
+    uniqueElements.writeDeepLengthB;
+
+    // Ok, prints 45
+    unaddressedElements.writeDeepLengthC;
+    // Ok, prints 14
+    uniqueElements.writeDeepLengthC;
+}
+```
+
 ## Alternatives
 
 - The plan to disable by-reference iteration of rvalue ranges [1] could be cancelled.
