@@ -49,8 +49,8 @@ Mixed:
 
 ```D
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
-if(isForwardRange!R)
-if(Rs.length > 0, "need a needle to countUntil with")
+if (isForwardRange!R)
+if (Rs.length > 0, "need a needle to countUntil with")
 if 
 {
     static foreach (alias N; Rs) 
@@ -95,7 +95,7 @@ allows the use of `static foreach` and to declare `alias`es and `enum`s to elimi
 (similar to the `in` contract form prior to DIP1009).
 This will put the compiler in a much better position to provide useful diagnostics, such as indicating which clauses are not satisfied 
 and allowing the template author to provide messages in the case of non-intuitive formulations of constraints
-e.g. `if(isForwardRange!(R) == isInputRange!(R), "needles that are ranges must be forward ranges")`.
+e.g. `if (isForwardRange!(R) == isInputRange!(R), "needles that are ranges must be forward ranges")`.
 
 Using the particularly egregious example of the first overload of `std.algorithm.searching.countUntil`,
 its current signature of
@@ -114,8 +114,8 @@ would be be written using the block statement form to elimiate the recursive con
 
 ```D
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
-if(isForwardRange!R)
-if(Rs.length > 0, "need a needle to countUntil with") // example messge, probably not needed for something this simple
+if (isForwardRange!R)
+if (Rs.length > 0, "need a needle to countUntil with") // example messge, probably not needed for something this simple
 if 
 {
     static foreach (n; needles)
@@ -165,7 +165,7 @@ constraint has not been met.
 template foo(T) 
 if (isForwardRange!T == isInputRange!T, T.stringof ~" must be a forward range if it is a range") 
 ```
-###Block Statement Form
+### Block Statement Form
 
 The block statement form is:
 ```D
@@ -180,7 +180,7 @@ The declarations are local to the scope of the constraint or `static foreach` or
 Each `static assert` in the block statement in satisfied `static if` statements,
 including those in unrolled `static foreach` statements, must pass for the constraint to be satisfied.
 
-###Grammar changes
+### Grammar changes
 
 ```diff
 +Constraints:
