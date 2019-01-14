@@ -85,13 +85,13 @@ of which constraints have failed.
 While it is not possible in the general case to provide useful information as to what constraints
 have failed and why, because a constraint may have an arbitrary combination of logic, the vast 
 majority of constraints are expressed in Conjunctive Normal Form (CNF). In this case it is definitely 
-possible to provide better daignostics as to which clauses have failed. However the current grammer
+possible to provide better daignostics as to which clauses have failed. However the current grammar
 provides no way to translate particularly verbose constraints to a user not intimately familiar with 
 the constraint.
 
 This DIP therefore proposes to formalise the use of CNF constraints by allowing multiple `if` constraints,
 the expression form with an optional message (similar to what was done with contracts in DIP1009), as well as block statements that 
-allows the use of `static foreach` and to declare `alias`es and `enum`s to eliminate the need for recursive templates in template constrains 
+allows the use of `static foreach` and to declare `alias`es and `enum`s to eliminate the need for recursive templates in template constraints 
 (similar to the `in` contract form prior to DIP1009).
 This will put the compiler in a much better position to provide useful diagnostics, such as indicating which clauses are not satisfied 
 and allowing the template author to provide messages in the case of non-intuitive formulations of constraints
@@ -110,12 +110,12 @@ if (isForwardRange!R
 || is(typeof(countUntil!pred(haystack, needles[1 .. $])))))
 ```
 
-would be be written using the block statement form to elimiate the recursive constraint as  
+would be be written using the block statement form to eliminate the recursive constraint as  
 
 ```D
 ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
 if (isForwardRange!R)
-if (Rs.length > 0, "need a needle to countUntil with") // example messge, probably not needed for something this simple
+if (Rs.length > 0, "need a needle to countUntil with") // example message, probably not needed for something this simple
 if 
 {
     static foreach (n; needles)
@@ -158,7 +158,7 @@ if (constraint2!T)
 if (constraint3!T) { ... }
 ```
 
-An optional constraint message can be used to provide a more easily uderstood description of why a 
+An optional constraint message can be used to provide a more easily understood description of why a 
 constraint has not been met.
 
 ```D
