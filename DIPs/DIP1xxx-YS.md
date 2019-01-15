@@ -10,15 +10,17 @@
 
 ## Abstract
 
-Named arguments adds a way to annotate the arguments passed to functions. It makes the intention of passed arguments more clear, which should results in code been more readable. It also allows the order of arguments being changed on the callee side without breaking user code.
+This proposal presents a way to annotate function arguments. Annotating a function argument with the corresponding parameter name can clarify the argument's intended purpose and improve code readability.
 
 ### Reference
 
-Various solutions have been suggested in the NewsGroup,  [1](https://forum.dlang.org/post/khcalesvxwdaqnzaqotb@forum.dlang.org) and [2](https://forum.dlang.org/post/n8024o$dlj$1@digitalmars.com).
+Various solutions have been suggested in the D forums at  [1](https://forum.dlang.org/post/khcalesvxwdaqnzaqotb@forum.dlang.org) and [2](https://forum.dlang.org/post/n8024o$dlj$1@digitalmars.com).
 
-Library only solutions have also been attempted multiple times, see [1](https://forum.dlang.org/post/awjuoemsnmxbfgzhgkgx@forum.dlang.org) and [2](https://github.com/CyberShadow/ae/blob/master/utils/meta/args.d).
+Several library solutions have been attempted. See [1](https://forum.dlang.org/post/awjuoemsnmxbfgzhgkgx@forum.dlang.org) and [2](https://github.com/CyberShadow/ae/blob/master/utils/meta/args.d).
 
-There are also a couple DIPs proposed or in development, see [DIP88](https://wiki.dlang.org/DIP88) and [rikkimax](https://github.com/rikkimax/DIPs/blob/named_args/DIPs/DIP1xxx-RC.md)
+Another proposal was put forth currently by
+[rikkimax](https://github.com/rikkimax/DIPs/blob/named_args/DIPs/DIP1xxx-RC.md).
+There is also an inactive proposal, [DIP88](https://wiki.dlang.org/DIP88).
 
 ## Contents
 * [Rationale](#rationale)
@@ -29,26 +31,37 @@ There are also a couple DIPs proposed or in development, see [DIP88](https://wik
 
 ## Rationale
 
-Named arguments is a common programming language feature found in various dynamic or compiled languages. There are various motivation behind that, such as to make code more readable, and to pass arguments in arbitrary order.
+Named arguments can be found as a language feature in several common programming
+languages, such as Python, Lua, and Swift.
 
-Unlike named arguments in other languages and previous DIPs, this DIP mainly aim to address the readability issue. This is to increase the chance of adaptation, while still keeping one of the major niceties of this feature.
+Unlike named arguments in other languages and previous DIPs, this DIP only aim
+to address the readability issue. This is to increase the chance of adaptation,
+while still keeping one of the major niceties of this feature. Although other
+aspects of named arguments can be added in future extension of the language.
 
-Consider this example:
+Consider this example of a function invocation in D:
 
 ```d
-// What are these arguments?
 DecimalNumber product = CalculateProduct(values, 7, false, null);
 ```
 
 It is really difficult to decipher what each argument actually means. This is a real existing problem. As even Google's C++ coding style guide tries to provide a solution for that (they suggest using comments, we will discuss later).
 
-This DIP also has the added benefits of preventing silent breakage when the meanings of function parameters changed, but their type don't (assuming the meanings are reflected in the names). For example:
+This proposal has the added benefits of protecting against silent breakage when
+the function parameters are renamed without their type being changed (assuming
+the interpretation of the arguments follows their name). For example:
 
 ```d
 // Previous API: void draw_rect(int x, int y, int width, int height);
 // New API:
 void draw_rect(int x0, int y0, int x1, int y1);
 ```
+
+Here, the previous `draw_rect` interprets the passed arguments as the top left
+corner, and the width and the height of a rectangle. The new `draw_rect` instead
+uses the coordinates of the top left and the bottom right corner of the
+rectangle. Old code will still compile because the types of the arguments are
+still the same, thus causing silent breakages.
 
 ## Description
 
@@ -78,11 +91,11 @@ int add(int x, int y);
 int add(int c, int d);
 int add(int b, int a) { ... }
 void main() {
-    add(a: 1, b: 1); // fine
-    add(b: 1, a: 1); // fine too
-    add(d: 0, c: 10); // fine
-    add(x: 1, y: 1); // error
-    add(x: 1, b: 1); // error
+add(a: 1, b: 1); // fine
+add(b: 1, a: 1); // fine too
+add(d: 0, c: 10); // fine
+add(x: 1, y: 1); // error
+add(x: 1, b: 1); // error
 }
 
 ```
@@ -97,7 +110,7 @@ The usual overload set will first be filtered by the names in the argument list.
 int add(int a, int b) {...}
 int add(int c, int d) {...} // not in the overload set
 void main() {
-    add(a: 1, b: 2);
+add(a: 1, b: 2);
 }
 ```
 
@@ -136,11 +149,11 @@ of the DIP process beyond the Draft Review.
 
 ## Appendix: Grammar Changes
 ```diff
-  ArgumentList:
+ArgumentList:
 +    NamedArgument
 + NamedArgument:
 +    Identifier: AssignExpression
 
-  AtAttribute:
+AtAttribute:
 +    @ named
 ```
