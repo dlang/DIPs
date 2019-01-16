@@ -36,7 +36,7 @@ ptrdiff_t countUntil(alias pred = "a == b", R, Rs...)(R haystack, Rs needles)
 if 
 {
     static assert(isForwardRange!R);
-    static assert(Rs.length > 0, "need a needle to countUntil with");
+    static assert(Rs.length > 0, "need at least one needle as stop condition");
     static foreach (alias N; Rs) 
         static assert(isForwardRange!(N) == isInputRange!(N), "needles that are ranges must be forward ranges");
     static foreach (n; needles)
