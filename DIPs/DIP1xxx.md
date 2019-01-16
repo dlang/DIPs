@@ -24,7 +24,7 @@ template all(alias pred)
     bool all(Range)(Range range)
     if (isInputRange!Range)
     if (is(typeof(unaryFun!pred(range.front))),
-        "`" ~ pred.stringof[1..$-1] ~ "` isn't a unary predicate function for range.front"))
+        "`" ~ pred.stringof[1..$-1] ~ "` isn't a unary predicate function for range.front")
     {
     }
 }
