@@ -7,7 +7,6 @@
 |[1016](./DIP1016.md)|                       `ref T` accepts r-values| Formal Assessment|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1018](./DIP1018.md)|                           The Copy Constructor|  Post-Community 1|
-|[1006](./DIP1006.md)|Providing More Selective Control Over Contracts|    Formal Review`*`|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1`**`|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1`**`|
@@ -34,3 +33,8 @@
 |[1001](./rejected/DIP1001.md)|                          DoExpression|
 |[1002](./rejected/DIP1002.md)|                     TryElseExpression|
 |[1015](./rejected/DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
+
+## Superseded DIPs
+|                           ID|                                 Title|
+|-----------------------------|--------------------------------------|
+|   [1006](./other/DIP1006.md)|Providing More Selective Control Over Contracts|
