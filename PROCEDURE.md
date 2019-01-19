@@ -68,7 +68,7 @@ When the first draft of the DIP is ready and the POC is prepared to begin the Dr
 
 The submission of the pull request signifies the beginning of the Draft Review. All discussion takes place in pull request comments at the [DIP Repository]. At this point, the POC can invite community members to submit feedback in the discussion thread. The DIP Manager is required to acknowledge the DIP within a week of its submission by ensuring the status of the DIP is set to `Draft`, leaving a comment in the pull request thread, and announcing in the [D Forums] that the DIP is under Draft Review so that community members may leave feedback. The DIP Manager will immediately request that any superficial issues, such as improperly completed fields in the header or the use of an unacceptable convention for the file name, be corrected. The DIP Manager may withhold feedback on the substance of the DIP until the DIP is selected for promotion to the next stage.
 
-Periodically, the DIP Manager will peruse the DIPs currently under Draft Review and select one to prepare for [Community Review](#community-review). The frequency of this occurance depends on the the number of DIPs currently in the subsequent stages of the DIP process. Once a DIP has been selected, the DIP Manager will work with the POC to ensure that no obvious flaws remain and that all criticisms raised throughout the Draft Review period are reasonably addressed.
+Periodically, the DIP Manager will peruse the DIPs currently under Draft Review and select one to prepare for [Community Review](#community-review). The frequency of this occurrence depends on the the number of DIPs currently in the subsequent stages of the DIP process. Once a DIP has been selected, the DIP Manager will work with the POC to ensure that no obvious flaws remain and that all criticisms raised throughout the Draft Review period are reasonably addressed.
 
 #### Community Review
 
@@ -96,7 +96,7 @@ The DIP Manager is required to submit the DIP to the Language Maintainers for th
 
 The Language Maintainers commit to rendering a judgement within 30 days of the start of the Formal Assessment. If they determine a final disposition for the DIP, the DIP Manager will mark it as `Accepted` or `Rejected`. If they decide more time is needed, the `Extended` label may be appended to the DIP status. The DIP Manager will periodically consult with the Language Maintainers to determine if the DIP is ready for a final disposition. At the end of 90 days, if the Language Maintainers are still not ready for a finial decision, the DIP Manager will change the `Extended` label to `Postponed`.
 
-#### Postponed and Abandoned DIPs
+#### Postponed, Abandoned, and Superseded DIPs
 
 At any point in the review process, the POC may request that the DIP Manager mark the DIP status with either the `Postponed` or `Abandoned` label. The DIP Manager may also independently decide to append either label to the DIP status if contact with the POC is lost. DIPs marked as such are frozen at the current stage of the DIP process.
 
@@ -104,7 +104,7 @@ Postponed DIPs may be revived by the POC (or DIP Author(s)) at any time within 1
 
 When a postponed or abandoned DIP is revived, the DIP Manager will consult with the POC to determine if the DIP may continue the DIP process from the stage at which the label was applied, if it should move to an earlier stage, or if it should be completely rewritten and resubmitted as a new DIP.
 
-
+A DIP's status may be set to `Superseded` at any stage in the DIP process to indicate that the proposal was made obsolete, e.g. by the acceptance of an alternative proposal, the implementation of a feature similar to that proposed by the DIP, etc. Superseded DIPs may not be revived without the consent of the language maintainers.
 
 [DIP Repository]: https://github.com/dlang/DIPs
 [D Forums]: https://forum.dlang.org/
