@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | (your name and contact data)                                    |
+| Author:         | Jason Helson                                                    |
 | Implementation: | https://git.io/fpSUA                                            |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
@@ -74,15 +74,10 @@ With syntax highlighting:<br>
 
 
 #### Database Queries
-NOTE: Add a couple sentences about why this use case is beneficial
 
 `db.exec("UPDATE Foo SET a = ?, b = ?, c = ?, d = ? WHERE id = ?", aval, bval, cval, dval, id);`<br>
 Becomes:<br>
 `db.exec(i"UPDATE Foo SET a = $(aval), b = $(bval), c = $(cval), d = $(dval) WHERE id = $(id)");`
-
-
-
-NOTE:(also, add other use cases)
 
 
 ## Description
@@ -131,14 +126,7 @@ It has been brought up that this could be done as a library. Here is a breakdown
 - Better integration (IDEs, syntax highlighting, autocompletion)
 
 :x: Language Cons:
-
-NOTE:(Should we have pros/cons for both, or only one?)
-<br>
-NOTE:(We should explain why the listed pros/cons make language feature a better choice)
-
-## Possible Improvements
-
-Because string sequence literals do not actually lower to individual strings, a call to `std.conv.text` (or similar) is required. It may be worth adding a simple function to druntime for concatenating *only* strings to avoid needing `text`.
+- requires a language change
 
 ## Breaking Changes and Deprecations
 None :smile:
