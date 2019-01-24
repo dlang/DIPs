@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1017](./DIP1017.md)|                                Add Bottom Type|      Final Review|
-|[1016](./DIP1016.md)|                       `ref T` accepts r-values| Formal Assessment|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1018](./DIP1018.md)|                           The Copy Constructor|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
@@ -33,6 +32,7 @@
 |[1001](./rejected/DIP1001.md)|                          DoExpression|
 |[1002](./rejected/DIP1002.md)|                     TryElseExpression|
 |[1015](./rejected/DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
+|[1016](./DIP1016.md)|                       `ref T` accepts r-values|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
