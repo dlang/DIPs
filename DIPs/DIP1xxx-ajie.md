@@ -11,10 +11,10 @@
 ## Abstract
 
 This DIP proposes that foreach loops should have an option to be annotated
-as `auto ref`, which works for both referrable and non-referrable elements.
+as `auto ref`, which infers elements `ref`ness and non-referrable elements.
 
 This is to allow iteration over a range of non-copyable elements without explicit need
-to adapt the code for that.
+to adapt the code for that [4].
 
 ### Reference
 
@@ -28,11 +28,13 @@ to adapt the code for that.
 - [3] Meaning of rvalues and lvalues explained
     * http://ddili.org/ders/d.en/lvalue_rvalue.html
 
-- [4] D Improvement proposal 1016 "`ref T` accepts r-values" by Manu Evans:
-    * https://github.com/dlang/DIPs/blob/master/DIPs/DIP1016.md
+- [4] A request for this feature in bugzilla:
+    * https://issues.dlang.org/show_bug.cgi?id=4707
 
 - [5] std.algorithm.iteration.each documentation
     * https://dlang.org/phobos/std_algorithm_iteration.html#.each
+
+
 
 ## Contents
 * [Rationale](#rationale)
@@ -49,8 +51,8 @@ by reference.
 One is forced to iterate the range by reference if the element type is a `struct` with
 a disabled postblit, since iteration by value constructs the iteration variable by
 copy. As of DMD 2.082.0, you can iterate any range by reference, but there already
-is a pull request [1] to disallow such iteration for ranges which's front returns
-by value. That pull request is approved by Andrei Alexandrescu, implying that
+is a pull request [1] to disallow such iteration for ranges whose `front` is
+an rvalue [3]. That pull request is approved by Andrei Alexandrescu, implying that
 at least the underlying concept there is officially accepted.
 
 But in cases where the programmer does not modify the iteration variable, he/she does
@@ -86,8 +88,8 @@ foreach (auto ref loopVariable; aggregate)
 }
 ```
 
-...then if, and only if, elements of `aggregate` are lvalues [3], the compiler must treat the
-above statement exactly as if it was written like this:
+...then if, and only if, elements of `aggregate` are lvalues [3], the the
+above statement has exactly the same meaning as if it was written like this:
 
 ```D
 foreach (ref loopVariable; aggregate)
@@ -96,7 +98,7 @@ foreach (ref loopVariable; aggregate)
 }
 ```
 
-Otherwise, the compiler must rewrite the statement as:
+Otherwise, the statement is interpreted as:
 
 ```D
 foreach (loopVariable; aggregate)
@@ -106,7 +108,7 @@ foreach (loopVariable; aggregate)
 ```
 
 `auto ref` should work in both generic and non-generic functions, and also when iterating
-over a tuple. It should also be allowed to be used used in `static foreach` but with no
+over a tuple. It should also be allowed to be used in `static foreach`, but with no
 effect, as elements of compile-time aggregates can never be lvalues.
 
 ## Example, using EMSI-Containers [2]
@@ -183,24 +185,22 @@ void main(){
 - The plan to disable by-reference iteration of rvalue ranges [1] could be cancelled.
     This has the disadvantage that the purpose of the loop will become harder to see,
     because one cannot assume that `ref` means that the loop excepts reference semantics.
-    On the other hand, if DIP1016 [4] gets accepted, this might be the most consistent
-    alternative with rest of the language.
 
-- Programmers could be intstructed to use introspection to select whether to iterate by
+- Programmers could be instructed to use introspection to select whether to iterate by
     reference or by value. This will make coding general-purpose non-mutating loops a
     lot more difficult compared to this proposal, and greatly decreases the likelihood
     of third-party code accepting ranges with non-copyable members.
 
 - `for` loops could be instructed to be used instead of `foreach`. The disadvantages
-    are same as above.
+    are same as with the previous alternative.
 
 - A library solution could be made that takes an `alias` compile-time parameter and
     chooses the iteration method on behalf of the programmer.
     `std.algorithm.iteration.each` [5] would be a good canditate to become one. This
     concept has the following disadvantages:
     - Error messages become harder to read than with normal loops,
-    - Using `goto`, labeled `break` and `continue`, and `return` inside the loop to exit
-        it becomes impossible.
+    - Using `goto`, labeled `break` and `continue`, and `return` inside the loop
+        to normal termination becomes impossible with current rules of the language.
     - Needless heap allocations are caused if local variables outside the loop body
         are accessed.
 
