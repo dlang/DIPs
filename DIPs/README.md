@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1017](./DIP1017.md)|                                Add Bottom Type|      Final Review|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1018](./DIP1018.md)|                           The Copy Constructor|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
@@ -32,9 +31,10 @@
 |[1001](./rejected/DIP1001.md)|                          DoExpression|
 |[1002](./rejected/DIP1002.md)|                     TryElseExpression|
 |[1015](./rejected/DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
-|[1016](./DIP1016.md)|                       `ref T` accepts r-values|
+|[1016](./rejected/DIP1016.md)|              `ref T` accepts r-values|
+|[1017](./rejected/DIP1017.md)|                       Add Bottom Type|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
-|   [1006](./other/DIP1006.md)|Providing More Selective Control Over Contracts|
+|[1006](./other/DIP1006.md)   |Providing More Selective Control Over Contracts|
