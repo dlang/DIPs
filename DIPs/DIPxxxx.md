@@ -36,47 +36,48 @@ This DIP proposes to allow for `const` to be applied to only the pointer and not
 extern(C++) void foo( char const* ptr );
 ```
 
-This syntax would keep in line with D's implementation of `const` whereby `const` is applied to the current type and forward. In the following example if there is a pointer to a pointer and `const` is applied to the first pointer. Both pointers will be const and will point to a mutable type.
+This syntax would keep in line with D's implementation of `const` with the limitation of requiring the use of brackets `const(*)` which will apply `const` to the specified pointers. In the following example if there is a pointer to a pointer and `const` is applied to the first pointer. Both pointers will be const and will point to a mutable type.
 
 ```D
-extern(C++) void foo( char const** ptr ); // mangle to equivalent C++ char *const *const
+extern(C++) void foo1( char const(**) ptr );  // mangle to equivalent C++ char *const *const
+extern(C++) void foo2( char const(*)* ptr );  // mangle to equivalent C++ char *const *
+extern(C++) void foo3( char const(**)* ptr ); // mangle to equivalent C++ char *const *const *
 ```
 
-The same will be true if the const is included after the first pointer. Only the second pointer will be const and will point to a mutable pointer type.
+The underlying type will be assigned the most closely equvalent D type. Effectively removing any `const` past the first mutable pointer or type.
 
 ```D
-extern(C++) void foo( char* const* ptr ); // mangle to equivalent C++ char **const
+extern(C++) const(char*)* const(*) p1; // typeof(p1) == const(char*)**
+extern(C++) char** const(*)        p2; // typeof(p2) == char***
+extern(C++) char const(***)        p3; // typeof(p2) == char***
+```
+The tail const will also be allowed to exist to be able to link with C++ templates correctly when the same type is passed through as an argument to the template. For C++ when `const` is applied to a templated type, it is applied like so `T const` where `T` is the templated type. This means the `const` is applied in the exact same manor when `T` is substituted for the actual type.
+
+```C++
+template<typename T> void foo( const T ); // equivalent to `T const`
+foo<char*>( nullptr );                    // foo( char* const )
 ```
 
-Should only the first pointer be `const` then brackets can be used to identify which pointer should be const.
+In the above example when the type `char*` is passed to the template. The function's parameter is assigned the type of `char* const`. But for equivalent D code when using a `const` in such a manner the entire type will be assigned `const`.
 
 ```D
-extern(C++) void foo( char const(*)* ptr );  // mangle to equivalent C++ char *const *
-extern(C++) void foo( char const(**)* ptr ); // mangle to equivalent C++ char *const *const *
+extern(C++) void foo(T)( const T );
+foo!(char*)( null );                // foo( const(char*) )
 ```
 
-The underlying type will be assigned the most closely equvalent D type. Effectively removing any `const` past the first mutable pointer.
-
-```D
-extern(C++) const(char*)*const* p1; // typeof(p1) == const(char*)**
-extern(C++) char**const*        p2; // typeof(p2) == char***
-```
-
-// TODO
+To maintain backwards compatiblity but to also be able to mangle correctly with C++ in these instances when using `const` with a template. Using a tail `const` will be applied to only to the tail end of the type.
 
 ```D
 extern(C++) void foo(T)( T const );
-foo!(char*)();
-
-// vs
-
-extern(C++) void bar(T)( const T );
-bar!(char*)();
+foo!(char*)( null );                // foo( char const(*) )
+foo!(char**)( null );               // foo( char* const(*) )
+foo!(const(char)*)( null );         // foo( const(char*) )
+foo!(char)( '0' );                  // foo( const(char) )
 ```
 
 ## Workarounds
 
-A possible workaround that is current being utilized in DRuntime `core.stdcpp.allocator` is the use of `pragma` to include a linker flag with an alternative name for the function. This requires working knowledge of the underlying implementation of C++ mangling to modify the mangle to include the `const`. This also has the usual problems using using pragma for mangling, that it cannot be used with templates.
+A possible workaround that is current being utilized in DRuntime `core.stdcpp.allocator` is the use of `pragma` to include a linker flag with an alternative name for the function. This requires working knowledge of the underlying implementation of C++ mangling to modify the mangle to include the `const`. This also has the usual problems when using pragma for mangling, that it cannot be used with templates, and requires working knowledge of each C++ mangling used.
 
 ```D
 version (NeedsMangleHack)
