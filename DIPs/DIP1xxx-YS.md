@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This proposal presents a way to annotate function arguments. Annotating a function argument with the corresponding parameter name can clarify the argument's intended purpose and improve code readability.
+This document proposes an approach to allowing named arguments, i.e. the annotatation of function arguments with the corresponding parameter names, in the D programming language. Naming arguments can clarify an argument's intended purpose and improve code readability.
 
 ### Reference
 
@@ -18,9 +18,10 @@ Various solutions have been suggested in the D forums at  [1](https://forum.dlan
 
 Several library solutions have been attempted. See [1](https://forum.dlang.org/post/awjuoemsnmxbfgzhgkgx@forum.dlang.org) and [2](https://github.com/CyberShadow/ae/blob/master/utils/meta/args.d).
 
-Another proposal was put forth currently by
+Another proposal has been put forth concurrently by
 [rikkimax](https://github.com/rikkimax/DIPs/blob/named_args/DIPs/DIP1xxx-RC.md).
-There is also an inactive proposal, [DIP88](https://wiki.dlang.org/DIP88).
+
+There is also an inactive proposal in [DIP88](https://wiki.dlang.org/DIP88).
 
 ## Contents
 * [Rationale](#rationale)
@@ -34,54 +35,78 @@ There is also an inactive proposal, [DIP88](https://wiki.dlang.org/DIP88).
 Named arguments can be found as a language feature in several common programming
 languages, such as Python, Lua, and Swift.
 
-Unlike named arguments in other languages and previous DIPs, this DIP only aim
-to address the readability issue. This is to increase the chance of adaptation,
-while still keeping one of the major niceties of this feature. Although other
-aspects of named arguments can be added in future extension of the language.
+The motivation of this DIP is primarily to improve readability. The proposal does not address all
+possibilities that are opened by the implementation of named arguments as found in other languages.
+However, this DIP does not preclude such features from being implemented in a future extension of
+the language.
 
-Consider this example of a function invocation in D:
+Consider the follwing example of a function invocation in D:
 
 ```d
 DecimalNumber product = CalculateProduct(values, 7, false, null);
 ```
 
-It is really difficult to decipher what each argument actually means. This is a real existing problem. As even Google's C++ coding style guide tries to provide a solution for that (they suggest using comments, we will discuss later).
+It is difficult to decipher the meaning of each argument. Though some readers may intuit the meaning
+of `values` or `7`, there is no way to know at the call site what `false` or `null` refer to.
+One must consult the function's documentation. This is a real problem for which even Google's 
+C++ coding style guide provides a solution in the form of using comments to annotate the 
+parameters, an approach the DIP author finds insufficient (and is addressed later in this proposal).
 
-This proposal has the added benefits of protecting against silent breakage when
-the function parameters are renamed without their type being changed (assuming
-the interpretation of the arguments follows their name). For example:
+In addition, this proposal has the added benefit of protecting against silent breakage in cases when
+a function's parameters are repurposed and renamed. For example:
 
 ```d
-// Previous API: void draw_rect(int x, int y, int width, int height);
+// Previous API: void drawRect(int x, int y, int width, int height);
 // New API:
-void draw_rect(int x0, int y0, int x1, int y1);
+void drawRect(int x0, int y0, int x1, int y1);
 ```
 
-Here, the previous `draw_rect` interprets the passed arguments as the top left
-corner, and the width and the height of a rectangle. The new `draw_rect` instead
+Here, the previous `drawRect` interprets `x` and `y` as the top left
+corner of a rectangle, and `width` and `height` as its dimensions. The new `drawRect` instead
 uses the coordinates of the top left and the bottom right corner of the
-rectangle. Old code will still compile because the types of the arguments are
-still the same, thus causing silent breakages.
+rectangle. Without named arguments, old code will still compile because the types of the arguments
+are still the same, but the parameters will be interpreted differently, thereby causing silent
+breakage.
 
 ## Description
 
-The bird's eye view of this change is simple. In function calls, the arguments passed can be prefixed with a name, like this: `draw_rect(x: 0, y: 0, width: 1, height: 1)`. And when names mismatch, errors will be generated.
+In function calls, allow a function's arguments to be annoted with a label matching the corresponding parameter name, like this: 
 
-However, there are quite a bit of details that need to be nailed down.
+```d
+void drawRect(int x, int y, int width, int height);
 
-### Completeness of the names
+drawRect(x: 0, y: 0, width: 1, height: 1);
+```
 
-When you choose to label any of the arguments, you would also need to label all of the other ones.
+When the label and the corresponding parameter name mismatch, the compiler will generate an
+error of the following nature: "Named argument 'foo' does not match function parameter name 'bar'."
+
+### Completeness
+
+When more than one argument exists in an argument list, either all arguments must be annotated or none at all. Given an argument list of length `l` and the number of named arguments `n`, the compiler
+should generate an error when `n > 0 && n < l`.
 
 ### Ordering of arguments
 
-Arguments can be rearranged in the argument list.
+Name arguments should be treated as unordered arguments, meaning they can be arranged in any order
+in the argument list. For example, `drawRect` above could be called in the following manner:
 
-### Parameter name lock in
+```d
+drawRect(width: 1, height: 1, x: 0, y: 0);
+```
 
-This seems to be the biggest concern among people who are against named arguments. It is perceived that once named arguments is implemented, there will be no way to change function parameter names without causing breakage. This DIP supplies two tools to combat that.
+### Parameter name lock-in
 
-**Opt-in:** Calling function with named arguments is opt-in on the callee side. This DIP introduces a new function attribute, `@named`, for this purpose. This attribute doesn't participate in name mangling. Only functions annotated with this attribute can be called with named arguments.
+This seems to be the biggest concern among people who are against named arguments. It is perceived
+that once named arguments are applied in a function invocation, there will be no way to change
+function parameter names without causing breakage. 
+
+As suggested in the rationale, such breakage can be desired when the function parameters have been
+not just renamed, but repurposed. Not all name refactorings correspond with repurposing, so it is
+useful to allow for such circumstances when breakage is undesirable. This DIP supplies two tools
+toward that end.
+
+**Opt-in:** Calling a function with named arguments is opt-in on the callee side. This DIP introduces a new function attribute, `@named`, for this purpose. This attribute doesn't participate in name mangling. Only functions annotated with this attribute can be called with named arguments.
 
 **Forward declaration with different names:** Forward declarations with different parameter names are allowed, and the caller can use names matching either of the forward declarations, as long as they are marked as `@named`. For example:
 
@@ -100,11 +125,14 @@ add(x: 1, b: 1); // error
 
 ```
 
-With this, backward compatibility can be maintained after changing parameter names by keeping the old prototype around.
+With this, backward compatibility can be maintained after changing parameter names by keeping the
+old prototype around.
 
 ### Overloading and name mangling
 
-The usual overload set will first be filtered by the names in the argument list. If a function in the overload set does not contain all names the caller specified, it is removed from the overload set.
+The usual overload set will first be filtered by the names in the argument list. If a function in
+the overload set does not contain all names the caller specified, it is removed from the overload
+set.
 
 ```d
 int add(int a, int b) {...}
@@ -114,23 +142,40 @@ add(a: 1, b: 2);
 }
 ```
 
-It might be useful to have parameter names included in the mangled name of a function, so changing the ordering of parameters won't break existing binaries. However, this is out of the scope of this DIP. But a future DIP can amended this problem, so this shouldn't be a blocking issue. As a provision for this future change, you are not allowed to define two `@named` functions whose parameter lists are reordering of each other.
+It might be useful to have parameter names included in the mangled name of a function, so changing the ordering of parameters won't break existing binaries. Such is beyond the scope of this DIP. A future DIP may address this issue, so as a provision for this future change, it should be prohibited to define two `@named` functions with parameter lists that are reordering of each other. For example:
+
+```d
+@named:
+int add(int a, int b) { ... }
+int add(int b, int a) { ... }
+```
 
 ## Alternatives
 
-There are several library only alternatives, however, they generally adds a lot of noise to function calls, and/or requires fundamental changes to how functions are defined.
+There are several library-only alternatives, however, they generally add noise to function calls, and/or require fundamental changes to how functions are defined.
 
-For example, in one of the proposed solutions, you have to call functions like this:
+For example, in one of the proposed solutions, it is necessaryto call functions like so:
 
 ```d
-args!(add, a=>1, b=>1); // Too much noises, and no UFCS
+args!(add, a=>1, b=>1);
 ```
 
-Another solution is to use comments. However, comments still contain noise (i.e. opening and closing comment blocks). And there is no guarantee enforced by the compiler that arguments aren't passed with a wrong order.
+This has too much noise and, moreover, does not allow for the use of Uniform Function Call Syntax (UFCS).
 
-## Provisions for future changes
+Another solution, as employed by the Google style guide, is to use inline comments:
 
-This DIP includes provision for adding partially specify parameter names with reordering, as well as including naming information inside the mangled names. Adding named template instantiation should also remain possible with this DIP implemented.
+```d
+add(/* a */ 1, /* b */ 2);
+```
+
+Such comments contain noise in the form of the opening `/*` and closing `*/`, which arguably
+decrease readability. Moreover, this approach does not allow for unordered arguments and the
+compiler cannot guarantee that parameters of the same (or implicitly convertible) type are
+actually being called in the expected order, e.g. `b, a` as opposed to `a, b`.
+
+## Future changes
+
+This DIP does not prohibit future proposals for adding partially-specified parameter names with reordering, nor does it prohibit the inclusion of parameter names as part of mangled function names. Named template arguments should also remain a future possibility.
 
 ## Breaking Changes and Deprecations
 
