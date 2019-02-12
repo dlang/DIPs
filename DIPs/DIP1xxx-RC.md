@@ -10,16 +10,16 @@
 
 ## Abstract
 
-Named arguments (otherwise known as unordered arguments) adds a new method to pass data to functions and initialize templates. It encourages passing of publically accesible information via named while discouraging passing internal information via it.
-Seperation of named versus unnamed is done for seperation of concerns; implementation versus API.
+Named arguments (otherwise known as unordered arguments) adds a new method to pass data to functions and initialize templates. It encourages arguments being passed of publicly accessible information via named while discouraging passing internal information.
+Separation of named versus unnamed is done for separation of concerns; implementation versus API.
 
 ### Reference
 
 There have been many conversations on D's NewsGroup attempting to suggest named arguments. For example [1](https://forum.dlang.org/post/khcalesvxwdaqnzaqotb@forum.dlang.org) and [2](https://forum.dlang.org/post/n8024o$dlj$1@digitalmars.com).
 
-Multiple library solutions have been attempted [1](https://forum.dlang.org/post/awjuoemsnmxbfgzhgkgx@forum.dlang.org) and [2](https://github.com/CyberShadow/ae/blob/master/utils/meta/args.d). Both of which do work but does not make the distinction between internal and public API arguments; which it cannot do without a lot more cruft.
+Multiple library solutions have been attempted [1](https://forum.dlang.org/post/awjuoemsnmxbfgzhgkgx@forum.dlang.org), [2](https://github.com/CyberShadow/ae/blob/master/utils/meta/args.d) and [3](https://forum.dlang.org/post/wtccivdgrgteyinqwtdr@forum.dlang.org). Each work for the author's purpose but they have been known to be less than desirable to work with e.g. [1](https://forum.dlang.org/post/xwghendahfjgceikuxvh@forum.dlang.org), [2](https://forum.dlang.org/post/ohrilhjbhddjkkqznlsn@forum.dlang.org) and [3](https://forum.dlang.org/post/n837bu$vam$5@digitalmars.com). However, because all of these are library based solutions they cannot solve the internal versus public API aspects that this DIP offers for named parameters.
 
-A [DIP](https://wiki.dlang.org/DIP88) (88) has been drafted, but never PR'd. Further work was done by Neia Neutuladh, but it has not been made public. At the time of writing Yuxuan Shui has a draft [DIP](https://github.com/yshui/DIPs/blob/master/DIPs/DIP1xxx-YS.md) in the review queue that is much more limited.
+A [DIP](https://wiki.dlang.org/DIP88) (88) has been drafted, but never PR'd. Further work has been done by Neia Neutuladh, but it has not been made public. At the time of writing Yuxuan Shui has a draft [DIP](https://github.com/yshui/DIPs/blob/master/DIPs/DIP1xxx-YS.md) in the review queue that is much more limited.
 
 ## Contents
 * [Rationale](#rationale)
@@ -30,26 +30,27 @@ A [DIP](https://wiki.dlang.org/DIP88) (88) has been drafted, but never PR'd. Fur
 
 ## Rationale
 
-Named arguments are a fairly popular language feature from dynamic languages which has been very highly requested on D's NewsGroup. It is available in Objective-C so it is also compatibility issue not just an enhancement for D.
+Named arguments are a fairly popular language feature from dynamic languages which has been very highly requested on D's NewsGroup. During the period of 2018 saw four threads related to named arguments with one being not small in size [1](https://forum.dlang.org/post/hckwmgnobondvdmnjzxr@forum.dlang.org). Objective-C uses named parameters quite heavily so it potentially can be used as a compatibility feature not just as an enhancement for D.
 
-Unlike other languages however, this DIP does not aid in having all or even most arguments to be in _any_ order. The majority of arguments should remain ordered; this aids in readability and tooling. This removes a lot of potential problems which has been discussed and highly disliked within the D community about this concept.
+One of the key features that have been requested [1](https://forum.dlang.org/post/eefptgwdqhsbxjqjjmpy@forum.dlang.org), [2](https://forum.dlang.org/post/mp9l9m$1cjt$2@digitalmars.com) and disliked is having arguments passed in any order [1](https://forum.dlang.org/post/bqyzgobnvrtrapcawguw@forum.dlang.org), [2](https://forum.dlang.org/post/m1h8if$223r$1@digitalmars.com). Unlike other languages, this DIP does not aid in having arguments in any order. The majority of arguments should remain ordered; this aids in readability and tooling.
 
-As a D only feature, it gives us more ways to describe interfaces in their usage but not what happens inside them. The decision to focus upon publically accessible aspects of an API using named arguments instead of their internals is to help make code clearer with preference of decreasing the number of template initations. A great example of this is ``max(a : 1, b : 3)`` is not more readable or understandable than ``max(1, 3)``. But ``MyInputRange!(Foo).Type`` is better than ``ElementType!(MyInputRange!(Foo))`` and describes that much more clearer that the type of the input range is clearly owned by ``MyInputRange`` not the mythical ``ElementType`` template.
+This DIP expands upon D's meta-programming features and extends the new feature proposal into function arguments for consistency. It should only be used within ``extern(D)`` code for the purposes of enhancing the interfaces into symbols and types. Without altering the internal logic itself.
+
+To demonstrate this let's assume we have a function called max that has the prototype ``int max(int a, int b)``. You would normally call it like ``max(1, 2)``. But if we were to convert it to use named parameters ``int max(<int a, int b>)`` and then call it via ``max(a: 1, b: 2)`` it would not be more readable or usable. Instead, the purpose of this DIP is to remove boilerplate code. An example of this is input ranges with the template ``ElementType``.
 
 ## Description
 
-This DIP adds a second kind of argument/parameter, named. Alternative names is ordered and unordered arguments. Ordered arguments is the current arrangement requiring that all argument be passed in the same order of the parameters defining them. But with unordered arguments, they can appear in any order or if specified to be optional at the parameter side, not at all.
+This DIP proposes a second parameter type for use by template and function arguments. This second type is a named variant that does not affect overload resolution. Instead, it provides an optional set of named parameters that can be passed and then retrieved from a type when used as a template argument.
 
-Named arguments are not affected by the passing of unnamed arguments. It does not matter where they go. So ``func(1, 2, o:true)`` is the same as ``func(1, o:true, 2)`` or ``func(o:true, 1, 2)``.
+When using a named parameter they must be passed in the same order relative to other named arguments but may exist in any order relative to unnamed arguments. For the prototype ``void func(int a, int b, <bool o=false>)`` the function calls ``func(1, 2, o:true)`` is the same as ``func(1, o:true, 2)`` or ``func(o:true, 1, 2)``.
 
-At the template side, if it is not a function and the template parameters does not have any unnamed parameters you may omit the curved brackets. So ``struct Foo(<T>) {}`` is equivalent to ``struct Foo<T> {}``.
+In this proposal triangle brackets are used to donate the naming of parameters. They only exist on the declaration side and if there is only named parameters when used with a struct, class or union the curved brackets may be omitted. This has the intended side effect of encouraging types to be accessible outside of the type being initiated i.e. ``struct Foo<T> {}`` allows for ``T`` to be retrieved via ``Foo!(T: int).T``.
 
-If a named argument does not have a default value, it must be assigned or it is an error.
-Named arguments can be in any order, they cannot have values depending on each other, default or otherwise.
+If a named parameter does not have a default value, it must have an argument giving it a value, making it non-optional. The values on named parameters at the declaration point must not refer to each other but may do so using existing rules against unnamed parameters.
 
 To get a tuple of all named parameter names for (template instances or non-templated) functions, the trait ``__traits(getNamedParameters, T)`` can be used.
 
-Named arguments may be specified on structs, classes, unions, template blocks and mixin templates. As well as functions and methods. When used with structs, classes, unions or template blocks named arguments may be accessed by their identifier. E.g.
+Named arguments may be specified on structs, classes, unions, template blocks, and mixin templates. As well as functions and methods. When used with structs, classes, unions or template blocks named arguments may be accessed by their identifier. I.e.
 
 ```D
 struct MyWorld<string Name> {
@@ -68,20 +69,23 @@ void main() {
 }
 ```
 
-This feature is quite convenient because it means that variadic template arguments and variadic function arguments can come before named arguments. So:
+An issue of having named parameters not affected by overload resolution and ordering, in general, is how they behave with other language features. For template variadic and variadic function arguments in general, they are not affected by them. They are explicitly set breaking out of the run of values. This means that the following arguments if any will not be the prior one. In the example, this means that the following code is valid and you cannot continue passing integers after setting ``shouldFree``.
 
 ```D
-void func(T..., <alias FreeFunc>)(T t, <bool shouldFree=false>) {
-}
+func!(FreeFunc : someRandomFunc)(1, 2, 3, shouldFree : true);
 
-void abc() {
-	func!(FreeFunc : someRandomFunc)(1, 2, 3, shouldFree : true);
+void func(T..., <alias FreeFunc>)(T t, <bool shouldFree=false>) {
 }
 ```
 
-Is in fact valid.
+Conflicting definitions of functions is a major issue with overload resolution and named parameters can make this more problematic. By making named parameters not affect overload resolution it means you will get the same error as if ``c`` was not named in the following example. An example was courteously created by Adam D. Ruppe.
 
-For convenience at the definition side, you may combine named arguments together or keep them seperate, it is up to you.
+```D
+void foo(int a, <int c = 0>) {}
+void foo(int a, string b = "", <int c = 0>) {}
+```
+
+Named parameters may be combined into the same set of triangle brackets, or kept separate. It depends upon the stylistic choice or for the developer's convenience.
 
 ```D
 struct TheWorld<string Name, Type> {
@@ -95,8 +99,6 @@ void goodies(T, <T t>, <U:class=Object>)(string text) {
 alias myGoodies = goodies!(int, t:8);
 alias myOtherGoodies = goodies!(U:Exception, string, t : "hi!");
 ```
-
-Any symbol that has named arguments, the named arguments are not considered for overload resolution. This puts a requirement on the unnamed arguments being unique and easily resolved.
 
 ### Grammar changes
 
@@ -146,7 +148,7 @@ TraitsKeyword:
 
 #### Ranges
 
-Removes the usage of ``ElementType`` and initiations of it by making the type used a member.
+Removes the usage of ``ElementType`` and allow getting the ``Type`` without initializing any templates.
 
 ```D
 struct Adder<SourceType, Type=SourceType.Type> {
@@ -175,11 +177,11 @@ auto adder(Source)(Source source, Source.Type toAdd) {
 
 #### Logging
 
-Overridable but no longer interacts poorly with other arguments. Requiring no smelly work arounds.
+An example of a previously problematic (although compilable code) is a logging function that takes in the module name, function, and line number. This example already works today without unnamed arguments, it does make it clearer that you do not need to pass them and has very little to do with the user calling the function. Because it has been more explicitly stated that it should not be changed by default.
 
 ```D
-void log(T...)(T args, <string moduleName = __MODULE__, uint lineNumber = __LINE__>) {
-    writeln(moduleName, "[", lineNumber, "] ", args);
+void log(T...)(T args, <string moduleName = __MODULE__, string functionName = __FUNCTION__, uint lineNumber = __LINE__>) {
+    writeln(moduleName, ":', functionName, "[", lineNumber, "] ", args);
 }
 ```
 
@@ -190,8 +192,8 @@ Here are some ideas for future DIP's.
 
 ### Restrictions
 
-This DIP has a very loose definition of the parameters/arguments. In other languages they have ordering and other restrictions in place.
-While this is a point of contention, this DIP will not address them directly. Instead adding of artificial restrictions should be left to a future DIP after the community has had some experience in using them.
+This DIP has a very loose definition of the parameters/arguments. In other languages, they have ordering and other restrictions in place.
+While this is a point of contention, this DIP will not address them directly. Instead of adding artificial restrictions, it should be left to a future DIP after the community has had some experience in using them.
 
 ### API Alias parameters
 
@@ -202,7 +204,7 @@ void func(int foo, string bar)
 alias(foo=[food, foo2], bar=offset) {}
 ```
 
-Multiple attributes could be applied but you must pick one set of identifiers used inside a single attribute e.g. either "foo", "food" or "foo2" and either "bar" or "offset" at call/initaition site.
+Multiple attributes could be applied but you must pick one set of identifiers used inside a single attribute e.g. either "foo", "food" or "foo2" and either "bar" or "offset" at call/initiation site.
 
 Identifiers should note overlap between attributes so:
 
@@ -217,7 +219,7 @@ Would not be valid. So that any combination can be used freely within its scope.
 ## Breaking Changes and Deprecations
 
 No breaking changes are expected.
-Angle brackets are not a valid start or end of template parameter or function argument.
+Angle brackets are not a valid start or end of a template parameter or function argument.
 
 
 ## Copyright & License
