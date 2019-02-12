@@ -19,7 +19,7 @@ There have been many conversations on D's NewsGroup attempting to promote named 
 
 Multiple library solutions have been attempted [1](https://forum.dlang.org/post/awjuoemsnmxbfgzhgkgx@forum.dlang.org), [2](https://github.com/CyberShadow/ae/blob/master/utils/meta/args.d) and [3](https://forum.dlang.org/post/wtccivdgrgteyinqwtdr@forum.dlang.org). Each work for the author's purpose but they have been known to be less than desirable to work with e.g. [1](https://forum.dlang.org/post/xwghendahfjgceikuxvh@forum.dlang.org), [2](https://forum.dlang.org/post/ohrilhjbhddjkkqznlsn@forum.dlang.org) and [3](https://forum.dlang.org/post/n837bu$vam$5@digitalmars.com). However, because all of these are library based solutions they cannot solve the internal versus public API aspects that this DIP offers for named parameters.
 
-A [DIP](https://wiki.dlang.org/DIP88) (88) has been drafted, but never PR'd. Further work has been done by Neia Neutuladh, but it has not been made public. At the time of writing Yuxuan Shui has a draft [DIP](https://github.com/yshui/DIPs/blob/master/DIPs/DIP1xxx-YS.md) in the review queue that is much more limited.
+The [DIP 88](https://wiki.dlang.org/DIP88) has been drafted, but was never PR'd. Further work has been done by Neia Neutuladh, but it has not been made public. At the time of writing Yuxuan Shui has a draft [DIP](https://github.com/yshui/DIPs/blob/master/DIPs/DIP1xxx-YS.md) in the review queue that is much more limited.
 
 ## Contents
 * [Rationale](#rationale)
@@ -30,17 +30,13 @@ A [DIP](https://wiki.dlang.org/DIP88) (88) has been drafted, but never PR'd. Fur
 
 ## Rationale
 
-Named arguments are a fairly popular language feature from dynamic languages which has been very highly requested on D's NewsGroup. During the period of 2018 saw four threads related to named arguments with one being not small in size [1](https://forum.dlang.org/post/hckwmgnobondvdmnjzxr@forum.dlang.org). Objective-C uses named parameters quite heavily but does not support reordering [0](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/DefiningClasses/DefiningClasses.html#//apple_ref/doc/uid/TP40011210-CH3-SW5%7CiOS) so it potentially can be used as a compatibility feature not just as an enhancement for D. As of writing Objective-C has become undocumented officially; Swift as its replacement is documented [1](https://docs.swift.org/swift-book/LanguageGuide/Functions.html#ID166). Other languages include Ada, Kotlin, Python, R, Ruby, and Scala [1](https://en.wikipedia.org/wiki/Named_parameter#Use_in_programming_languages).
+Named parameters as a language feature are a fairly widespread language feature that has seen adoption in many popular languages as of 2019 according to the [TIOBE](https://www.tiobe.com/tiobe-index/) index. These languages include Ada, Kotlin, C#, Python, R, Ruby, and Scala [1](https://en.wikipedia.org/wiki/Named_parameter#Use_in_programming_languages). They have been used in system API's on OSX without the support of reordered arguments. These have been written in Objective-C which does offer named parameters but with the restriction of them having to be ordered [1](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/DefiningClasses/DefiningClasses.html#//apple_ref/doc/uid/TP40011210-CH3-SW5%7CiOS).
 
-One of the key features that have been requested [1](https://forum.dlang.org/post/eefptgwdqhsbxjqjjmpy@forum.dlang.org), [2](https://forum.dlang.org/post/mp9l9m$1cjt$2@digitalmars.com) and disliked is having arguments passed in any order [1](https://forum.dlang.org/post/bqyzgobnvrtrapcawguw@forum.dlang.org), [2](https://forum.dlang.org/post/m1h8if$223r$1@digitalmars.com). Unlike other languages, this DIP does not aid in having arguments in any order. The majority of arguments should remain ordered; this aids in readability and tooling.
-
-This DIP expands upon D's meta-programming features and extends it to include function arguments for consistency. It should only be used within ``extern(D)`` code for the purposes of enhancing the interfaces into symbols and types. Without altering the internal logic itself.
-
-To demonstrate this let's assume we have a function called max that has the prototype ``int max(int a, int b)``. You would normally call it like ``max(1, 2)``. But if we were to convert it to use named parameters ``int max(<int a, int b>)`` and then call it via ``max(a: 1, b: 2)`` it would not be more readable or usable. Instead, the purpose of this DIP is to remove boilerplate code. An example of this is input ranges with the template ``ElementType``.
+Of the many language behaviors that have been requested over the years has been named parameters [1](https://forum.dlang.org/post/eefptgwdqhsbxjqjjmpy@forum.dlang.org), [2](https://forum.dlang.org/post/mp9l9m$1cjt$2@digitalmars.com), but there have been caveats. Some people have disliked having arguments passed in any order [1](https://forum.dlang.org/post/bqyzgobnvrtrapcawguw@forum.dlang.org), [2](https://forum.dlang.org/post/m1h8if$223r$1@digitalmars.com). Unlike other languages, this DIP does not aid in having arguments in any order. The majority of arguments should remain ordered; this aids in readability and tooling.
 
 ## Description
 
-This DIP proposes a second parameter type for use by template and function arguments. This second type is a named variant that does not affect overload resolution or normal unnamed arguments to templates or functions. Instead, it provides an optional set of named parameters that can be passed and then retrieved from a type when used as a template argument.
+This DIP proposes a second parameter type for use by ``extern(D)`` code in template and function arguments. This second type is a named variant that does not affect overload resolution or normal unnamed arguments to templates or functions. Instead, it provides an optional set of named parameters that can be passed and then retrieved from a type when used as a template argument.
 
 When using a named parameter they must be passed in the same order relative to other named arguments but may exist in any order relative to unnamed arguments. For the prototype ``void func(int a, int b, <bool o=false>)`` the function calls ``func(1, 2, o:true)`` is the same as ``func(1, o:true, 2)`` or ``func(o:true, 1, 2)``.
 
@@ -219,7 +215,7 @@ Would not be valid. So that any combination can be used freely within its scope.
 ## Breaking Changes and Deprecations
 
 No breaking changes are expected.
-Angle brackets are not a valid start or end of a template parameter or function argument.
+Angle brackets are not a valid start or end of a template parameter or function parameters.
 
 
 ## Copyright & License
