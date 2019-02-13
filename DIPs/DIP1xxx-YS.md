@@ -50,7 +50,7 @@ It is difficult to decipher the meaning of each argument. Though some readers ma
 of `values` or `7`, there is no way to know at the call site what `false` or `null` refer to.
 One must consult the function's documentation. This is a real problem for which even Google's 
 C++ coding style guide provides a solution in the form of using comments to annotate the 
-arguments, an approach the DIP author finds insufficient (and is addressed later in this proposal).
+arguments [0](https://google.github.io/styleguide/cppguide.html#Function_Argument_Comments), an approach the DIP author finds insufficient (and is addressed later in this proposal).
 
 In addition, this proposal has the added benefit of protecting against silent breakage in cases when
 a function's parameters are repurposed and renamed. For example:
