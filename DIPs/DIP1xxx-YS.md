@@ -40,7 +40,7 @@ possibilities that are opened by the implementation of named arguments as found 
 However, this DIP does not preclude such features from being implemented in a future extension of
 the language.
 
-Consider the follwing example of a function invocation in D:
+Consider the following example of a function invocation in D:
 
 ```d
 DecimalNumber product = CalculateProduct(values, 7, false, null);
@@ -50,7 +50,7 @@ It is difficult to decipher the meaning of each argument. Though some readers ma
 of `values` or `7`, there is no way to know at the call site what `false` or `null` refer to.
 One must consult the function's documentation. This is a real problem for which even Google's 
 C++ coding style guide provides a solution in the form of using comments to annotate the 
-parameters, an approach the DIP author finds insufficient (and is addressed later in this proposal).
+arguments, an approach the DIP author finds insufficient (and is addressed later in this proposal).
 
 In addition, this proposal has the added benefit of protecting against silent breakage in cases when
 a function's parameters are repurposed and renamed. For example:
@@ -83,12 +83,12 @@ error of the following nature: "Named argument 'foo' does not match function par
 
 ### Completeness
 
-When more than one argument exists in an argument list, either all arguments must be annotated or none at all. Given an argument list of length `l` and the number of named arguments `n`, the compiler
-should generate an error when `n > 0 && n < l`.
+When more than one argument exists in an argument list, either all arguments must be annotated or none at all. Given an argument list of length `len` and the number of named arguments `n`, the compiler
+should generate an error when `n > 0 && n < len`.
 
 ### Ordering of arguments
 
-Name arguments should be treated as unordered arguments, meaning they can be arranged in any order
+Named arguments should be treated as unordered arguments, meaning they can be arranged in any order
 in the argument list. For example, `drawRect` above could be called in the following manner:
 
 ```d
@@ -142,7 +142,7 @@ add(a: 1, b: 2);
 }
 ```
 
-It might be useful to have parameter names included in the mangled name of a function, so changing the ordering of parameters won't break existing binaries. Such is beyond the scope of this DIP. A future DIP may address this issue, so as a provision for this future change, it should be prohibited to define two `@named` functions with parameter lists that are reordering of each other. For example:
+It might be useful to have parameter names included in the mangled name of a function, so changing the ordering of parameters won't break existing binaries. Such is beyond the scope of this DIP. A future DIP may address this issue, so as a provision for this future change, it should be prohibited to define two `@named` functions with parameter lists that are a reordering of each other. For example:
 
 ```d
 @named:
@@ -154,7 +154,7 @@ int add(int b, int a) { ... }
 
 There are several library-only alternatives, however, they generally add noise to function calls, and/or require fundamental changes to how functions are defined.
 
-For example, in one of the proposed solutions, it is necessaryto call functions like so:
+For example, in one of the proposed solutions, it is necessary to call functions like so:
 
 ```d
 args!(add, a=>1, b=>1);
