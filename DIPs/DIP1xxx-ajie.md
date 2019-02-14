@@ -11,7 +11,8 @@
 ## Abstract
 
 This DIP proposes that foreach loops should have an option to be annotated
-as `auto ref`, which infers elements `ref`ness and non-referrable elements.
+as `auto ref`, which infers elements `ref`ness based on whether the elements have
+memory addresses.
 
 This is to allow iteration over a range of non-copyable elements without explicit need
 to adapt the code for that [4].
@@ -34,8 +35,6 @@ to adapt the code for that [4].
 - [5] std.algorithm.iteration.each documentation
     * https://dlang.org/phobos/std_algorithm_iteration.html#.each
 
-
-
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
@@ -50,7 +49,7 @@ by reference.
 
 One is forced to iterate the range by reference if the element type is a `struct` with
 a disabled postblit, since iteration by value constructs the iteration variable by
-copy. As of DMD 2.082.0, you can iterate any range by reference, but there already
+copy. As of DMD 2.084.1, you can iterate any range by reference, but there already
 is a pull request [1] to disallow such iteration for ranges whose `front` is
 an rvalue [3]. That pull request is approved by Andrei Alexandrescu, implying that
 at least the underlying concept there is officially accepted.
@@ -169,7 +168,7 @@ void main(){
     uniqueElements.writeDeepLengthA;
 
     // Will be error after DMD pull request 8437 [1] is merged
-    unaddressedElements.writeDeepLengthA;
+    unaddressedElements.writeDeepLengthB;
     // Ok, prints 14
     uniqueElements.writeDeepLengthB;
 
