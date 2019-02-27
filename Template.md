@@ -14,15 +14,12 @@ Required.
 
 Short and concise description of the idea in a few lines.
 
-### Reference
-
-Optional links to reference material such as existing discussions, research papers
-or any other supplementary materials.
 
 ## Contents
 * [Rationale](#rationale)
 * [Description](#description)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [References](#references)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
@@ -53,6 +50,10 @@ supposed to handle breakage in a non-intrusive manner. Changes that may break
 user code and have no well-defined deprecation process have a minimal chance of
 being approved.
 
+### References
+
+Optional links to reference material such as existing discussions, research papers
+or any other supplementary materials.
 
 ## Copyright & License
 
