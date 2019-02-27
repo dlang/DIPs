@@ -34,7 +34,7 @@ But it does not work for template arguments:
 
 ```d
 template t(alias f) { }
-t(s.f); // does not compile
+t!(s.f); // does not compile
 ```
 
 ## Description
