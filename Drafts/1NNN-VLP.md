@@ -33,8 +33,18 @@ alias f = s.f;
 But it does not work for template arguments:
 
 ```d
-template t(alias f) { }
-t!(s.f); // does not compile
+import std.stdio, std.meta;
+
+struct S {
+    void f() { }
+}
+
+void t(alias f)() { f(); writeln ("hello world"); }
+void main()
+{
+    S s;
+    t!(s.f); // does not compile
+}
 ```
 
 ## Description
