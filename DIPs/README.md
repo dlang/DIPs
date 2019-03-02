@@ -4,8 +4,8 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1018](./DIP1018.md)|                           The Copy Constructor|      Final Review|
-|[1019](./DIP1019.md)|                           Named Arguments Lite| Community Round 1|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
+|[1019](./DIP1019.md)|                           Named Arguments Lite|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1`**`|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1`**`|
