@@ -7,7 +7,6 @@
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1019](./DIP1019.md)|                           Named Arguments Lite|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
-|[1004](./DIP1004.md)|                         Inherited Constructors|Post-Preliminary 1`**`|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1`**`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 |[1000](./DIP1000.md)|                                Scoped Pointers|             Draft|
@@ -39,3 +38,8 @@
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
 |[1006](./other/DIP1006.md)   |Providing More Selective Control Over Contracts|
+
+## Abandoned DIPS
+|                           ID|                                 Title|
+|-----------------------------|--------------------------------------|
+|[1004](./other/DIP1004.md)   |                Inherited Constructors|
