@@ -19,7 +19,7 @@ Short and concise description of the idea in a few lines.
 * [Rationale](#rationale)
 * [Description](#description)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [References](#reference)
+* [Reference](#reference)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
