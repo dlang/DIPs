@@ -3,12 +3,13 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1020](./DIP1020.md)|                               Named Parameters| Community Round 1|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1019](./DIP1019.md)|                           Named Arguments Lite|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
-|[1008](./DIP1008.md)|                           Exceptions and @nogc|Post-Preliminary 1`**`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 |[1005](./DIP1005.md)|               Dependency-Carrying Declarations|         Postponed|
+|[1008](./DIP1008.md)|                           Exceptions and @nogc|         Postponed|
 
 `*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
 
