@@ -36,7 +36,7 @@ With such a strong statement advocating for memory-safety, and trends confirming
 
 The software development field has been aware of memory-safety issues for decades which has contributed to the rise of more modern general-purpose programming languages (e.g. Go, Rust, C#/VB.Net, Swift, Java) that are memory-safe out-of-the-box.  Those languages require users to employ special techniques to opt out of memory-safety; doing nothing is, efectively, opting in to memory safety.  D, on the other hand, is in the minority in this class of programming languages as **D is currently NOT memory-safe out-of-the-box** and requires users to opt into memory safety using the `@safe` attrbute; doing nothing is, effectively, opting out of memory safety.
 
-As a consequence of the [Default Effect](https://en.wikipedia.org/wiki/Default_effect)[3], users may perceive D as an unsafe language if `@safe` is not the default.
+As a consequence of the [Default Effect](https://en.wikipedia.org/wiki/Default_effect)[3], quoted below, users may perceive D as an unsafe language if `@safe` is not the default.
 
 > Defaults might affect the meaning of choice options and thus agents' choices over them. For example, it has been shown that under an opt-in policy in organ donation choosing not to become an organ donor is perceived as a choice of little moral failing. Under an opt-out policy, in contrast, choosing not to be an organ donor is perceived as morally more deficient. These differences in evaluation might affect the rational choice over these options.
 
