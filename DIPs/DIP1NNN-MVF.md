@@ -68,7 +68,7 @@ Upon approval of this DIP, a new page will be created at [dlang.org](http://dlan
 
 The [dlang.org home page](http://dlang.org) and [dlang.org download page](https://dlang.org/download.html) will feature a prominent notice informing users of the transition, with a link to the aforementioned page describing the transition.  The [dlang.org calendar](https://dlang.org/calendar.html) will be updated with any important milestones, and will be updated and maintained as the transition progresses.
 
-Additional announcements can also be made throught [The D Blog](https://dlang.org/blog/), reddit, Hackker News, and potentially other social media to reach as broad an audience as possible.  This will also serve to raise greater interest in D.
+Additional announcements can also be made through [The D Blog](https://dlang.org/blog/), reddit, Hackker News, and potentially other social media to reach as broad an audience as possible.  This will also serve to raise greater interest in D.
 
 This stage will help users understand what to expect and give them a full year to plan how they wish to transition with D, ask questions, and raise any potential issues before anything happens.
 
