@@ -120,7 +120,7 @@ DMD will be updated to be a `@safe`-by-default compiler.
 
 A changelog entry detailing these changes will accompany the release in which they appear.
 
-### Stage 4: Epoc plus 1 year: Deprecate Transition Features
+### Stage 4: Epoc plus 1 year: Invalidate `-transition=safeByDefault` Flag
 
 DMD will be updated to produce an error if the compiler is invoked with the `-transition=safeByDefault` flag stating that the flag is no longer needed and should not be used.  The `-revert=safeByDefault` flag will remain unchanged.
 
