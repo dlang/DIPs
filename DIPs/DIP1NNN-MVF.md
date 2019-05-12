@@ -61,8 +61,8 @@ Transitioning D to a `@safe`-by-default language will demonstrate that D is seri
 
 This DIP proposes a very simple path forward that will not introduce any breaking changes if users utilize the transition features being proposed.  Within 2 years, starting from the approval of this DIP, D will be `@safe`-by-default.  Existing users, with the flip of a compiler switch, will be able to maintain existing behavior and avoid any breaking changes.  Using the proposed new `version` identifier, `D_SystemByDefault`, users will be able to precisely manage the transition in their code with the full power of D's exceptional meta-programming facilities.
 
-### Stage 1: Epoch minus 2 years: Raising Awareness
-The approval announcement of this DIP will serve as the official announcement, and the beginning of the transition, marking **Epoch minus 2 years**.
+### Stage 1: Raising Awareness
+The approval announcement of this DIP will serve as the official announcement, and the beginning of the transition, marking **Stage 1**.
 
 Upon approval of this DIP, a new page will be created at [dlang.org](http://dlang.org) detailing the transition plan, schedule, milestones and any additional information to help users understand when the transition will occur, how it will affect them, and how they can transition with D.  It will be updated and maintained as the transition progresses.
 
@@ -70,11 +70,11 @@ The [dlang.org home page](http://dlang.org) and [dlang.org download page](https:
 
 Additional announcements can also be made through [The D Blog](https://dlang.org/blog/), reddit, Hackker News, and potentially other social media to reach as broad an audience as possible.  This will also serve to raise greater interest in D.
 
-This stage will help users understand what to expect and give them a full year to plan how they wish to transition with D, ask questions, and raise any potential issues before anything happens.
+This stage must persist for at least 1 year giving users ample time to plan how they wish to transition with D, ask questions, and raise any potential issues before anything happens.
 
-### Stage 2: Epoch minus 1 year: Introduction of Compiler Flags
+### Stage 2: Introduction of Compiler Flags
 
-DMD will be updated with 2 compiler flags, `-transition=safeByDefault` and `-revert=safeByDefault`.
+After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler flags, `-transition=safeByDefault` and `-revert=safeByDefault`.
 
   * Invoking the compiler with `-transition=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce code that is `@system`-by-default, maintaining the status quo.
@@ -110,6 +110,8 @@ version (D_SystemByDefault) { } else
 
 A changelog entry detailing said features will accompany the release in which they appear.
 
+These new features must persist for at least 1 year before moving on to **Stage 3: Epoch**
+
 ### Stage 3: Epoc - D Becomes `@safe`-by-Default Programming Language
 
 DMD will be updated to be a `@safe`-by-default compiler.
@@ -120,21 +122,27 @@ DMD will be updated to be a `@safe`-by-default compiler.
 
 A changelog entry detailing these changes will accompany the release in which they appear.
 
-### Stage 4: Epoc plus 1 year: Invalidate `-transition=safeByDefault` Flag
+This stage must persist for at least 1 year before moving on to **Stage 4**.
+
+### Stage 4: Invalidate `-transition=safeByDefault` Flag
 
 DMD will be updated to produce an error if the compiler is invoked with the `-transition=safeByDefault` flag stating that the flag is no longer needed and should not be used.  The `-revert=safeByDefault` flag will remain unchanged.
 
-### Stage 5: Epoc plus 2 years: Remove Transition Features
+This stage must persist for at least 1 year before moving on to **Stage 5**.
+
+### Stage 5: Remove Transition Features
 
 The `-transition=safeByDefault` compiler flag will be removed.  The compiler will emit a standard unrecognized flag error any time it is used.  The `-revert=safeByDefault` flag will remain unchanged.
 
+At this stage, the transition is complete.
+
 ### (Optional) - Deprecate `@system`-by-Default Features
 
-Any time after **Epoc** the compiler can be updated to deprecate and eventually remove the `-revert=safeByDefault` compiler flag, the `D_SystemByDefault` version identifier, and the `@system`-by-default behavior.  However, that is out of scope for this DIP.  They can be deprecated and removed quickly using D's normal deprecation process, maintained indefinitely, or anything in between at the discretion of the language authors.
+Any time after **Stage 3: Epoc** the compiler can be updated to deprecate and eventually remove the `-revert=safeByDefault` compiler flag, the `D_SystemByDefault` version identifier, and the `@system`-by-default behavior.  However, that is out of scope for this DIP.  They can be deprecated and removed quickly using D's normal deprecation process, maintained indefinitely, or anything in between at the discretion of the language maintainers.
 
 ### Scope
 
-This DIP will only address the `@safe` attribute.  Unlike the other classes of attributes (e.g. purity, mutability, and throwability), D already has everything it needs to negate the `@safe` attribute or override the compiler's safety constraints through the user of the `@system` and `@trusted` attributes respectively.  Therefore, no new language features or modifications are being proposed.
+This DIP will only address the `@safe` attribute.  Unlike the other classes of attributes (e.g. purity, mutability, and throwability), D already has everything it needs to negate the `@safe` attribute using the `@system` attribute, or override the compiler's safety constraints using the `@trusted` attribute.  Thefore, by limiting the scope of this DIP to just the safety-related attributes, no new language features or modifications are required.
 
 ## Breaking Changes and Deprecations
 
