@@ -59,7 +59,7 @@ Transitioning D to a `@safe`-by-default language will demonstrate that D is seri
 
 ## Description
 
-This DIP proposes a very simple path forward that will not introduce any breaking changes if users utilize the transition features being proposed.  Within 2 years, starting from the approval of this DIP, D will be `@safe`-by-default.  Existing users, with the flip of a compiler switch, will be able to maintain existing behavior and avoid any breaking changes.  Using the proposed new `version` identifier, `D_SystemByDefault`, users will be able to precisely manage the transition in their code with the full power of D's exceptional meta-programming facilities.
+This DIP proposes a very simple path forward that will not introduce any breaking changes if users utilize the transition features being proposed.  After a minimum of 2 years, starting from the approval of this DIP, D will be `@safe`-by-default.  Existing users, with the flip of a compiler switch, will be able to maintain existing behavior, opting-out of `@safe`-by-default, and avoiding any breaking changes.  Using the proposed new `version` identifier, `D_SystemByDefault`, users will be able to precisely manage the transition in their code with the full power of D's exceptional meta-programming facilities.
 
 ### Stage 1: Raising Awareness
 The approval announcement of this DIP will serve as the official announcement, and the beginning of the transition, marking **Stage 1**.
@@ -83,6 +83,8 @@ After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler 
   * Templates without an explicit `@safe`, `@trusted`, or `@system` attribute will remain agnostic, inferring their attributes from the site of their insantiation, regardless of whether the compiler was invoked with one of the aforementioned compiler flag or not, maintaining the status quo.
 
 DMD will also be updated with a new `version` identifier `D_SystemByDefault` that will be set to `true` any time the compiler is invoked with `-revert=safeByDefault` or neither flag.  Utilizing D's fantastic design by introspection features, users will be able to use `D_SystemByDefault` in their code to futher manage the transition with greater detail and greater precision, as illustrated below.
+
+These new compiler features will give early adopters to either opt-in or opt-out of the safe-by-default feature before either action becomes compulsory.
 
 ```D
 // Ensuring a module is only compilable with a `@safe`-by-default compiler
