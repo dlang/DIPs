@@ -109,6 +109,194 @@ i. e. without the index.
 
 If the static rewriting detailed above ultimately fails, rewriting with dynamic indexing operators is done.
 
+## Examples
+
+### Closed Tuples
+
+Static indexing could be used to implement ecapsulated tuples which do not auto expand (in contrast to Phobos’ `Tuple`[⁽²⁾]).
+* The entries can be retrieved, but not (re)assigned after construction.
+* Slices (rather sections) of the tuple are tuples again.
+
+```D
+struct ReadOnlyTuple(Ts...)
+{
+    private Ts values;
+
+    Ts[i] opStaticIndex(size_t i)() { return values[i]; }
+
+    static struct Slice { size_t lowerBound, upperBound; }
+    alias opSlice = Slice; // Note: opStaticSlice possible, but not necessary
+    ReadOnlyTuple!(Ts[slice.lowerBound .. slice.upperBound]) opStaticIndex(Slice slice)()
+    {
+        return typeof(return)(values[slice.lowerBound .. slice.upperBound]);
+    }
+}
+
+unittest
+{
+    alias T4 = ReadOnlyTuple!(int, string, char, ulong);
+    T4 tup4 = T4(1, "foo", 'c', ulong.max - 1);
+    assert(tup4[0] == 1); // rewrites to assert(tup4.opStaticIndex!(0) == 1);
+    alias T2 = ReadOnlyTuple!(string, char);
+    auto tup2 = tup4[1 .. 3]; // rewrites to auto tup2 = tup4.opStaticIndex!(tup4.opSlice(1, 3));
+    static assert(is(typeof(tup2) == T2));
+    assert(tup2[0] == tup4[1]); // rewrites to assert(tup2.opStaticIndex!0 == tup4.opStaticIndex!1);
+    assert(tup2[1] == tup4[2]); // rewrites to assert(tup2.opStaticIndex!1 == tup4.opStaticIndex!2);
+}
+```
+
+### Tuples with Slice Operator
+
+Tuples can have a varying degree of homo-/heterogeneity:
+* It can be fully homogeneous, i. e. all the entries have exactly the same type, e. g. a tuple of `int` and `int`.
+* It can be unqualified homogeneous, i. e. the unqualified types of the entries are exactly the same type, e. g. a tuple of `int` and `immutable(int)`.
+* It can be class homogeneous in the sense that all the entries are of class type and have a common base; that base class can be `Object` but may be more concrete. This is true only if all of the entries are `shared` or all are not `shared`.[⁽⁵⁾]
+* It can be convertible homogeneous, i. e. there is a type that all entries can be converted to. The selection of the common type could allow user-defined conversions, e. g. setting the common type of `int` and `uint` to `ulong`.
+* It is fully heterogeneous if it is neither of these.
+
+The homogeneity properties can be made use of via Design by Introspection:[⁽⁴⁾]
+* Fully homogeneous tuples are basically static arrays and can be converted by `opIndex` to a slice of the unique underlying type.
+* Unqualified homogeneous tuples can be sliced, too: The types hava a common type using implicit qualifier conversions[⁽⁵⁾] and that type is the underlying type of that slice.
+
+```D
+import sophisticated.tuple : Tuple;
+import pack.a : A;
+
+alias A2 = Tuple!(A, immutable(A));
+// A2 being unqualified homogeneous, provides opIndex() returning const(int)[].
+A2 t = int2(A(1), immutable(A)(2));
+auto slice = t[]; // rewrites to auto slice = t.opIndex();
+static assert(is(typeof(slice) == const(A)[]));
+
+// A2 being unqualified homogeneous, provides opIndex(size_t index) returning const(A) by reference.
+
+inout(A) f(ref inout(A) value);
+
+size_t i = userInput!size_t();
+auto x = f(t[i]); // rewrites to auto x = f(t.opIndex(i));
+```
+
+* Class homogeneous tuples can be sliced returning `const(Base)[]` or `const(shared(Base))[]` depending on `shared`.
+* Convertible homogeneous tuples cannot be sliced in general, but be iterated by value using `opApply`.
+
+```D
+import sophisticated.tuple : Tuple;
+import pack.a : A;
+import pack.b : B;
+import pack.c : C;
+import sophisticated.tratis : CommonType;
+
+static assert(is(CommonType!(A, B) == C));
+
+alias AB = Tuple!(A, B);
+
+// AB being convertible homogeneous with common type C provides opIndex(size_t i), which converts the
+// i-th value at runtime to the common type C, and opApply that walks the iteration variable
+// through the conversions of the entries of the tuple to the common type C.
+
+AB ab = AB(A.init, B.init);
+foreach (i, c; ab) // non-static loop
+{
+    static assert(is(typeof(c) == C));
+    if (i == 0) assert(ab[0] == ab[i]); // rewrites to assert(ab.opStaticIndex[0] == ab.opIndex[i]);
+    if (i == 1) assert(ab[1] == ab[i]); // rewrites to assert(ab.opStaticIndex[1] == ab.opIndex[i]);
+    // The last two asserts need not actually hold (cf. conversion from ulong.max to float),
+    // but if the conversion from A and B to C is indeed lossless (e.g. the conversion from int to long),
+    // it is reasonable to expect them to hold.
+}
+// As the conversions of the entries are intermediate values, `ref` iteration is not possible.
+
+size_t i = userInput!size_t();
+static assert(is(typeof(ab[i]) == C));
+
+void f(ref C value); //1
+void f(    C value); //2
+auto x = f(ab[i]); // rewrites to auto x = f(ab.opIndex(i)); and calls //2
+```
+
+All of this is not possible in the current state of the D Programming Language,
+because defining `opIndex` makes the compiler not rewrite the tuple in terms of its alias this.
+This is true even if the call to `opIndex` does not compile.
+
+### Compile-time Random-access Ranges
+
+One can implement some kind of compile-time version of Phobos’ `iota`[⁽⁶⁾] and other ranges.
+To the outside oberserver, these seem to contain values, but the values are caluclated
+from internal state without creating the values beforehand.
+
+```D
+template iota(T, T start, T end, T step)
+{
+    template opStaticIndex(size_t i)
+    {
+        static assert (start + i * step < end, "static index out of range");
+        enum opStaticIndex = start + i * step;
+    }
+}
+
+alias i = iota!(int, 1, 10+1, 2);
+
+static assert(i[0] == 1); // rewrites to static assert(i.opStaticIndex!0 == 1);
+static assert(i[1] == 3); // rewrites to static assert(i.opStaticIndex!1 == 3);
+```
+
+It could be argued that this semantics can be implemented easily in the current form of the language
+and that the proposed static indexing syntax is mere a readability concern,
+but syntax is relevant in a metaprogramming context.
+
+### Simulate Compile-time Aware Funcion Parameters
+
+Utilizing `static` members, a type can be defined that
+
+```D
+struct format
+{
+    template opStaticIndex(string fmt)
+    {
+        static string opStaticIndex(Ts...)(Ts arguments)
+        {
+            import std.format : format;
+            return format!fmt(arguments);
+        }
+    }
+
+    static auto opIndex(string fmt)
+    {
+        return Formatter(fmt);
+    }
+
+    struct Formatter
+    {
+        string fmt;
+        this(string fmt) { this.fmt = fmt; }
+
+        string opCall(Ts...)(Ts arguments)
+        {
+            import std.format : format;
+            return format(fmt, arguments);
+        }
+    }
+}
+
+unittest
+{
+    string fmt = "%s";
+    auto s = format[fmt](1); // rewritten auto s = format.opIndex(fmt).opCall(1)
+    static assert(is(typeof(s) == string));
+    assert(s == "1", "s == '" ~ s ~ "'");
+}
+
+unittest
+{
+    enum string fmt = "%s";
+    enum s = format[fmt](1); // rewritten enum s = format.opStaticIndex!fmt(1);
+    static assert(is(typeof(s) == string));
+    static assert(s == "1");
+}
+```
+
+It can be argued that this usage of the static and dynamic indexing operators is a form of abuse of operator overloading.
+
 ## Alternatives
 
 ### Current State
