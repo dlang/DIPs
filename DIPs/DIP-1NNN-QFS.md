@@ -2,11 +2,11 @@
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
-| DIP:            | (number/id -- assigned by DIP Manager)                          |
+| DIP:            | *TBD by DIP Manager*                                            |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Quirin F. Schroll (q.schroll@gmail.com)                         |
-| Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e. g. "Approved" or "Rejected") |
+| Implementation: | *none*                                                          |
+| Status:         | *Will be set by the DIP manager*                                |
 
 ## Abstract
 
@@ -27,7 +27,7 @@ where the indexing parameters are required to be – or handled differently when
 ## Rationale
 
 Implementing heterogeneous structures like tuples, indexing syntax can only be implemented in a very narrow way
-(cf. [Current State Alternatives](#current-state).
+(cf. [Current State Alternatives](#current-state)).
 Given a user-defined tuple type, sophisticated indexing would require handling the indexing parameters as
 compile-time values to determine even the type of the indexing expression.
 
@@ -240,7 +240,7 @@ template iota(T, T start, T end, T step)
     }
 }
 
-alias i = iota!(int, 1, 10+1, 2);
+alias i = iota!(int, 1, 10 + 1, 2);
 
 static assert(i[0] == 1); // rewrites to static assert(i.opStaticIndex!0 == 1);
 static assert(i[1] == 3); // rewrites to static assert(i.opStaticIndex!1 == 3);
@@ -248,9 +248,9 @@ static assert(i[1] == 3); // rewrites to static assert(i.opStaticIndex!1 == 3);
 
 It could be argued that this semantics can be implemented easily in the current form of the language
 and that the proposed static indexing syntax is mere a readability concern,
-but syntax is relevant in a metaprogramming context.
+but syntax is relevant in a meta-programming context.
 
-### Simulate Compile-time Aware Funcion Parameters
+### Simulate Compile-time Aware Function Parameters
 
 Utilizing `static` members, a type can be defined that
 
