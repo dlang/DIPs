@@ -156,13 +156,13 @@ unittest
 Tuples can have a varying degree of homo-/heterogeneity:
 * It can be fully homogeneous, i. e. all the entries have exactly the same type, e. g. a tuple of `int` and `int`.
 * It can be unqualified homogeneous, i. e. the unqualified types of the entries are exactly the same type, e. g. a tuple of `int` and `immutable(int)`.
-* It can be class homogeneous in the sense that all the entries are of class type and have a common base; that base class can be `Object` but may be more concrete. This is true only if all of the entries are `shared` or all are not `shared`.[⁽⁵⁾]
+* It can be class homogeneous in the sense that all the entries are of class type and have a common base; that base class can be `Object` but may be more concrete. This is true only if all of the entries are `shared` or all are not `shared`.[⁽³⁾]
 * It can be convertible homogeneous, i. e. there is a type that all entries can be converted to. The selection of the common type could allow user-defined conversions, e. g. setting the common type of `int` and `uint` to `ulong`.
 * It is fully heterogeneous if it is neither of these.
 
 The homogeneity properties can be made use of via Design by Introspection:[⁽⁴⁾]
 * Fully homogeneous tuples are basically static arrays and can be converted by `opIndex` to a slice of the unique underlying type.
-* Unqualified homogeneous tuples can be sliced, too: The types hava a common type using implicit qualifier conversions[⁽⁵⁾] and that type is the underlying type of that slice.
+* Unqualified homogeneous tuples can be sliced, too: The types hava a common type using implicit qualifier conversions[⁽³⁾] and that type is the underlying type of that slice.
 
 ```D
 import sophisticated.tuple : Tuple;
@@ -226,7 +226,7 @@ This is true even if the call to `opIndex` does not compile.
 
 ### Compile-time Random-access Ranges
 
-One can implement some kind of compile-time version of Phobos’ `iota`[⁽⁶⁾] and other ranges.
+One can implement some kind of compile-time version of Phobos’ `iota`[⁽⁵⁾] and other ranges.
 To the outside oberserver, these seem to contain values, but the values are caluclated
 from internal state without creating the values beforehand.
 
@@ -307,7 +307,7 @@ It can be argued that this usage of the static and dynamic indexing operators is
 
 ### Current State
 
-Currently, the only way to mimic indexing is using alias this to a compile-time sequence (generated e. g. by Phobos’ `AliasSeq` template[⁽³⁾]).
+Currently, the only way to mimic indexing is using alias this to a compile-time sequence (generated e. g. by Phobos’ `AliasSeq` template[⁽⁶⁾]).
 In Phobos, `Tuple` does exactly that.[⁽²⁾]
 This has several limitations:
 
@@ -321,7 +321,7 @@ Consequently, Phobos’ `Tuple` when sliced, does not return a `Tuple` but a seq
 3. The sequence cannot be protected from modifications.
 It is fully exposed without any possibility to manage access to it.
 4. The complete sequence must exist in the first place.
-It might be desirable to pretend the existence of a sequence without storing a sequence (cf. Phobos’ `iota`[⁽²⁾]).
+It might be desirable to pretend the existence of a sequence without storing a sequence (cf. Phobos’ `iota`[⁽⁵⁾]).
 5. As alias this is already taken, one cannot alias this something different.
 
 The whole sequence approach can only be used for indexing with exactly one parameter.
@@ -368,26 +368,26 @@ Even then, the change would not actually break that code or change its semantics
 
 <!--- List of references --->
 
-⁽¹⁾ [D Language Specification on Operator Overloading](https://dlang.org/spec/operatoroverloading.html)
+ (1) [D Language Specification on Operator Overloading](https://dlang.org/spec/operatoroverloading.html)
 
-⁽²⁾ [D Library Documentation on std.typecons.Tuple](https://dlang.org/library/std/typecons/tuple.html)
+ (2) [D Library Documentation of std.typecons.Tuple](https://dlang.org/library/std/typecons/tuple.html)
 
-⁽³⁾ [D Library Documentation on std.meta.AliasSeq](https://dlang.org/library/std/meta/alias_seq.html)
+ (3) [D Language Specification on Implicit Qualifier Conversions](https://dlang.org/spec/const3.html#implicit_qualifier_conversions)
 
-⁽⁴⁾ [Alexandrescu at D Language Conference 2017, *Design by Introspection*](https://youtu.be/29h6jGtZD-U)
+ (4) [Andrei Alexandrescu at D Language Conference 2017: *Design by Introspection*](https://youtu.be/29h6jGtZD-U)
 
-⁽⁵⁾ [D Language Specification on Implicit Qualifier Conversions](https://dlang.org/spec/const3.html#implicit_qualifier_conversions)
+ (5) [D Library Documentation of std.range.iota](https://dlang.org/phobos/std_range.html#.iota)
 
-⁽⁶⁾ [D Library Documentation on std.range.iota](https://dlang.org/phobos/std_range.html#.iota)
+ (6) [D Library Documentation of std.meta.AliasSeq](https://dlang.org/library/std/meta/alias_seq.html)
 
 <!--- Markdown reference definitions --->
 
 [⁽¹⁾]: #references "D Language Specification on Operator Overloading"
 [⁽²⁾]: #references "D Library Documentation on std.typecons.Tuple"
-[⁽³⁾]: #references "D Library Documentation on std.meta.AliasSeq"
+[⁽³⁾]: #references "D Language Specification on Implicit Qualifier Conversions"
 [⁽⁴⁾]: #references "D Language Conference 2017, Talk by Andrei Alexandrescu, Design by Introspection"
-[⁽⁵⁾]: #references "D Language Specification on Implicit Qualifier Conversions"
-[⁽⁶⁾]: #references "D Library Documentation on std.range.iota"
+[⁽⁵⁾]: #references "D Library Documentation on std.range.iota"
+[⁽⁶⁾]: #references "D Library Documentation on std.meta.AliasSeq"
 
 ## Copyright & License
 
@@ -399,5 +399,3 @@ Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdom
 
 The DIP Manager will supplement this section with a summary of each review stage
 of the DIP process beyond the Draft Review.
-
-<!---  ’⁰¹²³⁴⁵⁶⁷⁸⁹⁽⁾ --->
