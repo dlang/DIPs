@@ -48,6 +48,10 @@ This is what the compiler does for static arrays:
 While, formally, indexing is a run-time operation, when using a compile-time known index that is out of bounds,
 the compiler will report an error.
 
+It is worth mentioning that this DIP introduces user-defined syntax that changes semantics based on compile-time
+availableness of syntactically identical arguments.
+It can be used to implement functions that are compile-time to some parameters.
+
 ## Description
 
 When a user-defined type has any of the following compiler-recognized members
@@ -74,6 +78,8 @@ The DIP proposes to add the following names to the compiler-recognized member na
 Notably absent is the name `opStaticDollar`.
 The rewrite of `$` remains unchanged,
 as `opDollar` does not require any function parameters.
+There are multiple examples in Phobos defining `opDollar` not by a function,
+but e. g. an `enum`.
 
 The DIP proposes that rewriting indexing expressions as per the spec,[⁽¹⁾]
 the compiler will first try static indexing operators,
