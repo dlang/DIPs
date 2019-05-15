@@ -339,6 +339,14 @@ the same way, meta-programming code does not have to distinguish
 dynamic arrays and user-defined random-access ranges when indexing them.
 The current solution is to ignore tuple-like types or to special-case specific ones.
 
+### Alternative Syntax
+
+If the language maintainers decide that overloading indexing syntax is not desirable,
+the DIP proposes to use the syntax `object![indices]` (note the exclamation mark) for static indexing.
+This syntax is is currently an error and therefore a mere addition to the language.
+Accordingly, indexing compile-time sequences should also be possible to do with the syntax `sequence![index]`
+to cater to meta-programming contexts.
+
 ### Compile-time Function Parameters
 
 If some way to discriminate function parameters for their compile-time availableness were implemented,
