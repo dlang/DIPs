@@ -246,7 +246,7 @@ addition to the language.
 - [16465](https://issues.dlang.org/show_bug.cgi?id=16465)
 #### Pull request with a 3-day prototype implementation
 - https://github.com/dlang/dmd/pull/9778
-#### An article that describes the problem in a simple way and focuses more on the implementation challenges
+#### An informal discussion and breakdown of the implementation challenges
 - [Template Aliases as Function Parameters](http://users.uoa.gr/~sdi1600105/dlang/alias.html)
 
 ## Copyright & License
