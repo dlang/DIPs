@@ -339,13 +339,44 @@ the same way, meta-programming code does not have to distinguish
 dynamic arrays and user-defined random-access ranges when indexing them.
 The current solution is to ignore tuple-like types or to special-case specific ones.
 
-### Alternative Syntax
+### Specific Syntax
 
 If the language maintainers decide that overloading indexing syntax is not desirable,
-the DIP proposes to use the syntax `object![indices]` (note the exclamation mark) for static indexing.
-This syntax is is currently an error and therefore a mere addition to the language.
+the DIP author proposes to use the syntax `object![indices]` (note the exclamation mark) for static indexing.
+This syntax is is currently an error as explicit template instanciation needs parentheses after the exclamation mark
+or a single one-token argument, but anything starting with an opening bracket is not a one-token argument.[⁽⁷⁾]
+Therefore, the proposed syntax a mere addition to the language.
 Accordingly, indexing compile-time sequences should also be possible to do with the syntax `sequence![index]`
 to cater to meta-programming contexts.
+
+In this case, the grammar of the D Programming Language has to be expanded.
+Section 10.22 of the specification[⁽⁸⁾] could be amended as follows:
+```diff
+ SliceExpression:
+     PostfixExpression [ ]
+     PostfixExpression [ Slice ,[opt] ]
++    PostfixExpression ! [ ]
++    PostfixExpression ! [ Slice ,[opt] ]
+ Slice:
+     AssignExpression
+     AssignExpression , Slice
+     AssignExpression .. AssignExpression
+     AssignExpression .. AssignExpression , Slice
+```
+Or, equivalently, it could be changed as follows:
+```diff
+ SliceExpression:
+-    PostfixExpression [ ]
+-    PostfixExpression [ Slice ,[opt] ]
++    PostfixExpression ![opt] [ ]
++    PostfixExpression ![opt] [ Slice ,[opt] ]
+ Slice:
+     AssignExpression
+     AssignExpression , Slice
+     AssignExpression .. AssignExpression
+     AssignExpression .. AssignExpression , Slice
+```
+The author is convinced that amending the grammar is an unnecessary inconveniance which lacks the necessary justifications.
 
 ### Compile-time Function Parameters
 
@@ -380,6 +411,10 @@ Even then, the change would not actually break that code or change its semantics
 
  (6) [D Library Documentation of std.meta.AliasSeq](https://dlang.org/library/std/meta/alias_seq.html)
 
+ (7) [D Language Specification on Explicit Template Instantiation](https://dlang.org/spec/template.html#explicit_tmp_instantiation)
+
+ (8) [D Language Specification on Slice Expressions](https://dlang.org/spec/expression.html#slice_expressions)
+
 <!--- Markdown reference definitions --->
 
 [⁽¹⁾]: #references "D Language Specification on Operator Overloading"
@@ -388,6 +423,8 @@ Even then, the change would not actually break that code or change its semantics
 [⁽⁴⁾]: #references "D Language Conference 2017, Talk by Andrei Alexandrescu, Design by Introspection"
 [⁽⁵⁾]: #references "D Library Documentation on std.range.iota"
 [⁽⁶⁾]: #references "D Library Documentation on std.meta.AliasSeq"
+[⁽⁷⁾]: #references "D Language Specification on Explicit Template Instantiation"
+[⁽⁸⁾]: #references "D Language Specification on Slice Expressions"
 
 ## Copyright & License
 
