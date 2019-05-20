@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Quirin F. Schroll (q.schroll@gmail.com)                         |
 | Implementation: | *none*                                                          |
-| Status:         | *Will be set by the DIP manager*                                |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
