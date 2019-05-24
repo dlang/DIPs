@@ -12,7 +12,7 @@
 
 In the current state of the D Programming Language, a user-defined type can only
 define indexing operators with function parameters.
-This DIP proposes additional compiler-recognized member names for implementing indexing
+This DIP proposes additional compiler-recognized member names to implement indexing
 where the indexing parameters are required to be – or handled differently when – known at compile-time.
 
 ## Contents
@@ -35,7 +35,7 @@ With the additions proposed by this DIP, it would be possible to make
 e. g. slices of Phobos’ `Tuple` return a `Tuple` again.
 
 With what this DIP proposes, custom types can provide the full range of syntactic possibilities of dynamic indexing
-also for the cases when the indexing parameters (the stuff in square brackets) be determined at compile-time
+also for the cases when the indexing parameters (the stuff in square brackets) should be determined at compile-time
 and made available to the handling members as template parameters instead of function parameters.
 
 As an example, the expression `object[i]` would be rewritten as `object.opStaticIndex!i` first.
@@ -43,7 +43,7 @@ If that succeeds, the handling member `opStaticIndex` can use the value of `i` a
 If that fails, `object[i]` will be rewritten as `object.opIndex(i)`, where `i` is a function parameter.
 
 As an additional benefit, even if not required, the custom type can check compile-time known indexing parameters
-for validity by overloading both dynamic and static indexing operators.
+for validity by overloading both *dynamic* and *static* indexing operators (terms see [Description](#description)).
 This is what the compiler does for static arrays:
 While, formally, indexing is a run-time operation, when using a compile-time known index that is out of bounds,
 the compiler will report an error.
@@ -51,6 +51,13 @@ the compiler will report an error.
 It is worth mentioning that this DIP introduces user-defined syntax that changes semantics based on compile-time
 availableness of syntactically identical arguments.
 It can be used to implement functions that are compile-time to some parameters.
+
+<!---
+You cannot use types as indexing arguments.
+All the arguments must have a type, i.e. for each argument of the form
+l .. u, typeof(l) and typeof(u) must compile,
+and for any other argument i, typeof(i) must compile.
+--->
 
 ## Description
 
@@ -378,6 +385,31 @@ Or, equivalently, it could be changed as follows:
 ```
 The author is convinced that amending the grammar is an unnecessary inconveniance which lacks the necessary justifications.
 
+### Using `opIndex` and Similar for Both
+
+The compiler-recognized member `opIndex` could be used for both, but that has several drawbacks:
+Reasoning about what the code will be doing is more complicated.
+
+```D
+struct S
+{
+    auto opIndex(size_t i = 0, T)(T t) { ... }
+}
+
+unittest
+{
+    S s;
+    s[0]("a"); // rewritten to s.opIndex!0("a"); i.e. s.opIndex!(0, string)("a"); // static indexing
+    s[1];   // rewrite to s.opIndex!1; fails.
+    s[1](); // rewrite to s.opIndex!1(); fails.
+    // Therefore in both cases:
+    // rewrite to s.opIndex(1); i.e. s.opIndex!(0, int)(1); plugging in template default arguments and type inference.
+}
+```
+
+After all, rather harmless looking code can trigger hard to predict behavior.
+
+
 ### Compile-time Function Parameters
 
 If some way to discriminate function parameters for their compile-time availableness were implemented,
@@ -428,7 +460,7 @@ Even then, the change would not actually break that code or change its semantics
 
 ## Copyright & License
 
-Copyright (c) 2018 by the D Language Foundation
+Copyright © 2018 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
