@@ -69,6 +69,15 @@ Packing the RHS instances in a nice alias is not only a way to reduce code size 
 it removes the burden from the user to know what a `PackedUpperTriangularMatrix` actually is. Right now,
 the user is exposed to unnecessary details, leading to code that is not as easy to comprehend.
 
+Consider that currently, similar functionality can be implemented as:
+```
+enum isPackedUpperTriangularMatrix(T) = is(T: Slice!(StairsIterator!(U*, "-")), U);
+auto foo(T)(T m) if(isPackedUpperTriangularMatrix!T) { /* ... */ }
+```
+
+The thesis is that in real-world situations, this alternative produces quite more unreadable code.
+It is has been discussed more extensively on [the comments of the PR](https://github.com/dlang/dmd/pull/9778#issuecomment-496169602)
+
 ## Description
 **Currently**: An template alias function parameter is not resolved to its aliased instance until after the function
 resolution stage. So, with the following code:
