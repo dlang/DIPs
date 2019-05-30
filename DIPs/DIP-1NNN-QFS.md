@@ -123,8 +123,8 @@ is rewritten as `object.opStaticIndexAssign(rhs)`,
 i. e. without template instantiation syntax.
 * The expression `object[indices] op= rhs`, where `op` is an overloadable binary index operator,
 is rewritten as `object.opStaticIndexOpAssign!(op, indices)(rhs)`.
-* The expression `object[indices]` if not preceded by a unary operator or followed by some assignment operator, or
-if so, but the above rewrites failed, will be rewritten as `object.opStaticIndex!(indices)`.
+* The expression `object[indices]`, if not preceded by a unary operator or followed by some assignment operator, or
+if so, when the above rewrites failed, will be rewritten as `object.opStaticIndex!(indices)`.
 If `indices` is the empty sequence and this rewrite fails, the expression
 is rewritten as `object.opStaticIndex`,
 i. e. without template instantiation syntax.
