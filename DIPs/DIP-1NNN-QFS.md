@@ -61,6 +61,8 @@ and for any other argument i, typeof(i) must compile.
 
 ## Description
 
+### Current State
+
 When a user-defined type has any of the following compiler-recognized members
 * `opIndex`,
 * `opIndexUnary`,
@@ -71,6 +73,8 @@ When a user-defined type has any of the following compiler-recognized members
 
 the compiler generates appropriate rewrites using the aforementioned members
 to provide indexing for that type when using indexing syntax.[⁽¹⁾]
+
+### Definitions
 
 These member functions, except `opDollar`, will be called *dynamic indexing operators* in the following,
 in contrast to the *static indexing operators* proposed by this DIP.
@@ -83,10 +87,20 @@ The DIP proposes to add the following names to the compiler-recognized member na
 * `opStaticSlice`
 
 Notably absent is the name `opStaticDollar`.
-The rewrite of `$` remains unchanged,
-as `opDollar` does not require any function parameters.
+By the proposed changes of this DIP, the rewrite of `$` remains unchanged,
+as `opDollar` does not require any function parameters.[⁽¹⁾]
 There are multiple examples in Phobos defining `opDollar` not by a function,
 but e. g. an `enum`.
+
+The *overloadable unary index operators* are `+`, `-`, `~`, `*`, `++`, `--`.
+
+The *overloadable binary index operators* are `+`, `-`, `*`, `/`, `%`, `^^`, `&`, `|`, `^`, `<<`, `>>`, `>>>`, `~`.
+
+An indexing expression is called *one-dimensional* if it is of the form
+`expression[index]` where `index` is a single expression (i. e. no commas involved)
+that is not lowered to a sequence with 0 elements or a sequence with 2 or more elements.
+
+### Rewrites of Indexing Expressions
 
 The DIP proposes that rewriting indexing expressions as per the spec,[⁽¹⁾]
 the compiler will first try static indexing operators,
@@ -95,17 +109,19 @@ and if that fails, try dynamic indexing operators.
 The DIP does not propose to change the rewrites to dynamic indexing operators.
 
 The rewrites to static indexing operators is completely analogous to the dynamic ones,
-with the only difference being that the arguments inside the square brackets will be
-used as template parameters instead of function parameters.
+with the main difference that the arguments inside the square brackets will be
+plugged in as template arguments instead of function arguments.
+The other arguments, notably only the right-hand sides of assignments,
+are unaffected and still run-time function arguments.
 
-* The expression `op object[indices]`, where `op` is some overloadable unary operator,
+* The expression `op object[indices]`, where `op` is an overloadable unary index operator,
 is rewritten as `object.opStaticIndexUnary!(op, indices)`.
 * The expression `object[indices] = rhs`
 is rewritten as `object.opStaticIndexAssign!(indices)(rhs)`.
 If `indices` is the empty sequence and this rewrite fails, the expression
 is rewritten as `object.opStaticIndexAssign(rhs)`,
 i. e. without template instantiation syntax.
-* The expression `object[indices] op= rhs`, where `op` is some overloadable binary operator,
+* The expression `object[indices] op= rhs`, where `op` is an overloadable binary index operator,
 is rewritten as `object.opStaticIndexOpAssign!(op, indices)(rhs)`.
 * The expression `object[indices]` if not preceded by a unary operator or preceded by some assignment operator, or
 if so, but the above rewrites failed, will be rewritten as `object.opStaticIndex!(indices)`.
@@ -113,22 +129,43 @@ If `indices` is the empty sequence and this rewrite fails, the expression
 is rewritten as `object.opStaticIndex`,
 i. e. without template instantiation syntax.
 
-* In any case, if some of the `indices` are of the form `lower .. upper`, that part
+Indexing parameters of the form `lower .. upper` are handled separately.
+
+* If some of the `indices` are of the form `lower .. upper`, that part
 is rewritten as `object.opStaticSlice!(i, lower, upper)`,
 where `i` is the 0-based index of the slice in the square brackets.
-If this rewrite fails, the part
+* If this rewrite fails and the indexing expression is one-dimensional, the part
 is rewritten as `object.opStaticSlice!(lower, upper)`,
 i. e. without the index.
+* If this rewrite also fails, the part is rewritten as `opSlice!i(lower, upper)`,
+where `i` is the 0-based index of the slice in the square brackets.
+* If this rewrite fails and the indexing expression is one-dimensional, the part
+is rewritten as `object.opSlice(lower, upper)`.
+* Otherwise, it is an error.
 
-If the static rewriting detailed above ultimately fails, rewriting with dynamic indexing operators is done.
+### Expansion Operator
+
+Additionally and optionally, the DIP proposes to add the compiler-recognized member `opExpand`.
+It is expected to be an alias to a sequence.
+
+For an Expression `expr`, `expr...` would be a valid Expression, too.
+It is rewritten as `expr.opExpand` if the type of `expr` has that member.
+Otherwise, if the type of `expr` has a compile-time known `length` or `opDollar` member
+and static indexing expressions `expr[0]` to `expr[expr.length - 1]` or `expr[expr.opDollar - 1]` compile,
+`expr...` rewrites to the sequence `expr[0], ..., expr[expr.length - 1]`.
+Note that it is *not* a comma expression.
+Note also, that in contrast to C++’s `...` in expressions, they are not forwarded into the expression.
+
+The compiler-recognized member `opExpand` is itself optional.
+The rest of the change can be useful without the `opExpand` rewrite.
 
 ## Examples
 
 ### Closed Tuples
 
 Static indexing could be used to implement ecapsulated tuples which do not auto expand (in contrast to Phobos’ `Tuple`[⁽²⁾]).
-* The entries can be retrieved, but not (re)assigned after construction.
-* Slices (rather sections) of the tuple are tuples again.
+* The entries can be read (by copy) with the syntax `tuple[index]`, but not (re)assigned after construction.
+* Slice expressions of the tuple are sub-tuples, typed as a kind of tuple, again.
 
 ```D
 struct ReadOnlyTuple(Ts...)
@@ -138,10 +175,17 @@ struct ReadOnlyTuple(Ts...)
     Ts[i] opStaticIndex(size_t i)() { return values[i]; }
 
     static struct Slice { size_t lowerBound, upperBound; }
-    alias opSlice = Slice; // Note: opStaticSlice possible, but not necessary
-    ReadOnlyTuple!(Ts[slice.lowerBound .. slice.upperBound]) opStaticIndex(Slice slice)()
+
+    // Note: This fails, but should work. TODO: File bug report.
+    alias opSlice = Slice;
+
+    template opStaticIndex(Slice slice)
     {
-        return typeof(return)(values[slice.lowerBound .. slice.upperBound]);
+        alias SubTuple = ReadOnlyTuple!(Ts[slice.lowerBound .. slice.upperBound]);
+        SubTuple opStaticIndex()
+        {
+            return SubTuple(values[slice.lowerBound .. slice.upperBound]);
+        }
     }
 }
 
@@ -162,26 +206,26 @@ unittest
 
 Tuples can have a varying degree of homo-/heterogeneity:
 * It can be fully homogeneous, i. e. all the entries have exactly the same type, e. g. a tuple of `int` and `int`.
-* It can be unqualified homogeneous, i. e. the unqualified types of the entries are exactly the same type, e. g. a tuple of `int` and `immutable(int)`.
+* It can be qualifier homogeneous, i. e. the unqualified types of the entries are exactly the same type, e. g. a tuple of `int` and `immutable(int)`.
 * It can be class homogeneous in the sense that all the entries are of class type and have a common base; that base class can be `Object` but may be more concrete. This is true only if all of the entries are `shared` or all are not `shared`.[⁽³⁾]
-* It can be convertible homogeneous, i. e. there is a type that all entries can be converted to. The selection of the common type could allow user-defined conversions, e. g. setting the common type of `int` and `uint` to `ulong`.
+* It can be convertible homogeneous, i. e. there is a type that all entries can be converted to. The selection of the common type could allow user-defined conversions, e. g. setting the common type of `int` and `uint` to `long`.
 * It is fully heterogeneous if it is neither of these.
 
 The homogeneity properties can be made use of via Design by Introspection:[⁽⁴⁾]
 * Fully homogeneous tuples are basically static arrays and can be converted by `opIndex` to a slice of the unique underlying type.
-* Unqualified homogeneous tuples can be sliced, too: The types hava a common type using implicit qualifier conversions[⁽³⁾] and that type is the underlying type of that slice.
+* Qualifier homogeneous tuples can be sliced, too: The types hava a common type using implicit qualifier conversions[⁽³⁾] and that type is the underlying type of that slice.
 
 ```D
 import sophisticated.tuple : Tuple;
 import pack.a : A;
 
 alias A2 = Tuple!(A, immutable(A));
-// A2 being unqualified homogeneous, provides opIndex() returning const(int)[].
+// A2 being qualifier homogeneous, provides opIndex() returning const(int)[].
 A2 t = int2(A(1), immutable(A)(2));
 auto slice = t[]; // rewrites to auto slice = t.opIndex();
 static assert(is(typeof(slice) == const(A)[]));
 
-// A2 being unqualified homogeneous, provides opIndex(size_t index) returning const(A) by reference.
+// A2 being qualifier homogeneous, provides opIndex(size_t index) returning const(A) by reference.
 
 inout(A) f(ref inout(A) value);
 
@@ -204,7 +248,7 @@ static assert(is(CommonType!(A, B) == C));
 alias AB = Tuple!(A, B);
 
 // AB being convertible homogeneous with common type C provides opIndex(size_t i), which converts the
-// i-th value at runtime to the common type C, and opApply that walks the iteration variable
+// i-th value at run-time to the common type C, and opApply that walks the iteration variable
 // through the conversions of the entries of the tuple to the common type C.
 
 AB ab = AB(A.init, B.init);
@@ -259,7 +303,16 @@ but syntax is relevant in a meta-programming context.
 
 ### Simulate Compile-time Aware Function Parameters
 
-Utilizing `static` members, a type can be defined that
+Utilizing `static` operator members, different code could be generated depending
+whether parameters are compile-time constants or not.
+The most prominent example is the function `format`.
+In current D, the caller must use different code to make the compiler check whether format specifiers
+and argument types match: `format!(formatString)(arguments)` versus `format(formatString, arguments)`.
+This differnece is minor, and the user surely would want the checks in every case where it is possible.
+A function that does the checks when possible and otherwise emits run-time checks cannot be implemented
+as in D, there is no syntax that decides on parameters being compile-time constants.
+
+Here is an example how this can be implemented.
 
 ```D
 struct format
@@ -309,6 +362,9 @@ unittest
 ```
 
 It can be argued that this usage of the static and dynamic indexing operators is a form of abuse of operator overloading.
+If the changes proposed by this DIP are implemented, the community will decide if such code
+is considered abuse of operator overloading and therefore discuraged (in most cases) or if it becomes a pattern
+to solve this kind of problem.
 
 ## Alternatives
 
@@ -387,27 +443,9 @@ The author is convinced that amending the grammar is an unnecessary inconvenianc
 
 ### Using `opIndex` and Similar for Both
 
-The compiler-recognized member `opIndex` could be used for both, but that has several drawbacks:
-Reasoning about what the code will be doing is more complicated.
+The compiler-recognized member `opIndex` and derivatives could be used for both,
+but that changes what current code intends.
 
-```D
-struct S
-{
-    auto opIndex(size_t i = 0, T)(T t) { ... }
-}
-
-unittest
-{
-    S s;
-    s[0]("a"); // rewritten to s.opIndex!0("a"); i.e. s.opIndex!(0, string)("a"); // static indexing
-    s[1];   // rewrite to s.opIndex!1; fails.
-    s[1](); // rewrite to s.opIndex!1(); fails.
-    // Therefore in both cases:
-    // rewrite to s.opIndex(1); i.e. s.opIndex!(0, int)(1); plugging in template default arguments and type inference.
-}
-```
-
-After all, rather harmless looking code can trigger hard to predict behavior.
 
 
 ### Compile-time Function Parameters
