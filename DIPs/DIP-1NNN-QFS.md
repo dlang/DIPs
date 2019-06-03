@@ -486,7 +486,7 @@ A concrete corner case is this:
 ```D
 struct Example
 {
-    int opIndex(Ts...)(size_t[] ixs...) { return i; }
+    int opIndex(size_t i = 0)(size_t[] xs...) { return i; }
 }
 ```
 Let `example` be of type `Example` and given the expression `example[1]`,
