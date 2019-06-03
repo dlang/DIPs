@@ -146,15 +146,13 @@ is rewritten as `object.opSlice(lower, upper)`.
 Although not strictly necessary, this DIP proposes to enforce that the template parameters to lowering
 member templates are bound as template value parameters, i. e. to explicitly exclude types or aliases
 as indexing parameters.
-The reason for that are corner cases where types and and expressions
+The reason for that are corner cases where types and expressions
 could be conflated. Consider a user-defined type `T` with the member function declared `static R opIndex();`.
-Then `T[]`, interpreted as a type, *is* the type *slice of `T`*,
-but interpreted as an expression, it rewrites to `T.opIndex()` and *has* the type `R`.
-Therefore in the context `object[ T[] ]`, this rule enforces the rewrite as an expression
-where `T`s member function `opIndex` is called.
+Then `T[]`, interpreted as a type, is the type of slices of `T`,
+but interpreted as an expression, it rewrites to `T.opIndex()` and has the type `R`.
+Therefore in this context, for the expression `object[ T[] ]`, this rule enforces the rewrite to
+`object.opStaticIndex!(T.opIndex())` and does not allow `object.opStaticIndex!(T[])`.
 In the dynamic indexing rewrite, this problem did not arise as it is unambiguous.
-
-This enforcement can be achieved by an identity `enum` template.
 
 It should be mentioned that the language maintainers could decide to only perfer the template value parameter
 rewrite, but allow the binding of indxing parameters to other kinds of template parameter if the rewirites for value parameters fail.
