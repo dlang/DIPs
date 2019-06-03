@@ -52,13 +52,6 @@ It is worth mentioning that this DIP introduces user-defined syntax that changes
 availableness of syntactically identical arguments.
 It can be used to implement functions that are compile-time to some parameters.
 
-<!---
-You cannot use types as indexing arguments.
-All the arguments must have a type, i.e. for each argument of the form
-l .. u, typeof(l) and typeof(u) must compile,
-and for any other argument i, typeof(i) must compile.
---->
-
 ## Description
 
 ### Current State
@@ -69,7 +62,7 @@ When a user-defined type has any of the following compiler-recognized members
 * `opIndexAssign`,
 * `opIndexOpAssign`,
 * `opSlice`, and
-* `opDollar`
+* `opDollar`,
 
 the compiler generates appropriate rewrites using the aforementioned members
 to provide indexing for that type when using indexing syntax.[⁽¹⁾]
@@ -80,11 +73,11 @@ These member functions, except `opDollar`, will be called *dynamic indexing oper
 in contrast to the *static indexing operators* proposed by this DIP.
 
 The DIP proposes to add the following names to the compiler-recognized member names for operator overloading:
-* `opStaticIndex`
-* `opStaticIndexUnary`
-* `opStaticIndexAssign`
-* `opStaticIndexOpAssign`
-* `opStaticSlice`
+* `opStaticIndex`,
+* `opStaticIndexUnary`,
+* `opStaticIndexAssign`,
+* `opStaticIndexOpAssign`, and
+* `opStaticSlice`.
 
 Notably absent is the name `opStaticDollar`.
 By the proposed changes of this DIP, the rewrite of `$` remains unchanged,
@@ -128,6 +121,13 @@ if so, when the above rewrites failed, will be rewritten as `object.opStaticInde
 If `indices` is the empty sequence and this rewrite fails, the expression
 is rewritten as `object.opStaticIndex`,
 i. e. without template instantiation syntax.
+* If all that rewrites fail, rewrites to dynamic indexing operators are tried.
+
+It could be argued to first try unary dynamic indexing rewrites and binary assignment dynmaic indexing rewrites
+before static indexing rewrites without operators.
+The author sees this as a minor corner case, as overloading unary dynamic indexing and not unary static indexing,
+but static indexing, is an odd thing to do.
+<!--- Needs expansion --->
 
 Indexing parameters of the form `lower .. upper` are handled separately.
 
@@ -142,6 +142,42 @@ where `i` is the 0-based index of the slice in the square brackets.
 * If this rewrite fails and the indexing expression is one-dimensional, the part
 is rewritten as `object.opSlice(lower, upper)`.
 * Otherwise, it is an error.
+
+Although not strictly necessary, this DIP proposes to enforce that the template parameters to lowering
+member templates are bound as template value parameters, i. e. to explicitly exclude types or aliases
+as indexing parameters.
+The reason for that are corner cases where types and and expressions
+could be conflated. Consider a user-defined type `T` with the member function declared `static R opIndex();`.
+Then `T[]`, interpreted as a type, *is* the type *slice of `T`*,
+but interpreted as an expression, it rewrites to `T.opIndex()` and *has* the type `R`.
+Therefore in the context `object[ T[] ]`, this rule enforces the rewrite as an expression
+where `T`s member function `opIndex` is called.
+In the dynamic indexing rewrite, this problem did not arise as it is unambiguous.
+
+This enforcement can be achieved by an identity `enum` template.
+
+It should be mentioned that the language maintainers could decide to only perfer the template value parameter
+rewrite, but allow the binding of indxing parameters to other kinds of template parameter if the rewirites for value parameters fail.
+The author of the DIP believes that this – although it would make static indexing more powerful – would also make it even more prone to operator abuse.
+Secondly, such behavior could be allowed later if found useful in enough relevant cases.
+
+### Dollar
+
+Additionally and optionally, the DIP proposes to add the compiler-recognized member `opStaticDollar`.
+It is expected to evaluate to a compile-time constant.
+
+If the symbol `$` occurs in an indexing expression, it is rewritten as follows:
+* The symbol `$` is rewritten as `object.opStaticDollar!i`
+where `i` is the 0-based index of the parameter containing the `$` in the square brackets.
+* If this rewrite fails and the indexing expression is one-dimensional, the symbol `$`
+is rewritten as `object.opStaticDollar`.
+* If this rewrite fails, too, rewrites to `opDollar` are tried as per the current-state D Language Specification.
+
+Additionally, the value of `opStaticDollar!i` (or `opStaticDollar` in the fallback, one-dimensional-only case)
+must be a compile-time constant.
+As per the current-state D Language Specification, this additional reqirement is not enforced for `opDollar`.
+
+The author did not include `opStaticDollar` in the main proposal because it is not necessary for the goal of the DIP.
 
 ### Expansion Operator
 
@@ -158,6 +194,8 @@ Note also, that in contrast to C++’s `...` in expressions, they are not forwar
 
 The compiler-recognized member `opExpand` is itself optional.
 The rest of the change can be useful without the `opExpand` rewrite.
+
+The author did not include the expansion operator in the main proposal because it is not necessary for the goal of the DIP.
 
 ## Examples
 
@@ -385,7 +423,7 @@ Consequently, Phobos’ `Tuple` when sliced, does not return a `Tuple` but a seq
 It is fully exposed without any possibility to manage access to it.
 4. The complete sequence must exist in the first place.
 It might be desirable to pretend the existence of a sequence without storing a sequence (cf. Phobos’ `iota`[⁽⁵⁾]).
-5. As alias this is already taken, one cannot alias this something different.
+5. As the place of alias this is already taken, one cannot alias this to something different.
 
 The whole sequence approach can only be used for indexing with exactly one parameter.
 Multidimensional (including 0-dimensional) indexing is not possible.
@@ -415,38 +453,52 @@ to cater to meta-programming contexts.
 In this case, the grammar of the D Programming Language has to be expanded.
 Section 10.22 of the specification[⁽⁸⁾] could be amended as follows:
 ```diff
- SliceExpression:
-     PostfixExpression [ ]
-     PostfixExpression [ Slice ,[opt] ]
-+    PostfixExpression ! [ ]
-+    PostfixExpression ! [ Slice ,[opt] ]
- Slice:
-     AssignExpression
-     AssignExpression , Slice
-     AssignExpression .. AssignExpression
-     AssignExpression .. AssignExpression , Slice
+    SliceExpression:
+        PostfixExpression [ ]
+        PostfixExpression [ Slice ,[opt] ]
++       PostfixExpression ! [ ]
++       PostfixExpression ! [ Slice ,[opt] ]
+    Slice:
+        AssignExpression
+        AssignExpression , Slice
+        AssignExpression .. AssignExpression
+        AssignExpression .. AssignExpression , Slice
 ```
 Or, equivalently, it could be changed as follows:
 ```diff
- SliceExpression:
--    PostfixExpression [ ]
--    PostfixExpression [ Slice ,[opt] ]
-+    PostfixExpression ![opt] [ ]
-+    PostfixExpression ![opt] [ Slice ,[opt] ]
- Slice:
-     AssignExpression
-     AssignExpression , Slice
-     AssignExpression .. AssignExpression
-     AssignExpression .. AssignExpression , Slice
+    SliceExpression:
+-       PostfixExpression [ ]
+-       PostfixExpression [ Slice ,[opt] ]
++       PostfixExpression ![opt] [ ]
++       PostfixExpression ![opt] [ Slice ,[opt] ]
+    Slice:
+        AssignExpression
+        AssignExpression , Slice
+        AssignExpression .. AssignExpression
+        AssignExpression .. AssignExpression , Slice
 ```
 The author is convinced that amending the grammar is an unnecessary inconveniance which lacks the necessary justifications.
 
-### Using `opIndex` and Similar for Both
+### Using Dynamic Indexing for Both
 
-The compiler-recognized member `opIndex` and derivatives could be used for both,
-but that changes what current code intends.
+It was suggested to the author that the compiler-recognized members for dynamic indexing could be used for both,
+but that changes what current code intends, and in corner cases, changes behavior.
 
+A concrete corner case is this:
+```D
+struct Example
+{
+    int opIndex(Ts...)(size_t[] ixs...) { return i; }
+}
+```
+Let `example` be of type `Example` and given the expression `example[1]`,
+it rewrites to `example.opIndex(1)` which compiles and returns `0`;
+but if the rewrite `example.opIndex!1()` was tried first,
+it succeeds and returns `1`.
 
+While this example is somewhat artificial,
+it still demonstrates that breakage and silent change of meaning is possible.
+<!-- Elaborate --->
 
 ### Compile-time Function Parameters
 
@@ -462,8 +514,9 @@ The author only mentions this alternative as this might encourage that evaluatio
 ## Breaking Changes and Deprecations
 
 This change is purely additional.
-It only affects custom types that have members named like the aforementioned compiler-recognized member names which is presumed unlikely.
-Even then, the change would not actually break that code or change its semantics.
+It only affects user-defined types that have members accidently named like the aforementioned compiler-recognized member names which is presumed unlikely.
+This code, if it exists, would only be affected if indexing syntax is used on those types.
+If so, renaming the conflicting members will preserve the behavior.
 
 ## References
 
