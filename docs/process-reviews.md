@@ -21,7 +21,7 @@ The DIP manager will announce the review in the [D Forums] and open a thread whe
 
 Community Reviews will always begin within the first seven days of the month. Each round of a Community Review will continue for a period of 15 days from the date of the announcement unless terminated earlier by the DIP manager. The DIP manager will include the terminal date in the first post of the review thread. For example, a review beginning on Monday the 1st will end on Monday the 15th at a time specified by the DIP manager.
 
-At the end of the Community Review, the DIP manager will work with the DIP's POC to ensure all feedback has been addressed, revise the DIP as necessary, and include a summary of the review round in the Reviews section of the DIP. If the feedback leads to extensive revision, as judged by the DIP manager in consultation with the POC, the DIP manager may call for another review round. In that case, the status of the revised DIP will be set to `Community Review Round N`, where `N` is the sequential number of the new round. When any review round is completed, the status of the DIP will be set to `Post-Community Round N`.
+At the end of the Community Review, the DIP manager will work with the DIP's POC to ensure all feedback has been addressed, revise the DIP as necessary, and include a summary of the review round in the Reviews section of the DIP. If the feedback leads to extensive revision, as judged by the DIP manager in consultation with the POC, the DIP manager may call for another review round. In that case, the status of the revised DIP will be set to `Community Review Round N`, where `N` is the sequential number of the new round. DIPs requiring further Community Review rounds will take precedence over DIPs in Draft Review. When any review round is completed, the status of the DIP will be set to `Post-Community Round N`.
 
 ## Final Review
 A DIP may remain in the `Post-Community Round N` status for a maximum of 180 days. Periodically, the DIP manager will determine if any post-community DIP is ready to move forward to the Final Review stage. Only one DIP may be in this stage at any given time.
@@ -32,11 +32,11 @@ When a DIP enters the Final Review stage, the DIP manager will set its status to
 
 The purpose of the Final Review is to provide one final opportunity to examine the revisions made in response to the [Community Review](#community-review) rounds and further refine the DIP as necessary. Reviewers should familiarize themselves with the [DIP Reviewer Guidelines] to understand what is and is not acceptable in the Final Review.
 
-The DIP is not expected to undergo significant revision as a result of the Final Review. The exception to this rule is in the case that any major flaws are discovered which may have been overlooked in previous review rounds or introduced as a result of revision. In such a scenario, the DIP manager will consult with the DIP's POC and/or the language maintainers to determine how to proceed.
+The DIP is not expected to undergo significant revision as a result of the Final Review. The exception to this rule is in the case that any major flaws are discovered which may have been overlooked in previous review rounds or introduced as a result of revision. In such a scenario, the DIP manager will consult with the DIP's POC and/or the language maintainers to determine how to proceed. Most likely, this will require moving the DIP to one more round of Community Review, in which case it will have priority over DIPs in Draft Review.
 
 If no major flaws are discovered as a result of the Final Review, the DIP manager will set the status of the DIP to `Post-Final`, add a summary of the Final Review to the Reviews section of the DIP, and consult with the POC to determine if any revision is necessary. As soon as any required revisions are complete and any preceding DIP under Formal Assessment have been decided upon or otherwise removed from active consideration, the DIP manager will move the DIP to the next stage.
 
-#### Formal Assessment
+## Formal Assessment
 The DIP manager is required to submit a DIP to the language maintainers for Formal Assessment as soon as possible following the [Final Review](#final-review).
 
 The language maintainers will try to render judgement within 30 days of the start of the Formal Assessment. This is, however, an unpredictable process. It is not unusual for the language maintainers to require input from the DIP's POC, or to ask for revisions. Generally, the DIP manager will act as the intermediary for all interactions between the language maintainers and the POC via email. In some cases, circumstances may require direct discussion between the language maintainers and the POC via email or another medium.
@@ -45,7 +45,7 @@ If the language maintainers determine that revisions to the DIP are required, th
 
 After the language maintainers determine a final disposition for the DIP, the DIP manager will mark it as `Accepted` or `Rejected`. If they decide more time is needed, the `Extended` label may be appended to the DIP status. The DIP manager will periodically consult with the language maintainers to determine if the DIP is ready for a final disposition. At the end of 90 days, if the language maintainers are still not ready for a finial decision, the DIP manager may append the `Postponed` label.
 
-#### Postponed, Abandoned, and Superseded DIPs
+## Postponed, Abandoned, and Superseded DIPs
 At any point in the review process, the DIP's POC may request that the DIP manager mark the DIP status with either the `Postponed` or `Abandoned` label. The DIP manager may also independently decide to append either label to the DIP status if contact with the POC is lost. DIPs marked as such are frozen at the current stage of the DIP process.
 
 Postponed DIPs may be revived by the POC (or DIP Author(s)) at any time within 180 days from the day the label was added. If no request to revive the DIP is made after 180 days, the DIP manager will change the label from `Postponed` to `Abandoned` unless consultation with the POC warrants extension of the postponement.  Abandoned DIPs may be revived by anyone at any time. DIPs in the `Post-Final` state will not be marked as `Abandoned` and will instead be moved into the Formal Assessment stage, in which case a volunteer may be sought to apply any revisions requested by the language maintainers.
@@ -53,6 +53,17 @@ Postponed DIPs may be revived by the POC (or DIP Author(s)) at any time within 1
 When a postponed or abandoned DIP is revived, the DIP manager will consult with the new POC to determine if the DIP may continue the DIP process from the stage at which the label was applied, if it should move to an earlier stage, or if it should be completely rewritten and resubmitted as a new DIP.
 
 A DIP's status may be set to `Superseded` at any stage in the DIP process to indicate that the proposal was made obsolete, e.g. by the acceptance of an alternative proposal, the implementation of a feature similar to that proposed by the DIP, etc. Superseded DIPs may not be revived without the consent of the language maintainers.
+
+## The Ideal Process
+The following steps outline the process for the best-case scenario after a DIP is selected to leave Draft Review, in which the DIP does not require significant revision and no extra Community Review rounds are required.
+
+* the DIP enters Community Review in the first week of Month A.
+* after Community Review, the DIP author will have four weeks to complete any required revisions.
+* in the third week of Month B, the Final Review begins.
+* after Final Review, no revisions are required after the Final Review is complete and no other DIP is under active consideration, so the DIP may immediately move into Formal Assessment.
+* the language maintainers have enough information to render a verdict on the DIP within 30 days.
+
+So in the best-case scenario, a DIP will require two - three months to go from Community Review to acceptance or rejection. The DIP manager will strive to keep the process as short as possible, but it should be expected that the best-case scenario will be rare and a period of four or five months will be more common.
 
 [DIP Repository]: https://github.com/dlang/DIPs
 [D Forums]: https://forum.dlang.org/
