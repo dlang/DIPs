@@ -3,8 +3,8 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1019](./DIP1019.md)|                           Named Arguments Lite| Community Round 2|
 |[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
-|[1019](./DIP1019.md)|                           Named Arguments Lite|  Post-Community 1|
 |[1020](./DIP1020.md)|                               Named Parameters|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
