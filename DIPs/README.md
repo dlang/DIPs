@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1019](./DIP1019.md)|                           Named Arguments Lite| Community Round 2|
-|[1013](./DIP1013.md)|                        The Deprecation Process| Formal Assessment|
 |[1020](./DIP1020.md)|                               Named Parameters|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
@@ -22,6 +21,7 @@
 |[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept|
 |[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax|
 |[1010](./accepted/DIP1010.md)|                        Static foreach|
+|[1013](./accepted/DIP1013.md)|               The Deprecation Process|
 |[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics|
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor|
 
