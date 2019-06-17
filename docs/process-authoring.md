@@ -24,7 +24,7 @@ If communication with the POC is lost, then at least 30 days after the last know
 It is the responsibility of the DIP manager to provide the POC with regular updates throughout the process. If the POC receives no updates from the DIP manager after 30 days, and the DIP manager fails to respond to requests, the POC may contact the language maintainers directly to determine how to proceed.
 
 ## Step 2 - Fork the DIP Repository
-The primary DIP author will fork the [DIP repository] and copy the `Template.md` file to the `Drafts` subdirectory using the following naming convention: `1NNN-(POC initials).md`, where `(POC initials)` is replaced with the initials of the POC, e.g. `1NNN-JQC.md` when the POC is Joe Q. Coder.
+The primary DIP author will fork the [DIP repository] and copy the `Template.md` file to the `DIPs` subdirectory using the following naming convention: `1NNN-(POC initials).md`, where `(POC initials)` is replaced with the initials of the POC, e.g. `1NNN-JQC.md` when the POC is Joe Q. Coder.
 
 ## Step 3 - The Development Stage
 This is where the first draft of the DIP is assembled by the DIP author(s). The DIP author(s) should adhere to the structure of the [DIP Template] and should not change the ordering of the headings. New subheadings may be added as needed. The DIP author is expected to complete sections marked as "Required".
