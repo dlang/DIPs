@@ -10,11 +10,12 @@
 
 ## Abstract
 
-This DIP proposes that foreach loops should have an option to be annotated
-as `auto ref`, which infers elements `ref`ness based on whether the elements have
-memory addresses.
+This DIP proposes that foreach loops with `ref` keyword should only be legal when
+the elements of the range have memory addresses. It also proposes that for the current behaviour
+of `ref`, the loop can be annotated as `auto ref` instead.
 
-This is to allow iteration over a range of non-copyable elements without explicit need
+This is to enable the programmer to make sure that `foreach` will iterate by reference,
+while still allowing iteration over a range of non-copyable elements without explicit need
 to adapt the code for that [4].
 
 ### Reference
@@ -34,6 +35,9 @@ to adapt the code for that [4].
 
 - [5] std.algorithm.iteration.each documentation
     * https://dlang.org/phobos/std_algorithm_iteration.html#.each
+    
+- [6] `auto ref` language specification for function return values:
+	* https://dlang.org/spec/function.html#auto-ref-functions
 
 ## Contents
 * [Rationale](#rationale)
@@ -49,21 +53,26 @@ by reference.
 
 One is forced to iterate the range by reference if the element type is a `struct` with
 a disabled postblit, since iteration by value constructs the iteration variable by
-copy. As of DMD 2.084.1, you can iterate any range by reference, but there already
-is a pull request [1] to disallow such iteration for ranges whose `front` is
-an rvalue [3]. That pull request is approved by Andrei Alexandrescu, implying that
-at least the underlying concept there is officially accepted.
+copy. As of DMD 2.087.0, you can iterate any range by reference, but there already
+was a pull request [1] to disallow such iteration for ranges whose `front` is
+an rvalue [3]. That pull request did not end up disabling such an iteration due to
+practical issues, but was approved by Andrei Alexandrescu, implying that at the concept
+of `ref` meaning iteration by any method was officially considered a weakness.
+
+The reason this behaviour is a weakness is that the user cannot rely that `foreach(ref ...)`
+will iterate by reference. If a range with non-reference semantics is accidently
+passed to such a loop, it will be iterated by value, which is likely to be unexcepted.
 
 But in cases where the programmer does not modify the iteration variable, he/she does
-not care whether the iteration is done by reference or by value. Thus, there should
-be a way to iterate that works both with elements that are iterable only by
-value, and with non-copyable elements that can be iterated by reference.
+not care whether the iteration is done by reference or by value. Thus, when iterating
+by reference, the programmer should be able to choose whether the program will fallback
+to iteration by value when iteration by reference cannot be implemented, or just fail
+to compile.
 
-For function calls with a similar problem, there is already the `auto ref` keyword.
-For consistency, a similar keyword for `foreach` loop variables can be considered the
-best canditate to become such a way. On the other hand, if loop functionality excepts
-to be able to mutate the `foreach` aggreagate, existing `ref` could still be used,
-so the code will fail to compile if range elements cannot be mutated.
+For function return values with a similar problem, there is already the differentation between
+`ref` and `auto ref` keywords[6]. For consistency, `auto ref` keyword for `foreach` loop
+variables can be considered the best canditate to become a way to iterate when fallback
+to iteration by value is desired, and `ref` when the fallback is not desired.
 
 Non-copyable `struct`s are an excellent aid when designing containers for RAII (Resource-
 Acquisition-Is-Initialization) principle. EMSI-Containers [2] are good examples of such
@@ -77,11 +86,24 @@ to needless changes in code when maintenance is done.
 
 ## Description
 
-This DIP proposes, that when the compiler encounters a foreach statement:
+This DIP also proposes that, when encountering a `foreach` loop with `ref` keyword (example):
+```D
+foreach (ref loopVariable1; aggregate)
+{
+    loopVariable.doSomething();
+}
+```
+
+then, if and only if, elements of `aggregate` are rvalues [3], a deprectation
+message must be emitted, suggesting to annotate `loopVariable1` with
+`auto ref` keyword instead, explained below. The DIP does not propose a length
+for the deprectation period.
+
+This DIP also proposes, that when the compiler encounters a foreach statement:
 (example)
 
 ```D
-foreach (auto ref loopVariable; aggregate)
+foreach (auto ref loopVariable2; aggregate)
 {
     loopVariable.doSomething();
 }
@@ -91,7 +113,7 @@ foreach (auto ref loopVariable; aggregate)
 above statement has exactly the same meaning as if it was written like this:
 
 ```D
-foreach (ref loopVariable; aggregate)
+foreach (ref loopVariable2; aggregate)
 {
     loopVariable.doSomething();
 }
@@ -100,7 +122,7 @@ foreach (ref loopVariable; aggregate)
 Otherwise, the statement is interpreted as:
 
 ```D
-foreach (loopVariable; aggregate)
+foreach (loopVariable2; aggregate)
 {
     loopVariable.doSomething();
 }
@@ -167,7 +189,7 @@ void main(){
     // is not copyable because it is annotated with @disable
     uniqueElements.writeDeepLengthA;
 
-    // Will be error after DMD pull request 8437 [1] is merged
+    // prints 45, deprectated by this DIP
     unaddressedElements.writeDeepLengthB;
     // Ok, prints 14
     uniqueElements.writeDeepLengthB;
@@ -181,9 +203,10 @@ void main(){
 
 ## Alternatives
 
-- The plan to disable by-reference iteration of rvalue ranges [1] could be cancelled.
-    This has the disadvantage that the purpose of the loop will become harder to see,
-    because one cannot assume that `ref` means that the loop excepts reference semantics.
+- `ref` keyword could retain the current behaviour, and some other syntax could be used
+	for what `ref` should do according to this proposal. The advantage is that no
+	deprectation period is required. The disadvantage is that semantics of the `ref`
+	keyword will remain inconsistent between function signatures and `foreach` loops.
 
 - Programmers could be instructed to use introspection to select whether to iterate by
     reference or by value. This will make coding general-purpose non-mutating loops a
@@ -208,6 +231,8 @@ void main(){
     range elements if this is the case. This was originally suggested by this DIP, but it
     was found that this approach cannot be practically implemented without restricting
     otherwise valid code in the `foreach` body.
+    
+
 
 ## Copyright & License
 
