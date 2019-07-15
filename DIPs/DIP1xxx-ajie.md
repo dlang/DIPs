@@ -38,6 +38,9 @@ to adapt the code for that [4].
     
 - [6] `auto ref` language specification for function return values:
 	* https://dlang.org/spec/function.html#auto-ref-functions
+	
+- [7] specification of iteration over alias sequences:
+	* https://dlang.org/spec/statement.html#foreach_over_tuples
 
 ## Contents
 * [Rationale](#rationale)
@@ -61,7 +64,7 @@ of `ref` meaning iteration by any method was officially considered a weakness.
 
 The reason this behaviour is a weakness is that the user cannot rely that `foreach(ref ...)`
 will iterate by reference. If a range with non-reference semantics is accidently
-passed to such a loop, it will be iterated by value, which is likely to be unexcepted.
+passed to such a loop, it will be iterated by value, which is likely to be unexpected.
 
 But in cases where the programmer does not modify the iteration variable, he/she does
 not care whether the iteration is done by reference or by value. Thus, when iterating
@@ -90,22 +93,22 @@ This DIP also proposes that, when encountering a `foreach` loop with `ref` keywo
 ```D
 foreach (ref loopVariable1; aggregate)
 {
-    loopVariable.doSomething();
+    loopVariable1.doSomething();
 }
 ```
 
-then, if and only if, elements of `aggregate` are rvalues [3], a deprectation
+then, if and only if, not all elements of `aggregate` are lvalues [3], a deprecation
 message must be emitted, suggesting to annotate `loopVariable1` with
 `auto ref` keyword instead, explained below. The DIP does not propose a length
-for the deprectation period.
+for the deprecation period.
 
-This DIP also proposes, that when the compiler encounters a foreach statement:
-(example)
+This DIP also proposes, that when the compiler encounters a foreach statement
+such as this:
 
 ```D
-foreach (auto ref loopVariable2; aggregate)
+foreach (auto ref loopVariable2; nonAliasSeqAggregate)
 {
-    loopVariable.doSomething();
+    loopVariable2.doSomething();
 }
 ```
 
@@ -113,24 +116,52 @@ foreach (auto ref loopVariable2; aggregate)
 above statement has exactly the same meaning as if it was written like this:
 
 ```D
-foreach (ref loopVariable2; aggregate)
+foreach (ref loopVariable2; nonAliasSeqAggregate)
 {
-    loopVariable.doSomething();
+    loopVariable2.doSomething();
 }
 ```
 
 Otherwise, the statement is interpreted as:
 
 ```D
-foreach (loopVariable2; aggregate)
+foreach (loopVariable2; nonAliasSeqAggregate)
 {
-    loopVariable.doSomething();
+    loopVariable2.doSomething();
 }
 ```
 
-`auto ref` should work in both generic and non-generic functions, and also when iterating
-over a tuple. It should also be allowed to be used in `static foreach`, but with no
-effect, as elements of compile-time aggregates can never be lvalues.
+If the compiler encounters a foreach statement such as this:
+
+```D
+foreach (auto ref loopVariable3; anAliasSequence)
+{
+	loopVariable3.doSomething();
+}
+```
+
+...then it must check that all the members of `anAliasSequence` are values
+(for example, type names or module names are not values). If that check fails,
+an error message must result. Otherwise, each iteration where `loopVariable3`
+aliases to lvalue must be compiled with reference semantics, and each iteration
+where `loopVariable3` aliases to rvalue must be compiled as if written like this:
+
+```D
+foreach (__HIDDEN_ALIAS; anAliasSequence)
+{
+	auto loopVariable3 = __HIDDEN_ALIAS;
+	loopVariable3.doSomething();
+}
+```
+
+Note that the above behaviour for rvalues is intentionally different from
+behaviour of `foreach` without `ref` or `auto ref` keywords. These semantics are
+proposed by this DIP because they allow `loopVariable3` to always be an
+lvalue from user perspective.
+
+`auto ref` should work in both generic and non-generic functions. It should
+be allowed to be used in `static foreach`, but with no effect, as elements
+of compile-time aggregates can never be lvalues.
 
 ## Example, using EMSI-Containers [2]
 
@@ -189,7 +220,7 @@ void main(){
     // is not copyable because it is annotated with @disable
     uniqueElements.writeDeepLengthA;
 
-    // prints 45, deprectated by this DIP
+    // prints 45, deprecated by this DIP
     unaddressedElements.writeDeepLengthB;
     // Ok, prints 14
     uniqueElements.writeDeepLengthB;
@@ -205,7 +236,7 @@ void main(){
 
 - `ref` keyword could retain the current behaviour, and some other syntax could be used
 	for what `ref` should do according to this proposal. The advantage is that no
-	deprectation period is required. The disadvantage is that semantics of the `ref`
+	deprecation period is required. The disadvantage is that semantics of the `ref`
 	keyword will remain inconsistent between function signatures and `foreach` loops.
 
 - Programmers could be instructed to use introspection to select whether to iterate by
