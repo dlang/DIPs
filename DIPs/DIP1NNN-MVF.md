@@ -74,7 +74,7 @@ This stage must persist for at least 1 year giving users ample time to plan how 
 
 ### Stage 2: Introduction of Compiler Flags
 
-After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler flags, `-transition=safeByDefault` and `-revert=safeByDefault`.
+After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler flags, `-preview=safeByDefault` and `-revert=safeByDefault`.
 
   * Invoking the compiler with `-transition=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce code that is `@system`-by-default, maintaining the status quo.
