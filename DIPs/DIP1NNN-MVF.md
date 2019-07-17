@@ -76,9 +76,9 @@ This stage must persist for at least 1 year giving users ample time to plan how 
 
 After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler flags, `-preview=safeByDefault` and `-revert=safeByDefault`.
 
-  * Invoking the compiler with `-transition=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
+  * Invoking the compiler with `-preview=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce code that is `@system`-by-default, maintaining the status quo.
-  * Invoking the compiler with neither flag will cause the compiler to produce code that is `@system`-by-default while emitting a deprecation warning message informing users of the upcoming transition, where to find more information, and how to silence the warning message by invoking the compiler with either `-transition=safeByDefault` or `-revert=safeByDefault`.  Users are welcome to tolerate the warning message until **Epoch**, at which time the warning message will no longer appear.
+  * Invoking the compiler with neither flag will cause the compiler to produce code that is `@system`-by-default while emitting a deprecation warning message informing users of the upcoming transition, where to find more information, and how to silence the warning message by invoking the compiler with either `-preview=safeByDefault` or `-revert=safeByDefault`.  Users are welcome to tolerate the warning message until **Epoch**, at which time the warning message will no longer appear.
   * If the compiler is invoked with both `-transtion=safeByDefault` and `-revert=safeByDefault`, the one specified latest on the command line with take precedence.  This is to allow users to specify a global preference, but then override it on a per-project or per-file basis.
   * Templates without an explicit `@safe`, `@trusted`, or `@system` attribute will remain agnostic, inferring their attributes from the site of their insantiation, regardless of whether the compiler was invoked with one of the aforementioned compiler flag or not, maintaining the status quo.
 
@@ -117,24 +117,24 @@ These new features must persist for at least 1 year before moving on to **Stage 
 ### Stage 3: Epoc - D Becomes `@safe`-by-Default Programming Language
 
 DMD will be updated to be a `@safe`-by-default compiler.
-  * Invoking the compiler with neither the `-transition=safeByDefault` flag nor the `-revert=safeByDefault` flag will cause the compiler to produce code that is `@safe`-by-default.  The deprecation warning message added in Stage 2 will be removed.
+  * Invoking the compiler with neither the `-preview=safeByDefault` flag nor the `-revert=safeByDefault` flag will cause the compiler to produce code that is `@safe`-by-default.  The deprecation warning message added in Stage 2 will be removed.
   * Invoking the compiler with `-transtion=safeByDefault` have no effect on code, but will emit a deprecation warning stating that the `-trasition=safeByDefault` flag is no longer needed and should no longer be used.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce `@system` code by default, allowing the user to opt out of the new `@safe`-by-default behavior, and revert to the old behavior.
-  * Templates without an explicit `@safe`, `@trusted`, or `@system` attribute will remain agnostic, inferring their attributes from the site of their insantiation, regardless of whether the compiler was invoked with a `-transition` or `-revert` flag or not, maintaining the status quo.
+  * Templates without an explicit `@safe`, `@trusted`, or `@system` attribute will remain agnostic, inferring their attributes from the site of their insantiation, regardless of whether the compiler was invoked with a `-preview` or `-revert` flag or not, maintaining the status quo.
 
 A changelog entry detailing these changes will accompany the release in which they appear.
 
 This stage must persist for at least 1 year before moving on to **Stage 4**.
 
-### Stage 4: Invalidate `-transition=safeByDefault` Flag
+### Stage 4: Invalidate `-preview=safeByDefault` Flag
 
-DMD will be updated to produce an error if the compiler is invoked with the `-transition=safeByDefault` flag stating that the flag is no longer needed and should not be used.  The `-revert=safeByDefault` flag will remain unchanged.
+DMD will be updated to produce an error if the compiler is invoked with the `-preview=safeByDefault` flag stating that the flag is no longer needed and should not be used.  The `-revert=safeByDefault` flag will remain unchanged.
 
 This stage must persist for at least 1 year before moving on to **Stage 5**.
 
 ### Stage 5: Remove Transition Features
 
-The `-transition=safeByDefault` compiler flag will be removed.  The compiler will emit a standard unrecognized flag error any time it is used.  The `-revert=safeByDefault` flag will remain unchanged.
+The `-preview=safeByDefault` compiler flag will be removed.  The compiler will emit a standard unrecognized flag error any time it is used.  The `-revert=safeByDefault` flag will remain unchanged.
 
 At this stage, the transition is complete.
 
