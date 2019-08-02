@@ -3,9 +3,9 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1021](./DIP1021.md)|          Argument Ownership and Function Calls| Community Round 1|
 |[1019](./DIP1019.md)|                           Named Arguments Lite|  Post-Community 2|
 |[1020](./DIP1020.md)|                               Named Parameters|  Post-Community 1|
+|[1021](./DIP1021.md)|          Argument Ownership and Function Calls|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 |[1005](./DIP1005.md)|               Dependency-Carrying Declarations|         Postponed|
