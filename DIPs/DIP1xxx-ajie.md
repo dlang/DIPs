@@ -30,34 +30,42 @@ There are currently two ways to iterate over a range with `foreach`: by value an
 
 One is forced to iterate the range by reference if the element type is a `struct` with
 a disabled postblit, since iteration by value attempts to copy the element variable.
-As of DMD 2.087.0, any range can be iterated by reference, but a pull request[[1](#pr)]
-was submitted to disallow such iteration for ranges whose `front` is
-an rvalue[[3](#rvalues). That pull request did not end up disabling such an iteration due to
-practical issues, but was approved by Andrei Alexandrescu, implying that at the concept
-of `ref` meaning iteration by any method was officially considered a weakness.
+As of DMD 2.087.0, any range can be iterated by reference. If the elements of
+iterated range are rvalues[[3](#rvalues)], `ref` keyworld will simply be ignored.
+A pull request[[1](#pr)] was submitted to disallow the said ignoring of `ref` keyword.
+In every place where `foreach (ref <...>)` presently iterates by value, a compiler
+error would have resulted after merging that pull request. That pull request did
+not end up disabling discussed behaviour due to code breakage without deprectation
+period, and a lack of way to write the `foreach` loop when present behaviour
+of `ref` is desired. However, those changes were but was approved by Andrei
+Alexandrescu, who clearly exressed dislike of `ref` meaning iteration by any
+method[[8](#andreionref)]:
+
+<blockquote>
+I think it's important for many parts of the language to not naively bind references to rvalues.
+In foreach the most obvious ill effect is that people believe they change elements of a range but
+they don't. cc @WalterBright and @RazvanN7 for reviewing implementation.
+</blockquote>
 
 The reason this behavior is a weakness is that the user cannot be sure that `foreach(ref ...)`
 will iterate by reference. If a range with non-reference semantics is accidently
 passed to such a loop, it will be iterated by value, which is likely to be unexpected.
 
-In cases where one does not modify the iteration variable, one does
-not care whether the iteration is done by reference or by value. Thus, when iterating
-by reference, the programmer should be able to choose whether the program will fall back
-to iteration by value when iteration by reference cannot be implemented, or just fail
-to compile.
+However, ieration by reference may be needed even if there is no intention to change the loop variable, because ranges
+of non-copyable `struct`s, that have a disabled postblit or copy constructor, cannot be iterated by value.
+In such cases, the programmer will probably not want a compiler error when elements are changed to
+copyable rvalues. Thus, when iterating by reference, the programmer should still be able to explicitly let the program to fall back
+to iteration by value when iteration by reference cannot be implemented.
+
+Non-copyable `struct`s are an excellent tool when designing containers adhering to the RAII (Resource-
+Acquisition-Is-Initialization) principle. The EMSI-Containers package[[2](#emsi) provides good examples of such non-copyable RAII containers.
+When one has many of such containers, it is natural to use ranges to iterate over them.
+See the code example.
 
 For function return values with a similar problem, there is already the differentiation between
 `ref` and `auto ref`[6]. For consistency, `auto ref` applied to the element variable of a `foreach` loop
 should be considered the best candidate as a means to ensure correct behavior when falling back
 to iteration by value is desired, and `ref` should be used when fallback is not desired.
-
-Non-copyable `struct`s are an excellent tool when designing containers adhering to the RAII (Resource-
-Acquisition-Is-Initialization) principle. The EMSI-Containers package[[2](#emsi) provides good examples of such non-copyable RAII containers. It is natural to use ranges to iterate over such containers.
-
-Iteration can be performed in a general way with the current rules (see alternatives),
-or by always annotating/unannotating the element variable manually based on the types
-being iterated. The former approach has disadvantages, and the latter leads
-to needless changes in code when maintenance is done.
 
 ## Description
 
@@ -69,7 +77,7 @@ foreach (ref loopVariable1; aggregate)
 }
 ```
 
-...then iff one or more elements of `aggregate` are rvalues[[3](#rvalues)], a deprecation
+...then if one or more elements of `aggregate` are rvalues[[3](#rvalues)], a deprecation
 message must be emitted including the suggestion to annotate `loopVariable1` with the
 `auto ref` keyword instead.
 
@@ -83,7 +91,7 @@ foreach (auto ref loopVariable2; nonAliasSeqAggregate)
 }
 ```
 
-...then iff elements of `aggregate` are lvalues [3], the
+...then if elements of `aggregate` are lvalues [3], the
 above loop has exactly the same semantics as if it were written like this:
 
 ```D
@@ -113,7 +121,7 @@ foreach (auto ref loopVariable3; anAliasSequence)
 
 ...then it must check that all members of `anAliasSequence` are values
 (as opposed to, e.g., type names or module names). If that check fails,
-an error message must result. Otherwise, each iteration in whic `loopVariable3`
+an error message must result. Otherwise, each iteration in which `loopVariable3`
 aliases to an lvalue must be compiled with reference semantics, and each iteration
 where `loopVariable3` aliases to an rvalue must be compiled as if written like this:
 
@@ -210,22 +218,19 @@ void main(){
 	deprecation period is required. The disadvantage is that the semantics of `ref`
 	will remain inconsistent between function signatures and `foreach` loops.
 
-- Programmers could be instructed to use introspection to select when to iterate by
-    reference or by value. This will make coding general-purpose non-mutating loops a
-    lot more difficult compared to this proposal, and greatly decreases the likelihood
-    of third-party code accepting ranges with non-copyable members.
-
-- `for` could be preferred over `foreach`. The disadvantages are the same as with the preceding alternative.
-
-- A library solution could be implemented that takes an `alias` compile-time parameter and
-    chooses the iteration method on behalf of the programmer.
-    `std.algorithm.iteration.each` [[5](#algo)] would be a good candidate. This
+- While deprecating `ref` as described by this paper, instead of implementing
+	`foreach(auto ref ...)` a library solution could be implemented that takes an
+	`alias` compile-time parameter and chooses the iteration method on behalf of the programmer.
+	`std.algorithm.iteration.each` [[5](#algo)] would be a good candidate. This
     concept has the following disadvantages:
     - Error messages become harder to read than with normal loops,
     - Using `goto`, labeled `break` and `continue`, and `return` inside the loop
-        to normal termination becomes impossible with the current rules of the language.
+        body to jump to elsewhere in the calling function becomes impossible.
     - Needless heap allocations are caused if local variables outside the loop body
         are accessed.
+    
+    Note that such a library function is not mutually exclusive with implementing `foreach`
+    with `auto ref`.
 
 - The compiler could try to detect if a `foreach` loop by value can be silently rewritten
     with reference semantics without effect to program output and allow non-copyable
@@ -256,6 +261,10 @@ void main(){
 
 - <a name="aliasseq"></a>specification of iteration over alias sequences:
 	* https://dlang.org/spec/statement.html#foreach_over_tuples
+	
+- <a name="andreionref"></a>Approval of the pull request to disallow fake iteration by reference
+by Andrei Alexandrescu:  
+    * https://github.com/dlang/dmd/pull/8437#pullrequestreview-146141924
 
 ## Copyright & License
 
