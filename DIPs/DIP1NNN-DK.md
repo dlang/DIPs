@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Dennis Korpel dkorpel@gmail.com                                 |
 | Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 D unofficially boasts that it has a context-free grammar allowing for easy lexing and parsing for text editors or syntax highlighters.
