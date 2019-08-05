@@ -5,7 +5,7 @@
 | DIP:            |                                                                 |
 | Author:         | Stefanos Baziotis (sdi1600105@di.uoa.gr)                        |
 | Implementation: | https://github.com/dlang/dmd/pull/9778 (Prototype)              |
-| Status:         |                                                                 |
+| Status:         | Draft                                                           |
 
 
 ## Contents
