@@ -10,37 +10,12 @@
 
 ## Abstract
 
-This DIP proposes that foreach loops with `ref` keyword should only be legal when
-the elements of the range have memory addresses. It also proposes that for the current behaviour
-of `ref`, the loop can be annotated as `auto ref` instead.
+This DIP proposes that foreach loops with the `ref` keyword applied to the element variable should only be legal when
+the elements of the range have memory addresses. It also proposes that the current behavior of `ref`,
+may be retained by annotating as `auto ref` instead.
 
-This is to enable the programmer to make sure that `foreach` will iterate by reference,
-while still allowing iteration over a range of non-copyable elements without explicit need
-to adapt the code for that [4].
-
-### Reference
-
-- [1] A pull request for DMD to disallow iteration by reference when the aggregate
- does not support it:
-    * https://github.com/dlang/dmd/pull/8437
-
-- [2] Emsi-containers GitHub repository
-    * https://github.com/dlang-community/containers
-
-- [3] Meaning of rvalues and lvalues explained
-    * http://ddili.org/ders/d.en/lvalue_rvalue.html
-
-- [4] A request for this feature in bugzilla:
-    * https://issues.dlang.org/show_bug.cgi?id=4707
-
-- [5] std.algorithm.iteration.each documentation
-    * https://dlang.org/phobos/std_algorithm_iteration.html#.each
-    
-- [6] `auto ref` language specification for function return values:
-	* https://dlang.org/spec/function.html#auto-ref-functions
-	
-- [7] specification of iteration over alias sequences:
-	* https://dlang.org/spec/statement.html#foreach_over_tuples
+This is to ensure that `foreach` will iterate by reference,
+while still allowing iteration over a range of non-copyable elements without explicit need to adapt the code[[4](#issue4707)].
 
 ## Contents
 * [Rationale](#rationale)
@@ -51,45 +26,42 @@ to adapt the code for that [4].
 
 ## Rationale
 
-There are curently two ways to iterate over a range using foreach loop: By value and
-by reference.
+There are currently two ways to iterate over a range with `foreach`: by value and by reference.
 
 One is forced to iterate the range by reference if the element type is a `struct` with
-a disabled postblit, since iteration by value constructs the iteration variable by
-copy. As of DMD 2.087.0, you can iterate any range by reference, but there already
-was a pull request [1] to disallow such iteration for ranges whose `front` is
-an rvalue [3]. That pull request did not end up disabling such an iteration due to
+a disabled postblit, since iteration by value attempts to copy the element variable.
+As of DMD 2.087.0, any range can be iterated by reference, but a pull request[[1](#pr)]
+was submitted to disallow such iteration for ranges whose `front` is
+an rvalue[[3](#rvalues). That pull request did not end up disabling such an iteration due to
 practical issues, but was approved by Andrei Alexandrescu, implying that at the concept
 of `ref` meaning iteration by any method was officially considered a weakness.
 
-The reason this behaviour is a weakness is that the user cannot rely that `foreach(ref ...)`
+The reason this behavior is a weakness is that the user cannot be sure that `foreach(ref ...)`
 will iterate by reference. If a range with non-reference semantics is accidently
 passed to such a loop, it will be iterated by value, which is likely to be unexpected.
 
-But in cases where the programmer does not modify the iteration variable, he/she does
+In cases where one does not modify the iteration variable, one does
 not care whether the iteration is done by reference or by value. Thus, when iterating
-by reference, the programmer should be able to choose whether the program will fallback
+by reference, the programmer should be able to choose whether the program will fall back
 to iteration by value when iteration by reference cannot be implemented, or just fail
 to compile.
 
-For function return values with a similar problem, there is already the differentation between
-`ref` and `auto ref` keywords[6]. For consistency, `auto ref` keyword for `foreach` loop
-variables can be considered the best canditate to become a way to iterate when fallback
-to iteration by value is desired, and `ref` when the fallback is not desired.
+For function return values with a similar problem, there is already the differentiation between
+`ref` and `auto ref`[6]. For consistency, `auto ref` applied to the element variable of a `foreach` loop
+should be considered the best candidate as a means to ensure correct behavior when falling back
+to iteration by value is desired, and `ref` should be used when fallback is not desired.
 
-Non-copyable `struct`s are an excellent aid when designing containers for RAII (Resource-
-Acquisition-Is-Initialization) principle. EMSI-Containers [2] are good examples of such
-non-copyable RAII containers. When one has many of those containers, it is natural to
-put them in a range. And with ranges comes the need to iterate.
+Non-copyable `struct`s are an excellent tool when designing containers adhering to the RAII (Resource-
+Acquisition-Is-Initialization) principle. The EMSI-Containers package[[2](#emsi) provides good examples of such non-copyable RAII containers. It is natural to use ranges to iterate over such containers.
 
-The iteration can be done in a general way with the current rules (see alternatives),
-or by always annotating/unannotating the iteration variable manually based on what is
-iterated over. But all of the former have their disadvantages, and the latter leads
+Iteration can be performed in a general way with the current rules (see alternatives),
+or by always annotating/unannotating the element variable manually based on the types
+being iterated. The former approach has disadvantages, and the latter leads
 to needless changes in code when maintenance is done.
 
 ## Description
 
-This DIP also proposes that, when encountering a `foreach` loop with `ref` keyword (example):
+This DIP proposes that, when encountering a `foreach` loop with the `ref` keyword applied to the element variable, as in:
 ```D
 foreach (ref loopVariable1; aggregate)
 {
@@ -97,12 +69,11 @@ foreach (ref loopVariable1; aggregate)
 }
 ```
 
-then, if and only if, not all elements of `aggregate` are lvalues [3], a deprecation
-message must be emitted, suggesting to annotate `loopVariable1` with
-`auto ref` keyword instead, explained below. The DIP does not propose a length
-for the deprecation period.
+...then iff one or more elements of `aggregate` are rvalues[[3](#rvalues)], a deprecation
+message must be emitted including the suggestion to annotate `loopVariable1` with the
+`auto ref` keyword instead.
 
-This DIP also proposes, that when the compiler encounters a foreach statement
+This DIP also proposes that when the compiler encounters a `foreach` statement
 such as this:
 
 ```D
@@ -112,8 +83,8 @@ foreach (auto ref loopVariable2; nonAliasSeqAggregate)
 }
 ```
 
-...then if, and only if, elements of `aggregate` are lvalues [3], the the
-above statement has exactly the same meaning as if it was written like this:
+...then iff elements of `aggregate` are lvalues [3], the
+above loop has exactly the same semantics as if it were written like this:
 
 ```D
 foreach (ref loopVariable2; nonAliasSeqAggregate)
@@ -131,7 +102,7 @@ foreach (loopVariable2; nonAliasSeqAggregate)
 }
 ```
 
-If the compiler encounters a foreach statement such as this:
+If the compiler encounters a `foreach` statement such as this:
 
 ```D
 foreach (auto ref loopVariable3; anAliasSequence)
@@ -140,11 +111,11 @@ foreach (auto ref loopVariable3; anAliasSequence)
 }
 ```
 
-...then it must check that all the members of `anAliasSequence` are values
-(for example, type names or module names are not values). If that check fails,
-an error message must result. Otherwise, each iteration where `loopVariable3`
-aliases to lvalue must be compiled with reference semantics, and each iteration
-where `loopVariable3` aliases to rvalue must be compiled as if written like this:
+...then it must check that all members of `anAliasSequence` are values
+(as opposed to, e.g., type names or module names). If that check fails,
+an error message must result. Otherwise, each iteration in whic `loopVariable3`
+aliases to an lvalue must be compiled with reference semantics, and each iteration
+where `loopVariable3` aliases to an rvalue must be compiled as if written like this:
 
 ```D
 foreach (__HIDDEN_ALIAS; anAliasSequence)
@@ -154,21 +125,21 @@ foreach (__HIDDEN_ALIAS; anAliasSequence)
 }
 ```
 
-Note that the above behaviour for rvalues is intentionally different from
-behaviour of `foreach` without `ref` or `auto ref` keywords. These semantics are
+Note that the above behavior for rvalues is intentionally different from the
+behavior of `foreach` without `ref` or `auto ref`. These semantics are
 proposed by this DIP because they allow `loopVariable3` to always be an
-lvalue from user perspective.
+lvalue from the user's perspective.
 
-`auto ref` should work in both generic and non-generic functions. It should
-be allowed to be used in `static foreach`, but with no effect, as elements
+`auto ref` should work in both templated and non-templated functions. It should
+be allowed in `static foreach`, but with no effect, as elements
 of compile-time aggregates can never be lvalues.
 
 ## Example, using EMSI-Containers [2]
 
-Briefly, containers.DynamicArray is an array that automatically allocates
-and deallocates memory it uses without relying on garbage collector. It
-does not allow copying itself, to protect the memory from being accidently
-aliased into a dangling reference.
+Briefly, `containers.DynamicArray` is an array that automatically allocates
+and deallocates the memory it requires without relying on garbage collector. It
+does not allow itself to be copied in order to protect the memory from being accidently
+aliased to a dangling reference.
 
 ```D
 import std.algorithm;
@@ -234,40 +205,61 @@ void main(){
 
 ## Alternatives
 
-- `ref` keyword could retain the current behaviour, and some other syntax could be used
-	for what `ref` should do according to this proposal. The advantage is that no
-	deprecation period is required. The disadvantage is that semantics of the `ref`
-	keyword will remain inconsistent between function signatures and `foreach` loops.
+- `ref` could retain the current behavior and a different syntax could be used
+	to do what `ref` should do according to this proposal. The advantage is that no
+	deprecation period is required. The disadvantage is that the semantics of `ref`
+	will remain inconsistent between function signatures and `foreach` loops.
 
-- Programmers could be instructed to use introspection to select whether to iterate by
+- Programmers could be instructed to use introspection to select when to iterate by
     reference or by value. This will make coding general-purpose non-mutating loops a
     lot more difficult compared to this proposal, and greatly decreases the likelihood
     of third-party code accepting ranges with non-copyable members.
 
-- `for` loops could be instructed to be used instead of `foreach`. The disadvantages
-    are same as with the previous alternative.
+- `for` could be preferred over `foreach`. The disadvantages are the same as with the preceding alternative.
 
-- A library solution could be made that takes an `alias` compile-time parameter and
+- A library solution could be implemented that takes an `alias` compile-time parameter and
     chooses the iteration method on behalf of the programmer.
-    `std.algorithm.iteration.each` [5] would be a good canditate to become one. This
+    `std.algorithm.iteration.each` [[5](#algo)] would be a good candidate. This
     concept has the following disadvantages:
     - Error messages become harder to read than with normal loops,
     - Using `goto`, labeled `break` and `continue`, and `return` inside the loop
-        to normal termination becomes impossible with current rules of the language.
+        to normal termination becomes impossible with the current rules of the language.
     - Needless heap allocations are caused if local variables outside the loop body
         are accessed.
 
 - The compiler could try to detect if a `foreach` loop by value can be silently rewritten
-    with reference semantics without effect to program output, and allow non-copyable
+    with reference semantics without effect to program output and allow non-copyable
     range elements if this is the case. This was originally suggested by this DIP, but it
-    was found that this approach cannot be practically implemented without restricting
+    was determined that this approach cannot be practically implemented without restricting
     otherwise valid code in the `foreach` body.
-    
 
+## Reference
+
+- <a name="pr"></a>A pull request for DMD to disallow iteration by reference when the aggregate
+ does not support it:
+    * https://github.com/dlang/dmd/pull/8437
+
+- <a name="emsi"></a>Emsi-containers GitHub repository
+    * https://github.com/dlang-community/containers
+
+- <a name="rvalues"></a>Meaning of rvalues and lvalues explained
+    * http://ddili.org/ders/d.en/lvalue_rvalue.html
+
+- <a name="issue4707"></a>A request for this feature in bugzilla:
+    * https://issues.dlang.org/show_bug.cgi?id=4707
+
+- <a name="algo"></a>std.algorithm.iteration.each documentation
+    * https://dlang.org/phobos/std_algorithm_iteration.html#.each
+
+- <a name="autoref"></a>`auto ref` language specification for function return values:
+	* https://dlang.org/spec/function.html#auto-ref-functions
+
+- <a name="aliasseq"></a>specification of iteration over alias sequences:
+	* https://dlang.org/spec/statement.html#foreach_over_tuples
 
 ## Copyright & License
 
-Copyright (c) 2018 by the D Language Foundation
+Copyright (c) 2019 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
