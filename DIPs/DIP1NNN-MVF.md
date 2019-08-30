@@ -12,7 +12,7 @@
 
 This DIP proposes a plan to transition D to a language that produces `@safe` code by default, no longer requiring the user to opt in to `@safe` code by decorating their code with attributes.  To provide as graceful of a transition as possible, the user will be able to opt out of the `@safe`-by-default behavior by utilizing the existing `@system` and `@trusted` attributes, or through the use of a new compiler flag, `-revert=safeByDefault`.  In addition, a new `version` identifier, `D_SystemByDefault`, will be introduced to allow users to detect whether or not the compiler was invoked with the aforementioned compiler flag and, utilizing D's existing design by introspection features, provide accomodation in their code for both the `@safe`-by-default behavior, the existing `@system`-by-default behavior, or even enforce that one or the other be used to compile their code.
 
-The transition to `@safe`-by-default will take about 2 years, with an additional 2 years to fully deprecate and remove any transition features introduced in the process.  The exiting `@system`-by-default behavior will remain available through the use of a compiler flag indefinitely or until such time in the future that the community feels comfortable deprecating and removing it.  In other words, this is an addition-only change. The existing behavior is not being deprecated or removed, it's just being placed behind a compiler flag shifting the burden off of those wishing to have `@safe` code, and on to those opting out of `@safe` code, as it should be.
+The transition to `@safe`-by-default will take about 2 years, with an additional 2 years to fully deprecate and remove any transition features introduced in the process.  The existing `@system`-by-default behavior will remain available through the use of a compiler flag indefinitely or until such time in the future that the community feels comfortable deprecating and removing it.  In other words, this is an addition-only change. The existing behavior is not being deprecated or removed, it's just being placed behind a compiler flag shifting the burden off of those wishing to have `@safe` code, and on to those opting out of `@safe` code, as it should be.
 
 ## Contents
 * [Rationale](#rationale)
@@ -26,7 +26,7 @@ The transition to `@safe`-by-default will take about 2 years, with an additional
 
 At a recent security conference, a Microsoft engineer revealed that approximately 70% of security vulnerabilities in Microsoft products are due to memory safety bugs[2].
 
-As more and more devices become connected to the Internet and other networks, the severity of memory safety exploits increases significantly.  In October of 2016 malicious actors exploited seemingly innoculous devices from printers to baby monitors to perform a distributed denial of service attack on DNS provider Dyn[5].
+As more and more devices become connected to the Internet and other networks, the severity of memory safety exploits increases significantly.  In October of 2016 malicious actors exploited seemingly innocuous devices from printers to baby monitors to perform a distributed denial of service attack on DNS provider Dyn[5].
 
 At the "Trends in Systems Programming" panel at DConf 2017, Walter Bright had this to say[1]:
 
@@ -34,7 +34,7 @@ At the "Trends in Systems Programming" panel at DConf 2017, Walter Bright had th
 
 With such a strong statement advocating for memory-safety, and trends confirming Walter's prediction, it is alarming that **D is currently NOT memory-safe by default**.
 
-The software development field has been aware of memory-safety issues for decades which has contributed to the rise of more modern general-purpose programming languages (e.g. Go, Rust, C#/VB.Net, Swift, Java) that are memory-safe out-of-the-box.  Those languages require users to employ special techniques to opt out of memory-safety; doing nothing is, efectively, opting in to memory safety.  D, on the other hand, is in the minority in this class of programming languages as **D is currently NOT memory-safe out-of-the-box** and requires users to opt into memory safety using the `@safe` attrbute; doing nothing is, effectively, opting out of memory safety.
+The software development field has been aware of memory-safety issues for decades which has contributed to the rise of more modern general-purpose programming languages (e.g. Go, Rust, C#/VB.Net, Swift, Java) that are memory-safe out-of-the-box.  Those languages require users to employ special techniques to opt out of memory-safety; doing nothing is, effectively, opting in to memory safety.  D, on the other hand, is in the minority in this class of programming languages as **D is currently NOT memory-safe out-of-the-box** and requires users to opt into memory safety using the `@safe` attrbute; doing nothing is, effectively, opting out of memory safety.
 
 As a consequence of the [Default Effect](https://en.wikipedia.org/wiki/Default_effect)[3], quoted below, users may perceive D as an unsafe language if `@safe` is not the default.
 
@@ -79,7 +79,7 @@ After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler 
   * Invoking the compiler with `-preview=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce code that is `@system`-by-default, maintaining the status quo.
   * Invoking the compiler with neither flag will cause the compiler to produce code that is `@system`-by-default while emitting a deprecation warning message informing users of the upcoming transition, where to find more information, and how to silence the warning message by invoking the compiler with either `-preview=safeByDefault` or `-revert=safeByDefault`.  Users are welcome to tolerate the warning message until **Epoch**, at which time the warning message will no longer appear.
-  * If the compiler is invoked with both `-transtion=safeByDefault` and `-revert=safeByDefault`, the one specified latest on the command line with take precedence.  This is to allow users to specify a global preference, but then override it on a per-project or per-file basis.
+  * If the compiler is invoked with both `-preview=safeByDefault` and `-revert=safeByDefault`, the one specified latest on the command line with take precedence.  This is to allow users to specify a global preference, but then override it on a per-project or per-file basis.
   * Templates without an explicit `@safe`, `@trusted`, or `@system` attribute will remain agnostic, inferring their attributes from the site of their insantiation, regardless of whether the compiler was invoked with one of the aforementioned compiler flag or not, maintaining the status quo.
 
 DMD will also be updated with a new `version` identifier `D_SystemByDefault` that will be set to `true` any time the compiler is invoked with `-revert=safeByDefault` or neither flag.  Utilizing D's fantastic design by introspection features, users will be able to use `D_SystemByDefault` in their code to futher manage the transition with greater detail and greater precision, as illustrated below.
