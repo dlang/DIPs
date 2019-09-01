@@ -82,7 +82,9 @@ Development of the necessary transition features and compiler changes will also 
 
 ### Stage 2: Introduction of Compiler Flags
 
-After **Stage 1** has persisted for at least 1 year, DMD will be updated with 2 compiler flags, `-preview=safeByDefault` and `-revert=safeByDefault`.
+To manage the transition, it is recommended that users update their code by explicitly attributing modules and other entities as either `system` or `@safe`.  That alone should be sufficient.
+
+However, to give users ample flexibility, after **Stage 1** has persisted for at least 1 year, DMD will be updated with 2 compiler flags, `-preview=safeByDefault` and `-revert=safeByDefault`.
 
   * Invoking the compiler with `-preview=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce code that is `@system`-by-default, maintaining the status quo.
@@ -116,7 +118,7 @@ version (D_SystemByDefault) { } else
 // Module implementation
 ```
 
-These new compiler features will give early adopters the ability to either opt-in or opt-out of the safe-by-default feature before either action becomes compulsory.
+Although not absolutely necessary, these new compiler features will give early adopters the ability to either opt-in or opt-out of the safe-by-default feature before either action becomes compulsory.
 
 A changelog entry detailing said features will accompany the release in which they appear.
 
