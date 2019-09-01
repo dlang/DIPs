@@ -160,13 +160,13 @@ If users utilize the new compiler features proposed in this DIP, no breaking cha
 
 ## Reference
 
-[1] - [Walter Bright on Memory Safety at DConf 2017](https://youtu.be/Lo6Q2vB9AAg?t=1414)
-[2] - [Microsoft: 70 percent of all security bugs are memory safety issues](https://www.zdnet.com/article/microsoft-70-percent-of-all-security-bugs-are-memory-safety-issues/)
-[3] - [The Default Effect](https://en.wikipedia.org/wiki/Default_effect)
-[4] - [D User's Experience Report](https://forum.dlang.org/post/deuzkvsasxspxsnvgtrb@forum.dlang.org)
-[5] - [2016 Dyn Cyberattach](https://en.wikipedia.org/wiki/2016_Dyn_cyberattack)
-[6] - [A proactive approach to more secure code](https://msrc-blog.microsoft.com/2019/07/16/a-proactive-approach-to-more-secure-code/)
-[7] - [Intel and Rust: the Future of Systems Programming](https://www.youtube.com/watch?v=l9hM0h6IQDo)
+- [1] - [Walter Bright on Memory Safety at DConf 2017](https://youtu.be/Lo6Q2vB9AAg?t=1414)
+- [2] - [Microsoft: 70 percent of all security bugs are memory safety issues](https://www.zdnet.com/article/microsoft-70-percent-of-all-security-bugs-are-memory-safety-issues/)
+- [3] - [The Default Effect](https://en.wikipedia.org/wiki/Default_effect)
+- [4] - [D User's Experience Report](https://forum.dlang.org/post/deuzkvsasxspxsnvgtrb@forum.dlang.org)
+- [5] - [2016 Dyn Cyberattach](https://en.wikipedia.org/wiki/2016_Dyn_cyberattack)
+- [6] - [A proactive approach to more secure code](https://msrc-blog.microsoft.com/2019/07/16/a-proactive-approach-to-more-secure-code/)
+- [7] - [Intel and Rust: the Future of Systems Programming](https://www.youtube.com/watch?v=l9hM0h6IQDo)
 
 ## Copyright & License
 
