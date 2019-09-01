@@ -92,8 +92,6 @@ After **Stage 1** has persisted for at least 1 year, DMD will be updated with 2 
 
 DMD will also be updated with a new `version` identifier `D_SystemByDefault` that will be set to `true` any time the compiler is invoked with `-revert=safeByDefault` or neither flag.  Utilizing D's existing conditional compilation and design-by-introspection features, users will be able to use `D_SystemByDefault` in their code to futher manage the transition with greater detail and greater precision, as illustrated below.
 
-These new compiler features will give early adopters to either opt-in or opt-out of the safe-by-default feature before either action becomes compulsory.
-
 ```D
 // Ensuring a module is only compilable with a `@safe`-by-default compiler
 module myModule;
@@ -117,6 +115,8 @@ version (D_SystemByDefault) { } else
 
 // Module implementation
 ```
+
+These new compiler features will give early adopters the ability to either opt-in or opt-out of the safe-by-default feature before either action becomes compulsory.
 
 A changelog entry detailing said features will accompany the release in which they appear.
 
