@@ -30,6 +30,10 @@ At a recent security conference, a Microsoft engineer revealed that approximatel
 
 As more and more devices become connected to the Internet and other networks, the severity of memory safety exploits increases significantly.  In October of 2016 malicious actors exploited seemingly innocuous devices from printers to baby monitors to perform a distributed denial of service attack on DNS provider Dyn[5].
 
+More recently, Microsoft announced that it was beginning to adopt Rust for its systems programming needs with it's safety guarantees being a primary motivator for the adoption[6].
+
+Following that trend, Intel recently announced it too was adopting Rust, also emphasizing its safety guarantees as a significant motivator for the adoption[7]
+
 At the "Trends in Systems Programming" panel at DConf 2017, Walter Bright had this to say[1]:
 
 > I strongly feel that [memory safety] is a coming tsunami in programming languages and we better be ready for it. [...] It's a major issue and I want to be there when the tsunami falls on the beach. [...] It's me looking a couple years ahead, reading the tech news about the kinds of problems people are having and looking "how can we get ahead of this?" so that we're ready when people are going to demand it.  I firmly believe that memory safety will be an absolute requirement moving forward, very soon, for programming language selection. [...] I believe memory safety will kill C.  People are tired of those expensive disasters they have when they have memory corruption bugs,  and malware gets in, and wrecks their system and destroys their customer trust and their products, and they're just not going to put up with it anymore.
@@ -50,7 +54,7 @@ In the experience report below[4], the effect described above currently backfire
 >
 > It's not a deal-breaker, but it already puts D on an uneven footing in regards to Go and Rust, which both claim full memory safety by default.
 
-Transitioning D to a `@safe`-by-default language will demonstrate that D is serious about memory-safety, and is making strides to encourage its proliferation.
+Transitioning D to a `@safe`-by-default language will demonstrate that D is serious about memory-safety, and is making a positive contribution to the riliability and robustness on the software that society, as a whole, become more increasingly dependent upon.
 
 ### Advantages
   * D users wanting more robustness and reliability from their programming language will no longer be subject the inconvenience, no matter how small, of opting in to memory safety; D will be memory-safe out of the box.
@@ -63,7 +67,7 @@ Transitioning D to a `@safe`-by-default language will demonstrate that D is seri
 
 This DIP proposes a very simple path forward that will not introduce any breaking changes if users utilize the transition features being proposed.  After a minimum of 2 years, starting from the approval of this DIP, D will be `@safe`-by-default.  Existing users, with the flip of a compiler switch, will be able to maintain existing behavior, opting-out of `@safe`-by-default, and avoiding any breaking changes.  Using the proposed new `version` identifier, `D_SystemByDefault`, users will be able to precisely manage the transition in their code with the full power of D's exceptional meta-programming facilities.
 
-### Stage 1: Raising Awareness
+### Stage 1: Raising Awareness and Beginning of the Implementation
 The approval announcement of this DIP will serve as the official announcement, and the beginning of the transition, marking **Stage 1**.
 
 Upon approval of this DIP, a new page will be created at [dlang.org](http://dlang.org) detailing the transition plan, schedule, milestones and any additional information to help users understand when the transition will occur, how it will affect them, and how they can transition with D.  It will be updated and maintained as the transition progresses.
@@ -74,9 +78,11 @@ Additional announcements can also be made through [The D Blog](https://dlang.org
 
 This stage must persist for at least 1 year giving users ample time to plan how they wish to transition with D, ask questions, and raise any potential issues before anything happens.
 
+Development of the necessary transition features and compiler changes will also begin in this stage, giving compiler developers at least a year to finish the work.
+
 ### Stage 2: Introduction of Compiler Flags
 
-After **Stage 1** has persisted for 1 year, DMD will be updated with 2 compiler flags, `-preview=safeByDefault` and `-revert=safeByDefault`.
+After **Stage 1** has persisted for at least 1 year, DMD will be updated with 2 compiler flags, `-preview=safeByDefault` and `-revert=safeByDefault`.
 
   * Invoking the compiler with `-preview=safeByDefault` will cause the compiler to produce code that is `@safe`-by-default.
   * Invoking the compiler with `-revert=safeByDefault` will cause the compiler to produce code that is `@system`-by-default, maintaining the status quo.
@@ -159,6 +165,8 @@ If users utilize the new compiler features proposed in this DIP, no breaking cha
 [3] - [The Default Effect](https://en.wikipedia.org/wiki/Default_effect)
 [4] - [D User's Experience Report](https://forum.dlang.org/post/deuzkvsasxspxsnvgtrb@forum.dlang.org)
 [5] - [2016 Dyn Cyberattach](https://en.wikipedia.org/wiki/2016_Dyn_cyberattack)
+[6] - [A proactive approach to more secure code](https://msrc-blog.microsoft.com/2019/07/16/a-proactive-approach-to-more-secure-code/)
+[7] - [Intel and Rust: the Future of Systems Programming](https://www.youtube.com/watch?v=l9hM0h6IQDo)
 
 ## Copyright & License
 
