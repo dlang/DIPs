@@ -152,7 +152,7 @@ Any time after **Stage 3: Epoc** the compiler can be updated to deprecate and ev
 
 ### Scope
 
-This DIP will only address the `@safe` attribute.  Unlike the other classes of attributes (e.g. purity, mutability, and throwability), D already has everything it needs to negate the `@safe` attribute using the `@system` attribute, or override the compiler's safety constraints using the `@trusted` attribute.  Thefore, by limiting the scope of this DIP to just the safety-related attributes, no new language features or modifications are required.
+This DIP will only address the `@safe` attribute.  Unlike the other classes of attributes (e.g. purity, mutability, and throwability), D already has everything it needs to negate the `@safe` attribute using the `@system` attribute, or override the compiler's safety constraints using the `@trusted` attribute.  Therefore, by limiting the scope of this DIP to just the safety-related attributes, no new language features or modifications are required.
 
 ## Breaking Changes and Deprecations
 
