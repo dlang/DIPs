@@ -1,0 +1,267 @@
+# Resolution of Template Alias Formal Parameters in Template Functions
+
+| Field           | Value                                                           |
+|-----------------|-----------------------------------------------------------------|
+| DIP:            |                                                                 |
+| Author:         | Stefanos Baziotis (sdi1600105@di.uoa.gr)                        |
+| Implementation: | https://github.com/dlang/dmd/pull/9778 (Prototype)              |
+| Status:         | Draft                                                           |
+
+
+## Contents
+* [Abstract](#abstract)
+* [Description](#description)
+* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Reference](#reference)
+* [Copyright & License](#copyright--license)
+* [Reviews](#reviews)
+
+## Abstract
+
+D has type aliases that can be templates:
+```
+struct TemplateType(T) { }
+alias TemplateAlias(T) = TemplateType!T
+```
+
+Moreover, D has template functions, whose template parameters are inferred / matched when the function is called:
+```
+struct TemplateType(T) { }
+void templateFunction(TemplateType!T arg) { }
+TemplateType!int inst;
+templateFunction(inst); /* template instantiated with T = int */
+```
+
+Combining template aliases and template functions, we would want to be able to have template aliases
+as formal parameter types of template functions:
+```
+struct TemplateType(T) { }
+alias TemplateAlias(T) = TemplateType!T
+void templateFunction(TemplateAlias!T arg) { }
+```
+
+However, the compiler produces an error when such a function has a template alias as a formal parameter.
+This is not a bug, because the desired behaviour is not specified. Thus, although there are Bugzilla reports 
+(see links below), these are tagged as 'Enhancements'.
+
+This DIP proposes a specification of how template alias formal parameters in template functions should be handled.
+
+## Rationale
+
+It is quite common for a series of (one or more) nested template instantiations to be considered as one semantic entity, especially
+for data science libraries.
+Consider the following D template function:
+```
+auto foo(T)(Slice!(StairsIterator!(T*, "-")) m)
+{
+}
+```
+
+A lot of users of the Mir library would want to be able to do something like this:
+```
+alias PackedUpperTriangularMatrix(T) = Slice!(StairsIterator!(T*, "-"));
+
+// fails, issue 16486
+auto foo(T)(PackedUpperTriangularMatrix!T m) { }
+```
+
+Packing the RHS instances in a nice alias is not only a way to reduce code size but most importantly,
+it removes the burden from the user to know what a `PackedUpperTriangularMatrix` actually is. Right now,
+the user is exposed to unnecessary details, leading to code that is not as easy to comprehend.
+
+Consider that currently, similar functionality can be implemented as:
+```
+enum isPackedUpperTriangularMatrix(T) = is(T: Slice!(StairsIterator!(U*, "-")), U);
+auto foo(T)(T m) if(isPackedUpperTriangularMatrix!T) { /* ... */ }
+```
+
+The thesis is that in real-world situations, this alternative produces quite more unreadable code.
+It is has been discussed more extensively on [the comments of the PR](https://github.com/dlang/dmd/pull/9778#issuecomment-496169602)
+
+## Description
+**Currently**: An template alias function parameter is not resolved to its aliased instance until after the function
+resolution stage. So, with the following code:
+```
+struct TemplateType(T) {}
+template aliasAlias(T) = TemplateType!T;
+void templateFunction(T)(TemplateAlias!T arg) {}
+
+void main()
+{
+    TemplateAlias!int inst;
+    templateFunction(inst); /* "cannot deduce function from argument types !()(TemplateType!int)" */
+}
+```
+We get the following error message:
+```
+template templateFunction cannot deduce function from argument types !()(TemplateType!int), candidates are:
+templateFunction(T)(TemplateAlias!T arg)
+```
+The compiler sees `TemplateAlias` and `TemplateType` as two different types, and so it can't match `TemplateType!int` against
+`TemplateAlias!T`. Although the compiler has resolved the type of `inst` to `TemplateType!int`, it has not resolved the 
+formal parameter type to be `TemplateType!T`.
+
+**New**:
+Full handling of the feature is complicated because a template (alias) has arbitrary pattern matching and rewrite abilities over types. For instance, an template alias:
+ * can accept type parameters that it never uses (e.g., `alias TemplateAlias(T) = int;`)
+ * can accept a type parameter and use it multiple times (e.g., `alias TemplateAlias(T) = TemplateType!(T,T);`)
+ * can infer a type parameter when given a complex type expression (e.g., `alias TemplateAlias(A: A*, B) = TemplateType!(A, B);`).
+ 
+Therefore, the crux of the proposal is to encode this pattern matching and type rewriting into a function, `Gen`, and invoke it at the right time during compilation. But it is not to define that pattern-matching or the type-rewriting.
+
+Specifically, if the type of the formal parameter of a template function is an instance of an template alias declaration, instantiate the type that the declaration
+aliases and that is the new type of the parameter. This is done by calling the function below in each parameter. This should be done before function calls are resolved.
+In pseudocode:
+```
+resolveAlias(ref parameterType) {
+    while (parameterType is templateInstance) {
+        for (arg in parameterType.paramMap.values) {
+            if (arg is templateInstance && arg.TD is templateAliasDeclaration) {
+                // Recursively resolve nested aliases
+                resolveAlias(arg);
+            }
+        }
+        // Assume that parameterType was generated using `Gen`
+        if (parameterType.TD is templateAliasDeclaration) {
+            aliasedType = TD.aliasedType;
+            if (aliasedType is templateInstance) {
+                newTD = aliasedType.TD;
+                newArgumentList = matchParams(aliasedType.argumentList, parameterType.paramMap);
+                parameterType = Gen(newTD, newArgumentList);
+                continue;
+            } else {
+                parameterType = aliasedType;
+            }
+        }
+        break;
+    }
+}
+```
+Starting off, let's ignore the recursive nature of the procedure. That is, ignore the nested
+`for` for now.
+
+`Gen` is a function that takes 2 arguments, `TD` and the list `T1, ..., Tn`.
+`TD` is a template declaration.
+`T1, ..., T2` are arguments (actual parameters) provided to a template declaration.
+The expression `Gen(TD, (T1, ..., Tn)` generates an instance of the declaration `TD` when `T1, ..., Tn` are provided
+as arguments. In the instance generated it also fills:
+* `.paramMap` which maps each formal parameter to the corresponding argument.
+* `.TD` which is the template declaration used.
+<br/>
+A template argument can be:
+
+1) A type declarator referencing known types like `int`, `int*`, `int[long]` etc.
+2) A type declarator using a template declaration formal parameter like `T`, `T*`, etc.
+3) A type declarator using both known types and formal parameters, like `T[int]`.
+
+For 2. to be true, the instantiation should happen inside a template declaration. In this case, the formal parameters
+that are used by any argument must be a subset of the formal parameters of the declaration.
+
+**Additional notes**:
+- The number of arguments must be the same with the number of formal parameters of the template declaration.
+- The argument list may contain duplicate elements.
+- The generation should take into consideration the pattern-matching capabilities provided by D in template parameters.
+Examples:
+```
+Gen(struct TemplateType(T) { }, (int*)) -> TemplateType!(int*)
+Gen(struct TemplateType(T) { }, (T[int])) -> TemplateType!(T[int])
+Gen(alias TemplateAlias(T) = TemplateType!T, (int*)) -> TemplateAlias!(int*)
+Gen(alias TemplateAlias(T, Q) = TestType!T, (int*)) -> TemplateAlias!(int*)
+```
+
+We assume that all the instances have been generated using `Gen`.
+
+If `TD` is an template alias declaration, then `TD.aliasedType` is the type that `TD` aliases.
+Example:
+```
+struct TemplateType(T) { }
+alias TemplateAlias(T) = TemplateType!T
+```
+`.aliasedType` of `alias TemplateAlias(T)` is `TemplateType!T`.
+If that type is an instantiation of a template declaration, we find that declaration using `findTempDecl()`. 
+This function given the instance of a template declaration, finds that template declaration.
+
+Notice that if `aliasedType` isn't a template instance, we stop. This is important, because there are other reasons that 
+we want to stop that have to do with the implementation. More on that in the article referenced below.
+
+`matchParams()` is a function that takes 2 arguments. One argument list (call it `al`) and one parameter map (call 
+it `m`, a map of formal parameters to arguments / type declarators). `al` is of course a list of template arguments.
+It generates a new argument list so any formal parameter used in some argument in `al` is replaced
+with the argument that it maps to (using the `m`).
+
+A sample loop execution:
+```
+// Declarations
+struct TemplateType(W) { }
+alias TemplateAlias(Q, S) = TemplateType!Q;
+
+parameterType := TemplateAlias!(int*, float)
+// Gen looks like this: Gen(alias TemplateAlias(Q, S) = TemplateType!Q, (int*, float)) -> TemplateAlias!(int*, float)
+TD := alias TemplateAlias(Q, S) = TemplateType!Q
+(T1, ..., Tn) := (int*, float)  (where T1 := int* and T2 := float)
+parameterType := TemplateAlias!(int*, float)
+parameterType.paramMap := { Q: int*, S: float }
+TD.aliasedType := TemplateType!Q
+newTD := struct TemplateType(W) { }
+aliasedType.paramList := (Q)
+newArgumentList = (int*)  // 'Q' was replaced by int* using the map
+parameterType = TemplateType!(int*)
+```
+
+The last thing to be explained is this `for` at the start of the function. Consider the following example:
+```
+struct TemplateType1(T) { }
+struct TemplateType2(Q) { }
+alias TemplateAlias1(S) = TemplateType2!S
+alias TemplateAlias2(V) = TemplateType1!(TemplateAlias1!V)
+```
+It is clear that the procedure of resolving an alias instance has a recursive nature. That is because
+aliases can instantiate other aliases. So, this `for`, for each argument on the map of arguments that the `parameterType` instance
+got, first resolves any nested aliases.
+
+### Caveats
+#### Changing the parameter type might not be enough
+Consider this example:
+```
+struct TemplateType(W) {}
+alias TemplateAlias(S, V) = TemplateType!(S);
+void templateFunction(T, Q)(TemplateAlias!(T, Q) arg) {}
+```
+Using the above logic, the parameter resolves to this:
+```
+void templateFunction(T, Q)(TemplateType!T arg) {}
+```
+Notice that this does not compile. The reason is that `Q` is never used. It was _dropped_ in the process
+of resolving the alias. For the specification to be complete, we need to consider that if in the resolution
+process, a formal parameter of the function is dropped, then the type of the function has to change in more ways than
+the function parameters. Its template parameters should also be reduced.
+
+#### Cyclic aliases
+Templates in D are Turing-complete. Because of that, deciding a-priori if a template instantiation will ever
+finish retreats to the [halting problem](https://en.wikipedia.org/wiki/Halting_problem). For this reason,
+an implementation proposal for alias resolution is that to avoid infinite generation, detect cycles on the _declaration_ level.
+That is, if we ever try to instantiate the same declaration again during an alias resolution, stop.
+
+## Breaking Changes and Deprecations
+There are no breaking changes and deprecations and no problem with backwards compatibility. This is a pure
+addition to the language.
+
+## Reference
+#### From the forum
+- [GSoC 2019 Mir Project Ideas - DataFrame Project](https://forum.dlang.org/post/jyzgzxqgaggltgifwnxx@forum.dlang.org)
+- [Initial idea from Ilya Yashorenko](https://forum.dlang.org/post/kvcrsoqozrflxibgxtlo@forum.dlang.org)
+#### Bugzilla reports
+- [16486](https://issues.dlang.org/show_bug.cgi?id=16486)
+- [16465](https://issues.dlang.org/show_bug.cgi?id=16465)
+#### Pull request with a 3-day prototype implementation
+- https://github.com/dlang/dmd/pull/9778
+#### An informal discussion and breakdown of the implementation challenges
+- [Template Aliases as Function Parameters](http://users.uoa.gr/~sdi1600105/dlang/alias.html)
+
+## Copyright & License
+
+Copyright (c) 2019 by the D Language Foundation
+
+Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+
+## Reviews
