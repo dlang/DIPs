@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1020](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions
+|[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions
 |   Community Round 1|
 |[1019](./DIP1019.md)|                           Named Arguments Lite|      Final Review|
 |[1020](./DIP1020.md)|                               Named Parameters|  Post-Community 1|
