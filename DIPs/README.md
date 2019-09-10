@@ -3,9 +3,9 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions|   Community Round 1|
+|[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Community Round 1|
+|[1020](./DIP1020.md)|                               Named Parameters| Community Round 2|
 |[1019](./DIP1019.md)|                           Named Arguments Lite|      Final Review|
-|[1020](./DIP1020.md)|                               Named Parameters|  Post-Community 1|
 |[1021](./DIP1021.md)|          Argument Ownership and Function Calls|  Post-Community 1|
 |[1022](./DIP1022.md)|                               foreach auto ref|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
