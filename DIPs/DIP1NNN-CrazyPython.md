@@ -1,4 +1,10 @@
-# Request for Comments - DIP - `T[?]`
+# Dynamic-size static arrays for D
+| Field           | Value                                                           |
+|-----------------|-----------------------------------------------------------------|
+| DIP:            | (number/id -- assigned by DIP Manager)                          |
+| Review Count:   | 0 (edited by DIP Manager)                                       |
+| Author:         | James Lu (jamtlu@gmail.com)                                     |
+| Status:         | Draft                                                           |
 ## Abstract
 Often, it is necessary to allocate a data structure on the stack based on a
 size known at runtime, and possibly return that data structure. This proposal
@@ -15,13 +21,6 @@ It is often important to be able to quickly write `@nogc` code for
 performance-critical paths. After identifying hot functions using a profile,
 one should be able to alter a dynamic array that is only used within a single
 function to be allocated and deallocated automatically with `@nogc`.
-
-Current Solutions
-
-* `alloca`
-* `malloc` and `scope(exit) free`
-* Wait for D to support more C++ headers or use Calypso
-* Just use C++ 
 
 What is missing is an ergonomic way to dynamically allocate a static array on
 the stack built-in to D. You can take slices of static array as parameters
@@ -181,7 +180,11 @@ memory is potentially being dynamically allocated during inner loops.
 
 `@nodynamic` implies `@nogc`.
 
-## Alternative and Existing Solutions
+## Prior art
+* `alloca`
+* `malloc` and `scope(exit) free`
+* Wait for D to support more C++ headers or use Calypso
+* Just use C++ 
 #### Use a dynamic array and copy the contents
 #### Templated code
 Make this legal:
@@ -232,7 +235,11 @@ a template instantiation when scanning.
 
 ### Related issues
 Associative arrays with @nogc are a related issue.
+### Copyright & License
 
+Copyright (c) 2019 by the D Language Foundation
+
+Licensed under Creative Commons Zero 1.0
 
 ```
 // Compiled with clang-1001.0.46.4 and -O2
