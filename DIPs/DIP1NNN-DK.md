@@ -6,7 +6,7 @@
 | Review Count:   | 0                                                               |
 | Author:         | Dennis Korpel dkorpel@gmail.com                                 |
 | Implementation: |                                                                 |
-| Status:         |                                                                 |
+| Status:         | Draft                                                           |
 
 ## Abstract
 It is proposed that certain holes or limitations in the type system are addressed by introducing a [bottom type](https://en.wikipedia.org/wiki/Bottom_type).
@@ -27,11 +27,12 @@ It is believed that the DIP focused too much on one specific use case (specifyin
 
 ## Background theory
 Pure functions in programming languages can often be thought of as mathematical functions, mapping elements from an input set (domain) to elements of an output set (co-domain).
-A big problem with this comparison is that mathematical functions are defined to give an answer, while a computer has to perform computation. [[1]](#reference)
+A big problem with this comparison is that mathematical functions are defined to give an answer, while a computer has to perform computation [[1]](#reference).
 It is possible that a procedure just loops forever, and finding this out beforehand in general is impossible because of the [Halting Problem](https://en.wikipedia.org/wiki/Halting_problem).
-One solution is to not allow programs that may not halt. 
+One solution is to not allow programs that may not halt.
 [Coq](https://en.wikipedia.org/wiki/Coq) does this, and consequently it's not turing complete.
-The more common solution is to have one implicit extra member to every type: the bottom value, denoted by `⊥`.
+The more common solution is to have one implicit extra member to every type: the bottom value, denoted by `⊥` (called 'falsum').
+This is not a traditional value that is stored in memory with a certain bit-pattern, it simply represents the possibility that the code never reaches the point where an actual value of that type would be returned or assigned.
 
 For example:
 ```D
@@ -41,8 +42,9 @@ bool foo(int x) {
 }
 ```
 While a `bool` usually only can be `true` or `false` and requires 1 bit of storage, foo can actually return three possible things: {`true`, `false`, `⊥`}
-The symbol `⊥` (called 'falsum') represents `isPrime` getting stuck in an endless loop (in a buggy implementation), crashing (e.g. because it's out of memory), or throwing an exception (because x was negative).
+The symbol `⊥` represents `isPrime` getting stuck in an endless loop (in a bad implementation), crashing (e.g. because it's out of memory), or throwing an exception (because x was negative).
 In such cases foo does not return a `true` or `false` value like a mathematical function always would.
+Note that having a bottom *type* in a language does not *add* the bottom *value* or any run time cost associated with it, the bottom value is a concept that exists in any turing complete language even without a bottom type.
 
 The bottom type should not be confused with a unit type, such as `void`:
 ```D
@@ -64,15 +66,15 @@ auto foo() {
     assert(0);
 }
 ```
-It can only result in {`⊥`}, but the compiler infers this as a function returning `void`, thus believing it could also produce `()`.
-When the body is not known of foo there is no way of knowing that it can never actually produce `()`.
+It can only result in {`⊥`}, but the compiler infers this as a function returning `void`, thus believing it could also return `()`.
+When the body is not known of foo there is no way of knowing that it can never actually return `()`.
 
 ## Rationale
 In this section several situations where a bottom type is useful in D are shown.
 The bottom type is referred to as `noreturn` in code, in the last subsection this name will be discussed.
 
 ### Flow analysis across functions
-Currently D recognizes code after a `throw` statement, `for(;;)` loop or `assert(0)` expression as dead code.
+Currently D recognizes code after a `throw` statement, endless loop such as `for(;;){}` or `assert(0)` expression as dead code.
 Therefor, a return statement can be ommitted.
 ```D
 int main() {
@@ -149,7 +151,7 @@ int fun() {
 Currently, a `void[]` is not implicitly convertible to an array of a different type, e.g. an `int[]`.
 ```D
 int[] test() {
-    return cast(void[]) [0x01, 0x00, 0x00, 0x00];
+    return cast(void[]) [1, 2, 3];
 }
 ```
 
@@ -453,7 +455,7 @@ noreturn.mangleof == "!";
 ```
 This choice is mostly arbitrary (as long as it's unique it's okay for name mangling), but using ! will be familiar to Rust users.
 
-Currently `typeof(null).mangleof` == "n". 
+Currently `typeof(null).mangleof` == "n".
 This will be changed to "p!" (pointer to bottom type).
 This might cause linking errors with separate compilation when different translation units are compiled with different D versions.
 However, actually using typeof(null) in a function signature is extremely uncommon outside templates, so in practice this issue won't manifest.
@@ -489,7 +491,7 @@ Currently `typeof(null).sizeof` equals `size_t.sizeof`, but since it's a unit ty
 ```D
 noreturn[].sizeof == 0
 ```
-Just like `typeof(null)`, `typeof([])` requires no storage since it only has one value. 
+Just like `typeof(null)`, `typeof([])` requires no storage since it only has one value.
 This does mean that a `T[]` is no longer equivalent to this definition:
 ```D
 struct slice(T) {
@@ -592,7 +594,7 @@ noreturn bar() {
 }
 ```
 
-Special cases to the order of evaluation are boolean or (`||`), boolean and (`&&`), the ternary operator and assignExpressions. 
+Special cases to the order of evaluation are boolean or (`||`), boolean and (`&&`), the ternary operator and assignExpressions.
 These still work as you would expect:
 ```D
 a || assert(0); // crash if a is false, type bool
@@ -606,7 +608,7 @@ arr[assert(0, "left")] = assert(0, "right"); // implementation defined whether a
 
 **The cast operator**
 
-Every type is allowed to be _explicitly_ cast to `noreturn`. 
+Every type is allowed to be _explicitly_ cast to `noreturn`.
 (Not to be confused with `noreturn` _implicitly_ casting to every type)
 It generates an `assert(0)`:
 ```D
@@ -619,7 +621,7 @@ auto foo() {
 
 **Storage classes**
 
-Storage classes can be added to a declaration with type `noreturn`. 
+Storage classes can be added to a declaration with type `noreturn`.
 Since these declarations don't generate any storage, they will not have an effect on code generation.
 They still feel the effects of storage classes though, so you can't breach e.g. `scope` or `immutable` with `noreturn`.
 
