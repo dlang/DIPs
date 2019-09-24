@@ -6,7 +6,7 @@
 | Review Count:   | 0                                                               |
 | Author:         | Dennis Korpel dkorpel@gmail.com                                 |
 | Implementation: |                                                                 |
-| Status:         |                                                                 |
+| Status:         | Draft                                                           |
 
 ## Abstract
 Declaring a variable of type `void` and assigning an expression of type `void` to it should be allowed.
