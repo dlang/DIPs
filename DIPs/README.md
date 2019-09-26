@@ -36,10 +36,10 @@
 ## Postponed DIPs
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
-|[1005](./DIP1005.md)|               Dependency-Carrying Declarations|
-|[1008](./DIP1008.md)|                           Exceptions and @nogc|
-|[1019](./DIP1019.md)|                           Named Arguments Lite|
-|[1020](./DIP1020.md)|                               Named Parameters|
+|[1005](./other/DIP1005.md)   |      Dependency-Carrying Declarations|
+|[1008](./other/DIP1008.md)   |                  Exceptions and @nogc|
+|[1019](./other/DIP1019.md)   |                  Named Arguments Lite|
+|[1020](./other/DIP1020.md)   |                      Named Parameters|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
