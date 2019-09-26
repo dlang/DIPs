@@ -10,8 +10,6 @@
 |[1019](./DIP1019.md)|                           Named Arguments Lite|        Post-Final|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
-|[1005](./DIP1005.md)|               Dependency-Carrying Declarations|         Postponed|
-|[1008](./DIP1008.md)|                           Exceptions and @nogc|         Postponed|
 
 `*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
 
@@ -36,6 +34,12 @@
 |[1015](./rejected/DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
 |[1016](./rejected/DIP1016.md)|              `ref T` accepts r-values|
 |[1017](./rejected/DIP1017.md)|                       Add Bottom Type|
+
+## Postponed DIPs
+|                           ID|                                 Title|
+|-----------------------------|--------------------------------------|
+|[1005](./DIP1005.md)|               Dependency-Carrying Declarations|
+|[1008](./DIP1008.md)|                           Exceptions and @nogc|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
