@@ -6,8 +6,6 @@
 |[1021](./DIP1021.md)|          Argument Ownership and Function Calls|      Final Review|
 |[1022](./DIP1022.md)|                               foreach auto ref|  Post-Community 1|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
-|[1020](./DIP1020.md)|                               Named Parameters|  Post-Community 2|
-|[1019](./DIP1019.md)|                           Named Arguments Lite|        Post-Final|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 
@@ -40,6 +38,8 @@
 |-----------------------------|--------------------------------------|
 |[1005](./DIP1005.md)|               Dependency-Carrying Declarations|
 |[1008](./DIP1008.md)|                           Exceptions and @nogc|
+|[1019](./DIP1019.md)|                           Named Arguments Lite|
+|[1020](./DIP1020.md)|                               Named Parameters|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
