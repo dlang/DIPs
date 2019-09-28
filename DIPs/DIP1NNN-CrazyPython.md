@@ -16,8 +16,6 @@ the tools to avoid dynamic memory allocation.
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
 * [Description](#description)
-* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [Reference](#reference)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
 
