@@ -12,7 +12,16 @@ suggests adding dynamic-size static arrays to D. The goal here is an
 easy-to-use dynamically sized array without a GC. It should give the programmer
 the tools to avoid dynamic memory allocation.
 
-## Motivation
+## Contents
+* [Rationale](#rationale)
+* [Prior Work](#prior-work)
+* [Description](#description)
+* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Reference](#reference)
+* [Copyright & License](#copyright--license)
+* [Reviews](#reviews)
+
+## Rationale
 `@nogc` programming is useful in many contexts. For example, currently WASM
 does not have a garbage collector, limiting D applications to `-betterC`
 mode. 
@@ -36,8 +45,48 @@ modifies adjacency_list, the caller does not see the modifications.
 @nogc auto kahnsAlgorithm(int[][?] adjacency_list);
 ```
 
+## Prior Work
+* `alloca`
+* `malloc` and `scope(exit) free`
+* Wait for D to support more C++ headers or use Calypso
+* Just use C++ 
+#### Use a dynamic array and copy the contents
+#### Templated code
+Make this legal:
+```dlang
+@nogc void example(N)(int[][N] adjacency_list) {
+return N;
+}
+unittest {
+int[][100] array;
+assert(example(array) == 100);
+}
+```
+Templated code is an alternative to having to hardcode the size into a function
+while keeping it `@nogc`. However, this would not work for arrays whose maximum
+size is unknown at runtime. 
 
-## Definition and key features
+#### Copy parameters
+```dlang
+@nogc auto bfs(copy int[][] adjacency_list);
+```
+*Background:* It is already legal to receive a dynamic array in `@nogc` code.
+
+The `copy` parameter attribute creates a deep copy of the function parameter.
+In this case, the parameter `adjacency_list` is a static array of dynamic
+arrays. 
+
+When passing in a copy parameter, a copy is created at the entrance to the
+function body. Copy parameters are always implicitly `const copy`, since to the
+external caller, the passed in parameter is never modified.
+
+#### `scope T[]`
+Compared to scoped dynamic arrays, dynamic-size static arrays can be passed in
+by value. Unlike, dynamic-size static arrays, scoped dynamic arrays are
+primarily useful for initializing a data store to be used within a single
+function. 
+
+## Description
 
 <!-- rephrase: use the word "arguments" for inside the body, "parameters" for
 outside it -->
@@ -180,47 +229,6 @@ memory is potentially being dynamically allocated during inner loops.
 
 `@nodynamic` implies `@nogc`.
 
-## Prior art
-* `alloca`
-* `malloc` and `scope(exit) free`
-* Wait for D to support more C++ headers or use Calypso
-* Just use C++ 
-#### Use a dynamic array and copy the contents
-#### Templated code
-Make this legal:
-```dlang
-@nogc void example(N)(int[][N] adjacency_list) {
-return N;
-}
-unittest {
-int[][100] array;
-assert(example(array) == 100);
-}
-```
-Templated code is an alternative to having to hardcode the size into a function
-while keeping it `@nogc`. However, this would not work for arrays whose maximum
-size is unknown at runtime. 
-
-#### Copy parameters
-```dlang
-@nogc auto bfs(copy int[][] adjacency_list);
-```
-*Background:* It is already legal to receive a dynamic array in `@nogc` code.
-
-The `copy` parameter attribute creates a deep copy of the function parameter.
-In this case, the parameter `adjacency_list` is a static array of dynamic
-arrays. 
-
-When passing in a copy parameter, a copy is created at the entrance to the
-function body. Copy parameters are always implicitly `const copy`, since to the
-external caller, the passed in parameter is never modified.
-
-#### `scope T[]`
-Compared to scoped dynamic arrays, dynamic-size static arrays can be passed in
-by value. Unlike, dynamic-size static arrays, scoped dynamic arrays are
-primarily useful for initializing a data store to be used within a single
-function. 
-
 ### Alternative syntaxes
 `void kahnsAlgorithm(int[][@] adjacency_list);`
 
@@ -241,43 +249,6 @@ Copyright (c) 2019 by the D Language Foundation
 
 Licensed under Creative Commons Zero 1.0
 
-```
-// Compiled with clang-1001.0.46.4 and -O2
-#include <ctime>
-#include <vector>
-auto a(int N) {
-std::vector<int> vec;
-for (int i = 0; i < N; ++i) {
-vec.push_back(i);
-}
-return vec;
-}
-auto b(int N) {
-std::vector<int> vec;
-vec.reserve(N);
-for (int i = 0; i < N; ++i) {
-vec.push_back(i);
-}
-return vec;
-}
-auto c(int N) {
-std::vector<int> vec;
-for (int i = 0; i < N; ++i) {
-vec[i] = i;
-}
-return vec;
-}
-
-int main() {
-volatile std::vector<int> top = 
-#ifdef A  
-a(1000000);
-#endif
-#ifdef B
-b(1000000);
-#endif
-#ifdef C
-c(1000000);
-#endif
-}
-```
+## Reviews
+The DIP Manager will supplement this section with a summary of each review stage
+of the DIP process beyond the Draft Review.
