@@ -4,7 +4,7 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1024](./DIP1024.md)|                                 Shared Atomics| Community Round 1|
-|[1021](./DIP1021.md)|          Argument Ownership and Function Calls|      Final Review|
+|[1021](./DIP1021.md)|          Argument Ownership and Function Calls| Formal Assessment|
 |[1022](./DIP1022.md)|                               foreach auto ref|  Post-Community 1|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|    Formal Review`*`|
