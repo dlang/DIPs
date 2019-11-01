@@ -102,13 +102,33 @@ Take reference counting for example: As long as the reference count can be meddl
 
 ### Existing holes in `@safe`
 
-While constructing arbitrary pointers inside `@safe` code is not allowed, there is currently no defence around pointers initialized to an unsafe value outside any function:
+While constructing arbitrary pointers inside `@safe` code is not allowed, there is currently little defence around pointers initialized to an unsafe value outside any function:
+```D
+@safe int* x = cast(int*) 0x7FFE_E800_0000; // compiles
+
+void main() @safe {
+    *x = 3; // memory corruption
+}
+```
+
+This has partially been fixed in DMD PR [#10056](https://github.com/dlang/dmd/pull/10056)
+
 ```D
 @safe:
-int* x = cast(int*) 0x7FFE_E800_0000;
+int* x = cast(int*) 0x7FFE_E800_0000; // error: cast from long to int* not allowed in safe code
+```
 
-void main() {
-    *x = 3; // memory corruption
+It does not work when annotating the declaration as `@safe`, only when the variables is under a `@safe:` section.
+It is also easily circumvented:
+
+```D
+auto getPtr() @system {return cast(int*) 0x7FFE_E800_0000;}
+
+@safe:
+int* x = getPtr();
+
+void main() @safe {
+    int y = *x; // = 3; // memory corruption
 }
 ```
 
@@ -127,15 +147,21 @@ A proper solution should make it impossible for invalid values of types to even 
 
 ## Prior work
 
-I brought up this limitation of `@trusted` code [on the newsgroup](https://forum.dlang.org/thread/lobjvmjxvvmamklzfzhp@forum.dlang.org) originally with a different solution in mind.
-User 'ag0aep6g' suggested:
+The need for encapsulation for memory safety has been mentioned in several discussions:
 
-> My best idea so far (might not be originally mine) is to let the @system attribute apply to variables.
+[#8035: tupleof ignoring private shouldn't be accepted in `@safe` code](https://github.com/dlang/dmd/pull/8035) (March 15, 2018)
 
-Any prior discussion about `@system` variables has not been found.
-It was later brought up in the post [Borrowing and Ownership](https://forum.dlang.org/post/qp565f$2q48$1@digitalmars.com) by "Timon Gehr".
+[Re: shared - i need it to be useful](https://forum.dlang.org/post/pqleml$2kpg$1@digitalmars.com) (October 22, 2018)
 
-> - The problem with `@trusted` is that it has no defense against `@safe` code destroying its invariants or accessing raw pointers that are only meant to be manipulated by `@trusted` code. There should therefore be a way to mark data as `@trusted` (or equivalent), such that `@safe` code can not access it.
+[Re: Manu's `shared` vs the @trusted promise](https://forum.dlang.org/post/pqn0dc$2cq7$1@digitalmars.com) (October 23, 2018)
+
+[Re: Both safe and wrong?](https://forum.dlang.org/post/cxupcgybvqwvkuvcokoz@forum.dlang.org) (February 7, 2019)
+
+[#9585: __traits(getMember) should bypass the protection](https://github.com/dlang/dmd/pull/9585) (April 12, 2019)
+
+[Should modifying private members be @system?](https://forum.dlang.org/thread/lobjvmjxvvmamklzfzhp@forum.dlang.org) (October 4, 2019)
+
+[Borrowing and Ownership](https://forum.dlang.org/post/qp565f$2q48$1@digitalmars.com) (October 27, 2019)
 
 ### Other languages
 Many other languages either don't allow systems programming at all (e.g. Java, Python) or don't support language enforced memory safety (e.g. C/C++).
@@ -156,10 +182,8 @@ Some excerpts from the discussion there are:
 
 [source](https://github.com/rust-lang/rfcs/pull/80#issuecomment-43489000)
 
-Ultimately the proposal has not been accepted yet, but note that the counter arguments don't directly apply to D:
-- It already established the scope of `@trusted` to be function level, not module level.
-- D's `private` doesn't limit the scope of `@trusted` to modules because of `__traits(getMember)`.
-
+Ultimately the proposal has not been accepted yet.
+The idea of using `private` instead of `@system` variables for D will be discussed in the [alternatives](#alternatives) section.
 More information about Rust's stand on unsafe functions can be found here:
 
 - [safe unsafe meaning](https://doc.rust-lang.org/nightly/nomicon/safe-unsafe-meaning.html)
@@ -247,6 +271,10 @@ Further operations disallowed in `@safe` code on `@system` variables or fields a
 - taking its address using `&`
 - passing it as an argument to a function parameter marked `ref`
 - returning it by `ref`
+
+A struct or union with `@system` fields can not be constructed using the default constructor in `@safe` code.
+A `@trusted` constructor can be defined to allow construction in `@safe` code.
+Note that the `.init` value of a type is always usable in `@safe` code.
 
 When using an `alias` to a `@system` field, that alias has the same restrictions regarding `@system`.
 
@@ -351,8 +379,6 @@ Annotations with a scope (`@system {}`) or colon (`@system:`) affect variables j
 int y1; // @system
 ```
 
-N.B. functions are currently `@system` by default, but that is planned to be changed: [Make @safe the default](https://github.com/dlang/DIPs/pull/166)
-
 **(4) `__traits(getFunctionAttributes)` may be called on variables and fields**
 
 Currently it is possible to give function attributes to declarations that aren't functions.
@@ -371,7 +397,7 @@ The name "function attributes" is a bit unfortunate in this case, but this DIP d
 
 **(5) `bool` becomes an unsafe type**
 
-As explained in the [rationale](#rationale) section, `bool` types either cause memory corruption when assumed to be always 0 or 1, or might as well by `ubyte` types when almost every operation needs to truncate the value.
+As explained in the [rationale](#rationale) section, `bool` types either cause memory corruption when assumed to be always 0 or 1, or might as well be `ubyte` types when almost every operation needs to truncate the value.
 By making `bool` an unsafe type, it can be both fast and `@safe` since all tricks to make invalid booleans are now disabled in `@safe` code.
 The cost is that existing code might break.
 Note that with the proposed rules a `bool` variable or field is only `@system` when the compiler cannot possibly prove that the initial value is 0 or 1, which should be a rare occurrence.
@@ -499,7 +525,7 @@ void main() @safe {
 
 ### A custom slice type
 Many arrays are small in length and in certain situations you do not want 4 or 8 bytes to store the length when 2 suffices.
-A safe small slice type is created below. 
+A safe small slice type is created below.
 It has room for extra fields but still fits in two registers.
 ```D
 struct SmallSlice(T) {
@@ -542,7 +568,8 @@ struct Cstring {
 }
 
 Cstring cStringLiteral(string s)() @trusted {
-    return Cstring(s.ptr); // string literals are guaranteed zero-terminated
+    static immutable string tmp = s;
+    return Cstring(tmp.ptr); // static strings are guaranteed zero-terminated
 }
 
 import std;
@@ -556,14 +583,58 @@ void main() @safe {
 
 ## Alternatives
 
-An alternative is to define `@trusted` to apply on module level instead of function level, and use `private` to restrict unsafe operations.
-This would mean that circumventing visibility constraints using `__traits(getMember, ...)` becomes `@system` or deprecated entirely.
-This would break all (`@safe`) code that uses this feature, and re-introduces the problems of [issue 15371](https://issues.dlang.org/show_bug.cgi?id=15371).
+### Using `private`
 
+On March 2018 a restriction was added to `.tupleof` such that it could not bypass `private`.
+The restriction is only in effect with the flag `-dip1000` to avoid code breakage.
+Walter Bright has stated the reason for this in [a comment](https://github.com/dlang/dmd/pull/8035#issuecomment-373627265):
+
+> @safe code should not be accessing private members in other modules, and using tupleof to "work around" that restriction is a giant hole in the @safe system.
+> Such code should be marked @trusted or @System.
+
+> A struct may present an @safe interface to users, but internally have private unsafe pointers.
+> tupleof allows any code to have access to those private members, and can mess up the invariants relied on by the struct.
+> Even int fields are not safe to access, as they may be used as an index to a pointer.
+
+While the need for giving a way of ensuring `struct` invariants in `@safe` code is in line with this DIP, the idea to use `private` for it is argued against.
+
+First of all, disallowing bypassing `private` in `@safe` code is not sufficient for ensuring struct invariants.
+As mentioned in the quote, sometimes invariants need to hold on types that are not unsafe such as `int`.
+When there are no pointer members, then the private fields can still be indirectly written to using overlap in a union, void-initialization or array casting.
+
+Secondly, it goes against the established 'zen' of `@safe` being the largest subset of the D language that ensures no memory corruption.
+The [specification says](https://dlang.org/spec/memory-safe-d.html#limitations):
+
+> Memory safety does not imply that code is portable, uses only sound programming practices, is free of byte order dependencies, or other bugs. It is focussed only on eliminating memory corruption possibilities. 
+
+There have been suggestions to disallow certain operations that are risky but not sufficient for memory corruption in `@safe` code, but it [has been stated](https://forum.dlang.org/post/qdl954$hbb$1@digitalmars.com) that `@safe` does not mean "no bugs":
+
+> Uninitialized non-pointers are @safe, because @safe refers to memory safety, not "no bugs".
+
+Accessing a `private` field is just as memory safe as accessing a `public` field, so adding this restriction, while it potentially enables more `@trusted` code, is ultimately arbitrary. 
+Defining `@system` variables is consistent with existing practice of allowing functions to be marked `@system`.
+
+It also goes against the established [definition of trusted functions](https://dlang.org/spec/function.html#trusted-functions):
+
+> Trusted functions are guaranteed to not exhibit any undefined behavior if called by a safe function. 
+> Furthermore, calls to trusted functions cannot lead to undefined behavior in @safe code that is executed afterwards.
+> It is the responsibility of the programmer to ensure that these guarantees are upheld.
+
+`private` only acts on the module level, so a `@trusted` member function cannot assume anything about the state of the `this` parameter.
+
+Finally, it would mean that circumventing visibility constraints using `__traits(getMember, ...)` must become `@system` or deprecated entirely similar to `.tupleof`.
+This would break all (`@safe`) code that uses this feature, and re-introduces the problems of [issue 15371](https://issues.dlang.org/show_bug.cgi?id=15371).
+All things considered, making `private` work with `@trusted` appears to be a bigger hassle than introducing checks for `@system` variables and fields.
+
+### Not making bool an unsafe type
 It has been proposed that `void` initialization should be disallowed in `@safe` code entirely, which would partially solve the problem of invalid `bool` values in `@safe` code.
+
+See the comment on [Issue 20148 - void initializated bool can be both true and false](https://issues.dlang.org/show_bug.cgi?id=20148):
+> So instead of closing the obvious hole of @safe functions using void initialization we're just poking at symptoms here and there?
+
 This would still leave each `bool` in a union or a `bool[]` that was typecast from a `ubyte[]` vulnerable.
 Truncating booleans in those situations only is a possible compromise, though treating the `bool` type as unsafe is still seen as an improvement.
-The proposal to disallow `void` initialization in `@safe` code still has its merits besides invalid booleans, and treating booleans as unsafe types has its merits even without the ability to void-initialize them.
+The proposal to disallow `void` initialization in `@safe` code still has its merits besides preventing invalid booleans, and treating booleans as unsafe types has its merits even without the ability to void-initialize them.
 
 ## Breaking Changes and Deprecations
 
