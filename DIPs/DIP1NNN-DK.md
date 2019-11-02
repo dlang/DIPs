@@ -468,15 +468,23 @@ void main() @safe {
 ```
 
 ### Using uninitialized memory
-This simple stack data structure shows how to safely use uninitialized memory.
+This simple stack data structure shows how to safely use an array with partially uninitialized memory.
 In this case the stack data structure is using uninitialized stack memory, but the same idea applies to using malloc'ed memory.
+Since destructors are still run on the entire array (also the uninitialized part), the stack has a restriction that its element type must be plain old data.
 ```D
-private struct Stack(T, int size = 32) {
+private struct Stack(T, int size = 32) if (__traits(isPOD, T)) {
     private @system T[size] stack = void;
     private @system int _top = 0;
 
-    T pop() @trusted {if (empty) assert(0); return stack[--_top];}
-    void push(T x) @trusted {if (full) assert(0); stack[_top++] = x;}
+    T pop() @trusted {
+        if (empty) assert(0); 
+        return stack[--_top];
+    }
+    void push(T x) {
+        if (full) assert(0);
+        // T might have a @system opAssign, so only make retrieval @trusted
+        delegate ref T() @trusted {return stack[_top++];}() = x;
+    }
     bool empty() const {return _top == 0;}
     bool full() const {return _top == size;}
 }
