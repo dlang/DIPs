@@ -462,8 +462,8 @@ import std;
 
 void main() @safe {
     Var v = 1.0;
-    writeln(v.asString); // memory corruption: the string's length (and pointer
-    // on 32-bit targets) have been meddled with
+    v.type = Var.Type.Str; // not allowed after this DIP
+    writeln(v.getString()); // memory corruption: the union messed up the string
 }
 ```
 
@@ -500,11 +500,11 @@ void main() @safe {
 Here we make a simple 'bump the pointer' allocator.
 ```D
 @system private ubyte[4096] heap;
-@system private int heapIndex;
+@system private size_t heapIndex;
 
 /// allocate an array of T
 /// never frees the memory
-T[] customAlloc(T)(int length) {
+T[] customAlloc(T)(int length) @trusted {
     // round up heapIndex to multiple of T.alignof
     heapIndex = (heapIndex + T.alignof-1) & ~(T.alignof-1);
     auto result = cast(T[]) heap[heapIndex..heapIndex + T.sizeof*length];
@@ -518,7 +518,7 @@ void main() @safe {
     string[] strArr = customAlloc!string(3);
     heapIndex = 0; // mess up allocator integrity! not allowed after this DIP.
     int[] intArr = customAlloc!int(3);
-    intArr[2] = 0x8035FDF0; // overwrites string array
+    intArr[] = -1; // overwrites string array
     writeln(strArr[0]); // memory corruption: constructed pointer
 }
 ```
