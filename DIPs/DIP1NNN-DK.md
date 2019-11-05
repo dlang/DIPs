@@ -10,7 +10,7 @@
 
 ## Abstract
 When the `@system` attribute is attached to variables or fields, it means they cannot be written to in `@safe` functions.
-If the variable has an unsafe type, it also cannot be read in `@safe` code.
+If the variable has an unsafe type (type that has at least one pointer or `@system` field), it also cannot be read in `@safe` code.
 This allows more safe encapsulation of low-level unsafe code using `@trusted`, since currently `@trusted` code cannot assume anything about the integrity of data.
 It also fixes some existing issues with `@safe` code.
 
