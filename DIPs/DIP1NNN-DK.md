@@ -35,6 +35,9 @@ This can only work if the language in which such types are defined has the neede
 
 For a detailed explanation about this concept, refer to the article "[What type soundndess theorem do you really want to prove?](https://blog.sigplan.org/2019/10/17/what-type-soundness-theorem-do-you-really-want-to-prove/)".
 
+D offers both low-level and high-level coding styles and is very well suited for writing safe types that internally use unsafe low-level primitives for performance.
+It only falls a bit short in the encapsulation capabilities, which this DIP is trying to correct with `@system` variables and fields.
+
 ## Rationale
 
 ### Need for encapsulation of @trusted code
@@ -99,6 +102,10 @@ This is especially necessary for the recent push of `@safe` non-garbage collecte
 - [my vision of D's future](https://dlang.org/blog/2019/10/15/my-vision-of-ds-future/)
 
 Take reference counting for example: As long as the reference count can be meddled with from `@safe` code, freeing the memory can't be `@trusted` and D won't support `@safe` reference counting.
+
+It is important to note that the concepts in this DIP have nothing to do with memory allocation or lifetimes however.
+Even when freeing memory did not exist, restricting variable and field access from `@safe` code is still useful.
+Ensuring that `free` on manually managed memory can be encapsulated in a `@trusted` function is an important _application_ of this DIP though.
 
 ### Existing holes in `@safe`
 
@@ -222,6 +229,7 @@ pragma(msg, __traits(getAttributes, x)); // tuple()
 
 ### Unsafe types
 In the proposed changes I use the term "unsafe types".
+
 An unsafe type is a type which has underlying bit-patterns that risk causing memory corruption in `@safe` code.
 The prime example of an unsafe type is a pointer, but any type that contains a pointer is also unsafe:
 - classes
@@ -229,13 +237,20 @@ The prime example of an unsafe type is a pointer, but any type that contains a p
 - associative arrays
 - a struct or union containing a pointer or one of the above types
 
-Note that unsafe types can be used just fine in `@safe` code for the most part, there are only some restrictions to ensure their integrity:
+If I were allowed to arbitrarily change the bits of one of those types, I could construct a garbage pointer that can cause memory corruption in `@safe` code.
+By contrast, if I could arbitrarily change the bits of safe types such as `int` or `float`, it is not sufficient for memory corruption in `@safe` code. 
+There is no equivalent to a dereference operator for an `int` or `float`, all their operators do not touch other memory.
+I can use a garbage `int` as an array index and get unpredictable results, but when the index it out of bounds checks a Range error is thrown preventing memory corruption.
+
+Unsafe types can be used just fine in `@safe` code for the most part, there are only some restrictions to ensure their integrity:
 - they can't be void-initialized
 - they can't be overlapped in a union
 - a `T[]` cannot be cast to a `U[]` when U is an unsafe type.
 - certain operators (pointer arithmetic, unsafe casts) are disallowed
 
 In the proposed changes both the list of unsafe types and the the list of restrictions will be extended.
+
+It is worth re-iterating that 'unsafe types' are not inferior to 'safe' types or bad for writing `@safe` code, they are simply types where the integrity of the underlying bits is necessary for memory safety.
 
 ### Proposed changes
 
@@ -272,11 +287,29 @@ Further operations disallowed in `@safe` code on `@system` variables or fields a
 - passing it as an argument to a function parameter marked `ref`
 - returning it by `ref`
 
-A struct or union with `@system` fields can not be constructed using the default constructor in `@safe` code.
+A struct or union with `@system` fields can not be constructed using [static initializtion](https://dlang.org/spec/struct.html#static_struct_init) or the automatically generated constructor in `@safe` code.
 A `@trusted` constructor can be defined to allow construction in `@safe` code.
 Note that the `.init` value of a type is always usable in `@safe` code.
 
-When using an `alias` to a `@system` field, that alias has the same restrictions regarding `@system`.
+When using an `alias` to a `@system` variable, that alias has the same restrictions regarding `@system`.
+
+```D
+struct S {
+    @system int y;
+}
+
+void main() @safe {
+    S s0 = {y: 3}; // error, static initialization used to write to @system field
+    S s1 = S(3); // error, automatically generated constructor used to write to @system field
+    S s2 = S.init; // allowed
+    
+    int* yPtr = &s2.y; // not allowed to take pointer of @system variable in @safe code
+    *yPtr = 3; // if the above was allowed, this would write to a @system field in @safe code
+}
+
+@system int z;
+alias zAlias = z; // this alias can't be used to bypass @system
+```
 
 **(1) An aggregate with at least one `@system` field is an unsafe type**
 
@@ -469,7 +502,7 @@ void main() @safe {
 
 ### Using uninitialized memory
 This simple stack data structure shows how to safely use an array with partially uninitialized memory.
-In this case the stack data structure is using uninitialized stack memory, but the same idea applies to using malloc'ed memory.
+In this case the stack data structure is using uninitialized stack memory, but the same idea applies to using uninitialized memory returned by `malloc`.
 Since destructors are still run on the entire array (also the uninitialized part), the stack has a restriction that its element type must be plain old data.
 ```D
 private struct Stack(T, int size = 32) if (__traits(isPOD, T)) {
