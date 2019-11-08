@@ -156,19 +156,17 @@ A proper solution should make it impossible for invalid values of types to even 
 
 The need for encapsulation for memory safety has been mentioned in several discussions:
 
-[#8035: tupleof ignoring private shouldn't be accepted in `@safe` code](https://github.com/dlang/dmd/pull/8035) (March 15, 2018)
+- [#8035: tupleof ignoring private shouldn't be accepted in `@safe` code](https://github.com/dlang/dmd/pull/8035) (March 15, 2018)
 
-[Re: shared - i need it to be useful](https://forum.dlang.org/post/pqleml$2kpg$1@digitalmars.com) (October 22, 2018)
+- [Re: shared - i need it to be useful](https://forum.dlang.org/post/pqleml$2kpg$1@digitalmars.com) (October 22, 2018)
 
-[Re: Manu's `shared` vs the @trusted promise](https://forum.dlang.org/post/pqn0dc$2cq7$1@digitalmars.com) (October 23, 2018)
+- [Re: Manu's `shared` vs the @trusted promise](https://forum.dlang.org/post/pqn0dc$2cq7$1@digitalmars.com) (October 23, 2018)
 
-[Re: Both safe and wrong?](https://forum.dlang.org/post/cxupcgybvqwvkuvcokoz@forum.dlang.org) (February 7, 2019)
+- [Re: Both safe and wrong?](https://forum.dlang.org/post/cxupcgybvqwvkuvcokoz@forum.dlang.org) (February 7, 2019)
 
-[#9585: __traits(getMember) should bypass the protection](https://github.com/dlang/dmd/pull/9585) (April 12, 2019)
+- [Should modifying private members be @system?](https://forum.dlang.org/thread/lobjvmjxvvmamklzfzhp@forum.dlang.org) (October 4, 2019)
 
-[Should modifying private members be @system?](https://forum.dlang.org/thread/lobjvmjxvvmamklzfzhp@forum.dlang.org) (October 4, 2019)
-
-[Borrowing and Ownership](https://forum.dlang.org/post/qp565f$2q48$1@digitalmars.com) (October 27, 2019)
+- [Borrowing and Ownership](https://forum.dlang.org/post/qp565f$2q48$1@digitalmars.com) (October 27, 2019)
 
 ### Other languages
 Many other languages either don't allow systems programming at all (e.g. Java, Python) or don't support language enforced memory safety (e.g. C/C++).
@@ -238,7 +236,7 @@ The prime example of an unsafe type is a pointer, but any type that contains a p
 - a struct or union containing a pointer or one of the above types
 
 If I were allowed to arbitrarily change the bits of one of those types, I could construct a garbage pointer that can cause memory corruption in `@safe` code.
-By contrast, if I could arbitrarily change the bits of safe types such as `int` or `float`, it is not sufficient for memory corruption in `@safe` code. 
+By contrast, if I could arbitrarily change the bits of safe types such as `int` or `float`, it is not sufficient for memory corruption in `@safe` code.
 There is no equivalent to a dereference operator for an `int` or `float`, all their operators do not touch other memory.
 I can use a garbage `int` as an array index and get unpredictable results, but when the index it out of bounds checks a Range error is thrown preventing memory corruption.
 
@@ -302,7 +300,7 @@ void main() @safe {
     S s0 = {y: 3}; // error, static initialization used to write to @system field
     S s1 = S(3); // error, automatically generated constructor used to write to @system field
     S s2 = S.init; // allowed
-    
+
     int* yPtr = &s2.y; // not allowed to take pointer of @system variable in @safe code
     *yPtr = 3; // if the above was allowed, this would write to a @system field in @safe code
 }
@@ -454,7 +452,7 @@ There are no proposed grammar changes, since placing `@system` annotations is al
 
 ## Examples
 
-This section contains five examples that demonstrate use cases for the proposed changes.
+This section contains six examples that demonstrate use cases for the proposed changes.
 Each example *wrongly uses `@trusted`* under *current semantics* followed by a `main` function demonstrating why.
 After this DIP is implemented, these will all become correct usages of `@trusted` and the `main` functions will fail to compile.
 
@@ -510,7 +508,7 @@ private struct Stack(T, int size = 32) if (__traits(isPOD, T)) {
     private @system int _top = 0;
 
     T pop() @trusted {
-        if (empty) assert(0); 
+        if (empty) assert(0);
         return stack[--_top];
     }
     void push(T x) {
@@ -622,6 +620,51 @@ void main() @safe {
 }
 ```
 
+### An emulator / virtual machine
+In an [emulator](https://en.wikipedia.org/wiki/Emulator) or [virtual machine](https://en.wikipedia.org/wiki/Virtual_machine) it is often needed to simulate another instruction set or byte code.
+A performance critical part of that is dispatching the instructions: based on an instruction's opcode (a small integer) a certain piece of code needs to be run that simulates that specific instruction.
+This is often achieved using a `switch`, [computed `goto`](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/), or an array of function pointers.
+Below is a simple example using the array method, and we use `.ptr` to avoid bounds checks which are relatively expensive in this case.
+We could have also used a `switch`, but currently that always has bounds checks in D (see [issue 13169](https://issues.dlang.org/show_bug.cgi?id=13169)).
+
+In any case: it is important that the instruction opcodes are not exceeding the size of the jump table, or we get memory corruption.
+This is where `@system` variables come in, ensuring such invalid opcodes cannot reach `@safe` code.
+Notice how `VmInstruction` is an unsafe type that does not contain any pointer members, unlike the previous examples.
+Even though usually you can overlap a `ubyte` in a `union` in `@safe` code, with our wrapper struct we tell the compiler that this is not memory safe for `VmInstruction`.
+
+```D
+enum Opcode : ubyte {
+    decrement, increment, print,
+}
+
+struct VmInstruction {
+    @system Opcode opcode; // this need not be private, just a valid enum member
+}
+
+int gCounter;
+void decrementImpl() {gCounter++;};
+void incrementImpl() {gCounter--;};
+void printImpl() {import std; writeln(gCounter);};
+
+immutable void function()[3] jumpTable = [
+   &decrementImpl, &incrementImpl, &printImpl,
+];
+
+void execute(VmInstruction[] code) @trusted {
+    foreach(instruction; code) {
+        // indexing using .ptr to avoid bounds checks
+        jumpTable.ptr[instruction.opcode]();
+    }
+}
+
+void main() @safe {
+    VmInstruction[1] code = [VmInstruction(cast(Opcode) 20)];
+    execute(code);
+}
+```
+
+For an example of instruction dispatch in the wild, check out how the [GBAid emulator dispatches ARM instructions](https://github.com/DDoS/GBAiD/blob/9a61b4415f51db1087a70c929af926520bca328d/src/gbaid/gba/arm.d#L19).
+
 ## Alternatives
 
 ### Using `private`
@@ -646,18 +689,18 @@ When there are no pointer members, then the private fields can still be indirect
 Secondly, it goes against the established 'zen' of `@safe` being the largest subset of the D language that ensures no memory corruption.
 The [specification says](https://dlang.org/spec/memory-safe-d.html#limitations):
 
-> Memory safety does not imply that code is portable, uses only sound programming practices, is free of byte order dependencies, or other bugs. It is focussed only on eliminating memory corruption possibilities. 
+> Memory safety does not imply that code is portable, uses only sound programming practices, is free of byte order dependencies, or other bugs. It is focussed only on eliminating memory corruption possibilities.
 
 There have been suggestions to disallow certain operations that are risky but not sufficient for memory corruption in `@safe` code, but it [has been stated](https://forum.dlang.org/post/qdl954$hbb$1@digitalmars.com) that `@safe` does not mean "no bugs":
 
 > Uninitialized non-pointers are @safe, because @safe refers to memory safety, not "no bugs".
 
-Accessing a `private` field is just as memory safe as accessing a `public` field, so adding this restriction, while it potentially enables more `@trusted` code, is ultimately arbitrary. 
+Accessing a `private` field is just as memory safe as accessing a `public` field, so adding this restriction, while it potentially enables more `@trusted` code, is ultimately arbitrary.
 Defining `@system` variables is consistent with existing practice of allowing functions to be marked `@system`.
 
 It also goes against the established [definition of trusted functions](https://dlang.org/spec/function.html#trusted-functions):
 
-> Trusted functions are guaranteed to not exhibit any undefined behavior if called by a safe function. 
+> Trusted functions are guaranteed to not exhibit any undefined behavior if called by a safe function.
 > Furthermore, calls to trusted functions cannot lead to undefined behavior in @safe code that is executed afterwards.
 > It is the responsibility of the programmer to ensure that these guarantees are upheld.
 
