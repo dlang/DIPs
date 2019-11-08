@@ -91,7 +91,7 @@ Possible reasons for their rare usage include:
 - Here documents are not needed as often as short strings to begin with
 - String literals (even regular "" ones) can span multiple lines in D
 - `q{}` strings cover D code and DSL's with similar lexical syntax, such as JSON or GLSL.
-- Wysiwyg strings like `\`text\`` cover many other cases: Pegged grammars, SQL, regex, English text.
+- Wysiwyg strings like \`text\` cover many other cases: Pegged grammars, SQL, regex, English text.
 - If a \` is needed, it can be concatenated using the `~` operator or a `r""` string can be used.
 - The `import("file.txt")` statement completely eliminates the need for any escaping, and even allows binary data. It also encourages separation between code and data.
 - even if the programmer is looking for delimited strings, chances are [they won't easily find it](https://forum.dlang.org/post/xabbngzetiapvdayurpw@forum.dlang.org).
