@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1025](./DIP1025.md)|         Dynamic Arrays Only Shrink, Never Grow| Community Round 1|
 |[1021](./DIP1021.md)|          Argument Ownership and Function Calls| Formal Assessment|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1022](./DIP1022.md)|                               foreach auto ref|  Post-Community 2|
