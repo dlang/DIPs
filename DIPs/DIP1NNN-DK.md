@@ -33,7 +33,7 @@ In early C, returning no value would be done by specifying the return type as `i
 Later, a special keyword was made for it: `void`.
 While this `void` type is specified as simply a way to tell the compiler the function doesn't return a value, mathematically it bears resemblance to a [unit type](https://en.wikipedia.org/wiki/Unit_type).
 
-A unit type is a type with only one value, therefor carrying no information and requiring 0 bits of storage.
+A unit type is a type with only one value, therefore carrying no information and requiring 0 bits of storage.
 Any expression of type `void` with no side-effects can freely discard its inputs, since the result is always the same.
 In C, which is sometimes considered a portable assembler, using `void` as a type for variables makes little sense.
 After all, `void` variables and assignments produce no assembly code, so why would anyone want to write that?
