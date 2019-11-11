@@ -11,9 +11,8 @@
 
 ## Abstract
 
-Disable growing the length of a dynamic array (aka slice), either via the `~=` operator
-or by setting the `.length` property. Slices can be shrunk, but
-not enlarged.
+Disable growing the length of a dynamic array (a.k.a. a slice) via the append operator (`~=`)
+and by setting the `.length` property. Slices can be shrunk, but never enlarged.
 
 
 ## Contents
@@ -28,22 +27,23 @@ not enlarged.
 
 ## Rationale
 
-Enlarging a slice using the `~=` operator or by setting the length uses
-the garbage collector to do it, fostering the incorrect notion that D slices
-require the GC. Worse, if the slice is not on the heap already, and is managed
-explicitly, growing it via the append operator or the length puts it onto the
-heap, thereby greatly complicating any other memory management technique.
-There is no way to detect or prevent the user of a slice from doing this.
+Enlarging a slice, using the append operator or by setting the `.length` property,
+makes use of the garbage collector. This fosters the incorrect notion that D slices
+_require_ the GC. Worse, if the slice is not on the GC heap already, and is managed
+explicitly, growing it via the append operator or `.length` puts it onto the
+GC heap, thereby complicating any other memory management technique.
+There is no way to detect if such has occurred or to prevent the user of a slice
+from doing it.
 
 
 Problematic uses:
-```
+```d
 int[] slice = cast(int*)malloc(10 * int.sizeof)[0 .. 10];
 slice ~= 1;
 free(slice.ptr); // Oops!
 ```
 
-```
+```d
 enum { dead, alive }
 int[] cat = new int[6];
 cat[5] = alive;
@@ -52,33 +52,32 @@ b ~= 1;      // may or may not move b to new location
 b[5] = dead; // indeterminate whether cat[5] is dead or alive
 ```
 
+Prohibiting size changes from growing a slice will avoid these problems.
+This approach also fosters the notion that slices do not manage their own
+memory; it is instead managed by the memory object from which the slice was taken.
 
-By restricting changing the size to shrinking it only, these problems are avoided.
-Coming with it is the notion that slices do not manage their own memory -
-the memory is managed by the memory object that the slice was carved from.
-
-This change is a necessary part of D evolving towards being memory safe without using
+This change is a necessary part of evolving D toward being memory safe without using
 a GC.
 
 
 ## Prior Work
 
-Don't know of any slices in other languages that don't also carry a .capacity
+The author is unaware of any slices in other languages that don't also carry a `.capacity`
 property to keep track of how much the slice can grow before it must be reallocated.
 
 Rust's notion of pointers owning the memory they point to, unless the pointer is
-borrowed, fits in with this DIP's notion of a slice "borrowing" a reference to
+borrowed, is equivalent with this DIP's notion of a slice "borrowing" a reference to
 another object which manages the memory.
 
 
 ## Description
 
-Using the `~=` operator with a slice as the lvalue will no longer be allowed.
-Setting the .length property can only be used to shrink a slice.
+Using the append operator with a slice as the lvalue will no longer be allowed.
+Setting the `.length` property can only be used to shrink a slice.
 
-Slices can still be allocated by operator new, or sliced out of existing
-arrays. Building a dynamic array by appending can be performed using
-[std.array.appender](https://dlang.org/phobos/std_array.html#appender).
+Slices can still be allocated by operator `new` or sliced out of existing
+arrays. [std.array.appender](https://dlang.org/phobos/std_array.html#appender)
+can be used instead of the append operator to build dynamic arrays by appending elements.
 
 
 ### Grammar Changes
@@ -98,8 +97,8 @@ A workaround for deprecating:
 ```
 a ~= b;
 ```
-is to use:
-```
+is to use `std.array.appender` or array concatenation:
+```d
 a = a ~ b;
 ```
 although that will generate more GC garbage if used in a loop.
