@@ -44,12 +44,20 @@ If the language maintainers determine that revisions to the DIP are required, th
 
 After the language maintainers determine a final disposition for the DIP, the DIP manager will mark it as `Accepted` or `Rejected`. If they decide more time is needed, the `Extended` label may be appended to the DIP status. The DIP manager will periodically consult with the language maintainers to determine if the DIP is ready for a final disposition. At the end of 90 days, if the language maintainers are still not ready for a finial decision, the DIP manager may append the `Postponed` label.
 
-## Postponed, Abandoned, and Superseded DIPs
-At any point in the review process, the DIP's POC may request that the DIP manager mark the DIP status with either the `Postponed` or `Abandoned` label. The DIP manager may also independently decide to append either label to the DIP status if contact with the POC is lost. DIPs marked as such are frozen at the current stage of the DIP process.
+## Postponed and Abandoned DIPs
+At any point in the review process, the DIP's POC may request that the DIP manager mark the DIP status with the `Postponed` label. If contact with the POC is lost, the DIP manager may mark a DIP as Abandoned. DIPs marked as either are frozen at the current stage of the DIP process.
 
-Postponed DIPs may be revived by the POC (or DIP Author(s)) at any time within 180 days from the day the label was added. If no request to revive the DIP is made after 180 days, the DIP manager will change the label from `Postponed` to `Abandoned` unless consultation with the POC warrants extension of the postponement.  Abandoned DIPs may be revived by anyone at any time. DIPs in the `Post-Final` state will not be marked as `Abandoned` and will instead be moved into the Formal Assessment stage, in which case a volunteer may be sought to apply any revisions requested by the language maintainers.
+Postponed DIPs may be revived by the POC (or DIP Author(s)) at any time within 180 days from the day the label was added. If no request to revive the DIP is made after 180 days, the DIP manager will change the label from `Postponed` to `Abandoned` unless consultation with the POC warrants extension of the postponement.
+
+Abandoned DIPs may be revived by anyone at any time. DIPs in the `Post-Final` state will not be marked as `Abandoned` and will instead be moved into the Formal Assessment stage, in which case a volunteer may be sought to apply any revisions requested by the language maintainers.
 
 When a postponed or abandoned DIP is revived, the DIP manager will consult with the new POC to determine if the DIP may continue the DIP process from the stage at which the label was applied, if it should move to an earlier stage, or if it should be completely rewritten and resubmitted as a new DIP.
+
+## Withdrawn and Superseded DIPs
+
+A DIP's author may choose to withdraw the DIP from the review process at any time. If the DIP is the subject of an ongoing round of review, the DIP manager will announce the termination of the review round and add to the DIP a summary of the review to date. The DIP manager will mark the DIP as Withdrawn and no further action will be taken. Withdrawn DIPs are _not_ frozen at the current stage of the DIP process. The process is completely terminated.
+
+Unlike Abandoned DIPs, a Withdrawn DIP cannot be revived without the DIP manager's approval. A DIP author will have a specific reason for withdrawing from the process, and that reason might preclude further consideration of the DIP. For example, a DIP that was withdrawn because it received an overwhelmingly negative response would better to be rewritten and submitted as a new proposal rather than revived in its original form. If the DIP manager does allow a Withdrawn DIP to be revived, it must begin the review process anew from the first round of Community Review.
 
 A DIP's status may be set to `Superseded` at any stage in the DIP process to indicate that the proposal was made obsolete, e.g. by the acceptance of an alternative proposal, the implementation of a feature similar to that proposed by the DIP, etc. Superseded DIPs may not be revived without the consent of the language maintainers.
 
