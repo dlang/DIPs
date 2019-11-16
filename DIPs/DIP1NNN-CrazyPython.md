@@ -7,10 +7,12 @@
 | Status:         | Draft                                                           |
 ## Abstract
 Often, it is necessary to allocate a data structure on the stack based on a
-size known at runtime, and possibly return that data structure. This proposal
-suggests adding dynamic-size static arrays to D. The goal here is an
-easy-to-use dynamically sized array without a GC. It should give the programmer
-the tools to avoid dynamic memory allocation.
+size known at runtime. This proposal suggests adding dynamic-size static arrays,
+which are destroyed when they go out of scope. Dynamic-size static arrays and
+slices of them may be passed up the stack. The syntax is designed to encourage
+function signatures to use slices as much as possible, in contrast to the C
+convention of passing an array length and then a VLA. The overall goal is to
+help evolve D into a fewer-GC language.
 
 ## Contents
 * [Rationale](#rationale)
@@ -85,162 +87,74 @@ primarily useful for initializing a data store to be used within a single
 function. 
 
 ## Description
-
-<!-- rephrase: use the word "arguments" for inside the body, "parameters" for
-outside it -->
-<!-- Todo: add unit tests -->
-<!-- Todo: write Kahn's Algorithm in D and showcase the various solutions -->
-
-Like normal D static arrays, dynamic-size static arrays are pass-by-value: 
-
-```dlang
-@nogc void no_op(int[?] list) {
-for (int i = 0; i < list.length; ++i) {
-list[i] = 0;
-}
-}
-unittest {
-int[5] array = [1, 2, 3, 4, 5];
-no_op(array);
-assert(array == [1, 2, 3, 4, 5]);
-}
+An array declared with the form:
 ```
-
-A dynamic array can be implicitly converted to a dynamic-size static array as a
-copy:
-
+int[expr] array;
 ```
-unittest {
-int[] array = [1, 2, 3, 4, 5];
-no_op(array);
-assert(array == [1, 2, 3, 4, 5]);
-int[?] another_array = array;
-another_array[0] = 999;
-assert(array[0] != 999);
-}
-unittest {
-int[][] array = [[1, 2], [3, 4], [5, 6]];
-int[?][?] secondarray = array;
-}
-```
+where `expr` uses information not available to CTFE, creates a dynamic-size
+static array.
 
-Dynamic-size static arrays have a `.length` property. The `.length` property
-may be changed arbitrarily, just like for a dynamic array. 
+Dynamic-size static arrays may be freely shrunk and expanded. They own the data
+they refer to. When a dynamic-size static array goes out of scope, the destructor
+is automatically called. It is safe to pass a dynamic-size static array up the
+stack. Like static arrays, dynamic-size static arrays may be implicitly cast to
+slices.
 
-**Implementation Defined:** Enough space to hold the original length of the
-array is allocated on the stack.
+Dynamic-size static arrays may not be declared as function parameters. To
+interface with C code, pass a pointer instead. To declare a function that uses
+arrays of variable size, declare the parameter as a slice. Dynamic-size static
+arrays have a `.ptr` property just like other array types do.
 
-**Implementation Defined:** Shrinking a dynamic-size static array does not free
-or deallocate the memory held by a dynamic-size static array.
+The implementation may allocate more space for the static array than `expr` to
+achieve a better stack layout. Thus, the `.capacity` of a dynamic-size static
+array is implementation defined.
 
-**Implementation Defined:** Expanding a dynamic-sized array's `.length`
-property beyond its *original length* may allocate memory on the heap. 
+The `.sizeof` of a dynamic-size static array is implementation-defined. Use 
+`.length` and `typeof(arr[0]).sizeof` appropriately to calculate the desired 
+information instead.
 
-**Implementation Defined:** The compiler should avoid generating code for heap
-allocation when it can prove that a particular statement will not change the
-`.length` of the array beyond its original length. For example, `int[n] array;
-for (int i = 0; i < n; ++i) { array[i] = rand(); }` should never generate code
-that uses heap allocation. That's because the compiler can see that the array
-is never accessed beyond its original size. Similarly for `int[n] array;
-array.length = 0; while (array.length < n) { array ~= rand(); }`.
+## Breaking Changes and Deprecations
 
-**Undefined behavior:** Accessing a dynamic-size static array by index beyond
-its `.length`.
-
-
-A declaration of the form `T[?] identifier;` has an *original length* of
-zero. 
-
-`int[expr] a;`
-
-When `expr` is not always known at compile-time, declares a dynamic-size static
-array. `expr` is the *original length* of the dynamic-size static array. 
+It is now undefined behavior to access a slice beyond its `.length`, regardless 
+of whether or not there is data beyond that point. In other words, if you pass 
+a function a slice of length X that was created from a dynamic-size static
+array of length X+1, and that function tries to access that index X, it is UB. 
 
 ```
-unittest {
-int[][] array = [[1, 2], [3, 4], [5, 6]];
-int[?][?] secondarray = array;
+int fun(int[] arr) {
+    // always triggers UB
+    return arr[$ + 1];
+}
+int a(int n) {
+    int a[n];
+    fun(a[0 .. $-1]);
 }
 ```
 
-Like static arrays, the memory of a dynamic-size static array is automatically
-deallocated when exiting the scope where they were allocated. 
+<!-- DISCUSS: Should you be allowed to cast a slice to a larger length in
+@safe code? If it *is* allowed, casts will force an optimizing compiler to
+add extra tag-along data indicating the original length of the array. -->
 
-It is illegal to return a slice of a dynamic-size static array, because the
-dynamic-size static array would be deallocated on function return. 
+This applies to all slices and is a breaking change.
 
-<!-- It is illegal to create a dynamic-size static array on the heap, for
-example with the `new` keyword. -->
+This new case of undefined behavior will be hidden behind a DIP flag, of the
+form `-dipNNNN`. When a range error is thrown, the runtime will attempt to
+check if the memory access would have been valid if the slice were longer.
+If that is determined to be true or possibly true, the runtime will print
+out a deprecation message along the lines of "Warning: Slice access beyond
+original dynamic array is undefined behavior in DIPNNNN. See https://<...>
+for more information."
 
-The `.length` property of a dynamic-size static array shall be taken into
-consideration by `foreach` and `static foreach`.
+Eventually, when adoption is high, the DIP flag and the deprecation message
+will themselves become deprecated, the DIP will become the default behavior,
+the flag itself becoming a no-op.
 
-If the `.length` property of a dynamic-sized static array is never set or read,
-the  `.sizeof` is the size of each element multiplied by the *original length*
-of the array. Otherwise, the `.sizeof` of the dynamic-size static array is the
-size of each element multiplied by the *original length* of the array plus the
-size of size_t.
-
-Like dynamic arrays, dynamic-sized static arrays support the `~=` operator. `a
-~= b` where a is a dynamic-sized static array is rewritten as `a[a.length++] =
-b;`
-
-## `-vdynamicalloc` flag 
-### Motivation
-This is slow:[^All quoted times are for N = 1000000.] (13ms)
-
-```
-std::vector vec;
-for (int i = 0; i < N; ++i) {
-vec.push_back(i)
-}
-```
-
-This is also slow: (9ms)
-
-```
-std::vector vec;
-vec.reserve(N);
-for (int i = 0; i < N; ++i) {
-vec.push_back(i)
-}
-```
-
-This is fast: (4ms)
-
-```
-std::vector vec(N);
-for (int i = 0; i < N; ++i) {
-vec[i] = i;
-}
-```
-
-Yet, C++ makes it hard to distinguish between the three cases. Adding a
-`-vdynamicalloc` flag will help programmers avoid and identify locations where
-memory is potentially being dynamically allocated during inner loops.
-
-### Definition
-`-vdynamicalloc` flags all heap allocation in `@nodynamic` functions:
-
-* Expanding a dynamic-sized static array beyond its original length
-* Calls to malloc and realloc (however, alloca is allowed)
-
-`@nodynamic` implies `@nogc`.
-
-### Alternative syntaxes
-`void kahnsAlgorithm(int[][@] adjacency_list);`
-
-`void kahnsAlgorithm(int[][!] adjacency_list);` Rejected because it looks like
-a template instantiation when scanning.
-
-`void kahnsAlgorithm(int[][%] adjacency_list);`
-
-`void kahnsAlgorithm(int[][$] adjacency_list);`
-
-`void kahnsAlgorithm(int[][*] adjacency_list);`
+<!-- I am not sure if this is already considered UB under the spec; section
+12.14.4 is unclear about if it is. -->
 
 ### Related issues
-Associative arrays with @nogc are a related issue.
+Associative arrays with `@nogc` (and possibly `scope`) are a related issue.
+
 ### Copyright & License
 
 Copyright (c) 2019 by the D Language Foundation
