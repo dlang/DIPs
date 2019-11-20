@@ -103,13 +103,15 @@ However, as shown above, in practice there are not many of these string literals
 
 # Prior Work
 
-Hex strings [have been deprecated](https://dlang.org/deprecate.html#Hexstring%20literals) since version 2.079 (March 1 2018), with rationale:
+Hexstring literals [have been deprecated](https://dlang.org/deprecate.html#Hexstring%20literals) since version 2.079 (March 1 2018), with rationale:
 "Hexstrings are used so seldom that they don't warrant a language feature.".
+As of July 2019, there are still 1035 hex string literals spread across 15 registered dub packages.
 
-As of July 2019, there are 1035 hex string literals in 15 registered dub packages.
-While unlike hex-strings, there is no direct replacement (`std.conv: hexstring`), 
-identifier-delimited strings are often easily replacable with bracket-delimited strings or wysiwyg-strings.
-Also, hex-strings are context-free, so identifier-delimited strings add much more language complexity not being context-free.
+The deprecation of context-sensitive string literals is considered similar to the deprecation of hexstring literals, with a few differences:
+- Deprecation warnings for hexstring literals have a trivial fix (use `std.conv: hexstring` instead), while there is no trivial fix for all identifier-delimited string literal deprecation warnings.
+In practice identifier-delimited strings are often easily replacable with bracket-delimited strings or wysiwyg-strings however.
+- Hexstring literals are context-free, so identifier-delimited strings add much more language complexity since they are not context-free. 
+Therefore removing the latter from the language is more beneficial than removing hexstring literals with regards to simplifying the D language.
 
 ## Other languages
 Rosetta code has a comparison of [Here documents in different languages](https://rosettacode.org/wiki/Here_document) [7].
