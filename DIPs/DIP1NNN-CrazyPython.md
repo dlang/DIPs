@@ -5,6 +5,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | James Lu (jamtlu@gmail.com)                                     |
 | Status:         | Draft                                                           |
+
 ## Abstract
 Often, it is necessary to allocate a data structure on the stack based on a
 size known at runtime. This proposal suggests adding dynamic-size static arrays,
