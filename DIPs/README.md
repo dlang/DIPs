@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1021](./DIP1021.md)|          Argument Ownership and Function Calls| Formal Assessment|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1022](./DIP1022.md)|                               foreach auto ref|  Post-Community 2|
 |[1024](./DIP1024.md)|                                 Shared Atomics|  Post-Community 2|
@@ -24,6 +23,7 @@
 |[1013](./accepted/DIP1013.md)|               The Deprecation Process|
 |[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics|
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor|
+|[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
