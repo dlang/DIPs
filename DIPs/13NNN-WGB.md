@@ -222,6 +222,10 @@ struct S { ... declare EMO ... }
 }
 ```
 
+Both the parameter and the constructor can have type qualifiers. Only combinations where the
+parameter's type can be implicitly converted to the constructee's type are allowed.
+
+
 ### Move Assignment Operator
 
 A *Move Assignment Operator* is a struct member assignment operator that moves, rather than copies,
@@ -256,6 +260,10 @@ struct S { ... declare EMO ... }
   w = s;   // move assignment
 }
 ```
+
+Both the parameter and the Move Assignment Operator can have type qualifiers. Only combinations where the
+parameter's type can be implicitly converted to the operatee's type are allowed.
+
 
 ### Elaborate Move Object (EMO)
 
