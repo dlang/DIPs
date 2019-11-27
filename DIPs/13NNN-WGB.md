@@ -202,6 +202,8 @@ A Move Constructor for `struct S` is declared as:
 this(S s) { ... }
 ```
 
+The Move Constructor is nothrow, even if `nothrow` is not explicitly specified.
+
 If a Move Constructor is not defined for a struct that has a Move Constructor in
 one or more of its fields, a default one is defined, and fields without a Move Constructor
 are moved using a bit copy.
@@ -240,8 +242,10 @@ A Move Assignment Operator for struct S is declared as:
 void opAssign(S s) { ... }
 ```
 
-If a Move Constructor is not defined for a struct that has a Move Constructor in
-one or more of its fields, a default one is defined, and fields without a Move Constructor
+The Move Assignment Operator is nothrow, even if `nothrow` is not explicitly specified.
+
+If a Move Assignment Operator is not defined for a struct that has a Move Assignment Operator in
+one or more of its fields, a default one is defined, and fields without a Move Assignment Operator
 are moved using a bit copy.
 
 If a Move Assignment Operator is not defined for a struct that has a Move Constructor,
