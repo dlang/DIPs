@@ -396,9 +396,44 @@ is allowed and the responsiblity of destructing `s` remains with the caller.
 
 ### Last Use
 
-The determination of the *Last Use* of an lvalue is crucial in determining
-if the use will be a move or a copy. The Last Use is equivalent to being the
-end of the *Live Range* of an lvalue.
+The *Last Use* of an lvalue is the last time in a path of execution that any read
+or write is done to the memory region referred to directly by the lvalue. For example:
+
+```
+struct S { int i; ... declare EMO ... }
+
+...
+{
+  S s;
+  int* p = &s.i;
+  func(s);  // not last use of s
+  *p = 3;   // because s is still being written to
+}
+{
+  ...
+  S s;
+  S* ps = &s;
+  func(s);      // not last use
+  int j = ps.i; // because s is still being read
+}
+{
+  ...
+  S s;
+  S* ps = &s;
+  func(s);   // last use, because despite ps still
+             // pointing to s, it is never used
+}
+```
+
+The Last Use of an EMO lvalue will be a move, otherwise it will be a copy.
+
+```
+{
+  S s;
+  func(s);  // not last use of s, copy
+  func(s);  // last use of s, move
+}
+```
 
 An expression yielding an rvalue of an EMO is always the Last Use of that rvalue,
 and a move is done.
@@ -409,53 +444,19 @@ void func(S);
 func(S());  // S() is an rvalue, so always a move
 ```
 
-Determining if `func(s)` is the last use of lvalue `s` requires *Data Flow Analysis*
-in the general case, but simple cases such as:
+In general, determining the Last Use of a variable requires *Data Flow Analysis*.
+It is implementation dependent how thorough the DFA is done, and for cases where
+the implementation cannot prove a use is the Last Use, a copy will be performed.
+
+Simple cases such as:
 ```
 S test(S s)
 {
     return func(s);
 }
 ```
-should be implementable without DFA.
+should be determined to be Last Use.
 
-In general,
-
-```
-{
-  S s;
-  func(s);  // copy
-  func(s);  // copy
-  func(s);  // move because it's the Last Use
-}
-```
-where the first two calls make copies and the third transfers ownership (and the
-responsibility of destruction) of `s`
-to `func()` using a move is desirable.
-
-Cases like:
-```
-struct S { int i; ... declare EMO ... }
-
-...
-S s;
-int* p = &s.i;
-func(s);  // must be copy
-*p = 3;   // because p is a live reference to s
-```
-and:
-```
-struct S { int i; ... declare EMO ... }
-
-...
-S s;
-S* ps = &s;
-func(s);    // must be copy
-ps.i = 3;   // because p is a live reference to s
-```
-must be detected.
-
-Calls in loops:
 
 ```
 S s;
@@ -465,6 +466,17 @@ while (cond)
 should always copy.
 
 ### Destruction
+
+Moving an EMO means that the responsiblity for destruction of that value
+moves along with it.
+
+```
+S test(S s)
+{
+    return func(s); // destruction of s is now func's responsibility
+}
+```
+
 
 For merging control paths where one path may have moved the lvalue:
 
