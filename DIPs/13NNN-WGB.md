@@ -337,7 +337,7 @@ to it. If it cannot so determine, it will make a copy of `s` using `s`'s copy
 constructor, and pass the address of the copy to `func()`.
 
 
-### Returning by Move Ref
+### Returning an EMO by Value
 
 ```
 S func()
@@ -347,29 +347,46 @@ S func()
 }
 ```
 
-The function `func()` does not destruct `s`, that obligation is transferred to
-the caller. In this way functions can be "pipelined" together, with the EMO being
-moved from one to the next by merely passing along the pointer.
+This works exactly as it does currently for non-EMO objects. In particular,
+the usual NRVO optimizations are done to minimize copying. No moving or
+copying is done when NRVO happens, the `s` is constructed directly into
+its return value on the caller's stack. If NRVO cannot be performed, `s`
+is copied to the return value on the caller's stack.
 
-The implementation is very similar to that of non-EMO objects in that a hidden pointer is passed
-to `func()` that points to an uninitialized memory region in the caller's stack
-frame, `s` is moved to that region, and the hidden pointer is returned.
 
-For:
+### Returning an EMO by Move Ref
+
 ```
-S func(S s)
+S func(return S s)
 {
     return s;
 }
 ```
-The hidden pointer is still passed to the invocation of `func()`, but the pointer
-returned is the reference to the parameter `s`. In this way it differs from non-EMO
-objects in that the caller may not rely on the uninitialized memory region holding
-the returned object.
 
-The hidden pointer is passed even when it is not needed, as the caller only knows
-the signature of the function, not its implementation.
+The `return` on an EMO parameter, and the return type matching the type of the
+parameter, indicates that the return is by Move Ref, and behaves equivalently
+to the non-EMO semantics of:
 
+```
+struct T { } // T is not an EMO
+
+ref T func(return ref T t)
+{
+    return t;
+}
+```
+The function `func()` does not destruct `s`, that obligation is transferred to
+the caller. In this way functions can be "pipelined" together, with the EMO being
+moved from one to the next by merely passing along the pointer.
+
+
+```
+S func(return S s)
+{
+    S s2;
+    return s2;  // error, can't return local by Move Ref
+}
+```
 
 ### Returning an EMO by `ref`
 
@@ -555,40 +572,6 @@ implementation determining that each read is the last use.
 
 
 ### Inefficiency
-
-#### hidden pointer
-
-The hidden pointer for EMO return values is still required even when it is
-not needed. However, if the function is inlined, the pointer will be recognized
-as a dead variable and will be elided by the optimizer.
-
-For:
-```
-struct S { ... declare EMO ... }
-S mars();
-S venus()
-{
-    return mars();
-}
-```
-both `mars()` and `venus()` require a hidden pointer to uninitialized memory
-large enough to hold an instance of `S`. But the call to `mars()` can reuse
-the hidden pointer passed to `venus()`. But if there are more instances needing
-a hidden pointer in one expression, only one can reuse the caller's hidden pointer:
-
-```
-struct S { ... declare EMO ... }
-S mars(S);
-S pluto(S);
-
-S venus(S s)
-{
-    return mars(pluto(s)); // one of these calls can reuse venus' hidden pointer
-}
-```
-
-Also, the caller's hidden pointer can be reused if the reuse object size is the
-same or smaller size of the caller's hidden pointer's memory area.
 
 
 #### copy then move
