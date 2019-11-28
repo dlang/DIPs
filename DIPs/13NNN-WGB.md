@@ -147,11 +147,15 @@ in [Rvalue References Explained](http://thbecker.net/articles/rvalue_references/
 
 ### Rust
 
-Rust types are annotated as "moveable" or "copyable", rather than the function parameter.
-
-An rvalue cannot be moved.
-
-A moveable type can be copied at the call site with an explicit copy (like D's .dup property).
+Rust types aren't annotated as moveable or copiable - moveable is the default,
+and copies are only made if the type implements the `Copy` trait. In practice,
+how a value gets passed to a function isn't changed when this happens (usually
+a memcpy but LLVM can do whatever it wants, including passing a pointer to it).
+The only difference is that the variable used as an argument isn't moved from,
+which enables the program to use it after the function call. For this reason,
+types with a destructor (technically, that implement the `Drop` trait) cannot
+implement `Copy`. Furthermore, copy semantics aren't hookable - there's no way
+to override how a type is copied via, say, a copy constructor. Likewise for moves.
 
 Functions themselves do not know or care if the argument was copied or moved.
 
