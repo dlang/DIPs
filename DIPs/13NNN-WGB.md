@@ -449,6 +449,13 @@ struct S { int i; ... declare EMO ... }
   func(s);   // last use, because despite ps still
              // pointing to s, it is never used
 }
+
+struct T { int j; S s; ~this(); }
+...
+{
+  T t;
+  func(t.s);  // not last use because of T's destructor
+}
 ```
 
 The Last Use of an EMO lvalue will be a move, otherwise it will be a copy.
@@ -470,7 +477,7 @@ void func(S);
 func(S());  // S() is an rvalue, so always a move
 ```
 
-In general, determining the Last Use of a variable requires *Data Flow Analysis*.
+In general, determining the Last Use of an lvalue requires *Data Flow Analysis*.
 It is implementation dependent how thorough the DFA is done, and for cases where
 the implementation cannot prove a use is the Last Use, a copy will be performed.
 
