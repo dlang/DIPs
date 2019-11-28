@@ -653,6 +653,16 @@ struct S { ... };
 void func(S&&);
 ```
 
+When D moves an object, the memory region left behind is left in
+an undefined state. The destructor won't be called on it.
+When C++ moves an object, it expects the memory region left behind
+to be valid and in a destructible state. Therefore, for objects
+that are to be interoperable with C++, the Move Constructor and
+Move Assignment Operator should also leave the moved from object
+in a destructible state. The most pragmatic way to achieve that is
+to set it to its default .init state.
+
+
 ## Breaking Changes and Deprecations
 
 None known.
