@@ -402,6 +402,24 @@ void func(s);
 is allowed and the responsiblity of destructing `s` remains with the caller.
 
 
+### EMO and Garbage Collection
+
+The current semantics are defined so that a naive compacting garbage collector
+can move objects with a mere memcpy. The restriction is that no fields of an object
+can contain a pointer to that same object. Currently, there isn't a naive compacting
+collector for D, so this hasn't been a problem. A collector that tracks where the
+pointers are in an object would not have this issue.
+
+Ironically, because move constructors execute arbitrary code, this likely would interfere
+with the collector keeping track of the state of memory during a collection cycle,
+meaning that objects with move constructors would likely be pinned (treated as immoveable).
+
+
+### Class Objects
+
+Class objects cannot have move constructors or move assignment operators.
+
+
 ### Last Use
 
 The *Last Use* of an lvalue is the last time in a path of execution that any read
