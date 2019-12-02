@@ -629,6 +629,8 @@ for rvalues.
 
 ### Interfacing with C++
 
+#### Rvalue Reference
+
 A Move Ref is corresponds with a C++ rvalue ref.
 
 D:
@@ -643,6 +645,8 @@ struct S { ... };
 void func(S&&);
 ```
 
+### State of Object After Move
+
 When D moves an object, the memory region left behind is left in
 an undefined state. The destructor won't be called on it.
 When C++ moves an object, it expects the memory region left behind
@@ -652,10 +656,23 @@ Move Assignment Operator should also leave the moved from object
 in a destructible state. The most pragmatic way to achieve that is
 to set it to its default .init state.
 
+### Value Parameters
+
+While it appears that C++ best practice is to use rvalue references instead
+of values for parameters, there remains plenty of legacy code that uses values.
+In order to interface to C++ value parameters, a means is necessary to force
+it for `extern (C++)` functions.
+
+The storage class `@value` applied to an EMO would cause it to be a value parameter.
+It would be ignored for non-EMO parameter types (to facilitate generic code).
+`@value` is allowed in combination with `ref` or `out` storage classes.
+
 
 ## Breaking Changes and Deprecations
 
-None known.
+Code that relied on [this bug](https://issues.dlang.org/show_bug.cgi?id=20424)
+will no longer work.
+
 
 ## Reference
 
