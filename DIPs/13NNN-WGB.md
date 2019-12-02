@@ -555,6 +555,26 @@ that gates the destructor call:
 If `func()` may throw an exception, `flag` must be set to false before
 `func()` is called.
 
+#### Assignment after Move
+
+```
+S s, t;
+func(s); // A
+s = t;   // B
+```
+may be compiled two ways:
+
+1. A: `s` is copied, B: `s` is assigned
+2. A: `s` is moved, B: `s` gets constructed, not assigned
+
+at the implementation's discretion. Case 1 can be done for a quick build,
+case 2 for an optimized build.
+
+The reason for this is the non-default assignment operator will destruct the
+original contents of the target, meaning it must still be live. But a move
+operation would leave the contents in an undefined state. The move/construct
+should be more efficient at runtime than the copy/assign.
+
 
 ### Example: The Swap Function
 
