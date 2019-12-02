@@ -291,12 +291,12 @@ A *Move Ref* is a parameter or a return value that is a reference to an EMO. (Th
 is not used.)
 
 ```
-S func(S s) // parameter is passed by Move Ref, and returned by Move Ref
+S func(return S s) // parameter is passed by Move Ref, and returned by Move Ref
 {
     return s;
 }
 
-ref S func(ref S s) // parameter is passed and returned by reference
+ref S func(return ref S s) // parameter is passed and returned by reference
 {
     return s;
 }
