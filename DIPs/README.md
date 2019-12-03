@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1026](./DIP1026.md)|    Deprecate Context-Sensitive String Literals| Community Round 1|
 |[1022](./DIP1022.md)|                               foreach auto ref|      Final Review|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1024](./DIP1024.md)|                                 Shared Atomics|  Post-Community 2|
