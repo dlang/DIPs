@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1026](./DIP1026.md)|    Deprecate Context-Sensitive String Literals| Community Round 1|
-|[1022](./DIP1022.md)|                               foreach auto ref|      Final Review|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1024](./DIP1024.md)|                                 Shared Atomics|  Post-Community 2|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
@@ -42,6 +41,7 @@
 |[1008](./other/DIP1008.md)   |                  Exceptions and @nogc|
 |[1019](./other/DIP1019.md)   |                  Named Arguments Lite|
 |[1020](./other/DIP1020.md)   |                      Named Parameters|
+|[1022](./other/DIP1022.md)   |                      foreach auto ref|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
