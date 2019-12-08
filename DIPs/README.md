@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1026](./DIP1026.md)|    Deprecate Context-Sensitive String Literals| Community Round 1|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1024](./DIP1024.md)|                                 Shared Atomics|  Post-Community 2|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
@@ -58,4 +57,5 @@
 ## Withdrawn DIPS
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
-|[1025](./other/DIP1025.md)   | Dynamic Arrays Only Shrink, Never Grow|
+|[1025](./other/DIP1025.md)   |Dynamic Arrays Only Shrink, Never Grow|
+|[1026](./other/DIP1026.md)   |Deprecate Context-Sensitive String Literals|
