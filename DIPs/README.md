@@ -3,8 +3,8 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1024](./DIP1024.md)|                                 Shared Atomics|      Final Review|
 |[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
-|[1024](./DIP1024.md)|                                 Shared Atomics|  Post-Community 2|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 
