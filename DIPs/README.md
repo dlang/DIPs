@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1024](./DIP1024.md)|                                 Shared Atomics|      Final Review|
-|[1023](./DIP1023.md)|Resolution of Template Alias Formal Parameters in Template Functions| Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 
@@ -41,6 +40,7 @@
 |[1019](./other/DIP1019.md)   |                  Named Arguments Lite|
 |[1020](./other/DIP1020.md)   |                      Named Parameters|
 |[1022](./other/DIP1022.md)   |                      foreach auto ref|
+|[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
