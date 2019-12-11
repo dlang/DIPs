@@ -93,36 +93,24 @@ not be if and only if it is an rvalue.)
 
 ### Forwarding
 
-Consider a function g:
+Consider a function `fwd`:
 
 ```
-ref S g(return ref S s) { return s; }
+ref S fwd(return ref S s) { return s; }
 ```
 which can be used to forward its argument like so:
 
 ```
+void f(S s);
+...
 S s;
-f(g(s));  // copy
-f(g(s));  // copy
-f(g(s));  // move
-f(g(S()); // move
+f(fwd(s));  // copy
+f(fwd(s));  // copy
+f(fwd(s));  // move
+f(fwd(S()); // move
 ```
 no extra copies are made as a side effect of this forwarding
 process.
-
-An alternative view of this issue:
-
-```
-void h(ref S s) { f(s); }
-...
-S s;
-h(s);   // copy
-h(s);   // copy
-h(s);   // move
-h(S()); // move
-```
-
-I.e. again no extra copies of are made.
 
 
 ### Problems D Doesn't Have
