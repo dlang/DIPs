@@ -75,7 +75,7 @@ The bottom type is referred to as `noreturn` in code, in the last subsection thi
 
 ### Flow analysis across functions
 Currently D recognizes code after a `throw` statement, endless loop such as `for(;;){}` or `assert(0)` expression as dead code.
-Therefor, a return statement can be ommitted.
+Therefore, a return statement can be ommitted.
 ```D
 int main() {
 
@@ -188,7 +188,7 @@ void main() {
 }
 ```
 
-When the element type of an empty array is a bottom type (referred to as `noreturn`), an empty array literal `[]` can be seen as an array literal that is guarateed to be empty, therefor being implicitly convertible to an array of any type.
+When the element type of an empty array is a bottom type (referred to as `noreturn`), an empty array literal `[]` can be seen as an array literal that is guarateed to be empty, therefore being implicitly convertible to an array of any type.
 When opAssign is instantiated with `noreturn[]` instead of `void[]`, the function `map` will return a struct that looks something like this:
 
 ```D
@@ -402,8 +402,8 @@ For all types T, the following will hold:
 /* 0 */ is(noreturn : T)
 /* 1 */ is(noreturn[] : T[])
 /* 2 */ is(noreturn* : T*)
-/* 3 */ is(noreturn* function(S) : T function(S), S...)
-/* 4 */ is(noreturn* delegate(S) : T delegate(S), S...)
+/* 3 */ is(noreturn function(S) : T function(S), S...)
+/* 4 */ is(noreturn delegate(S) : T delegate(S), S...)
 /* 5 */ is(noreturn* : noreturn[])
 /* 6 */ !(is(T == function)) || is(noreturn* : T)
 /* 7 */ !(is(T == delegate)) || is(noreturn* : T)
@@ -515,7 +515,7 @@ int a = throw new Exception("nope");
 ```
 The above is type-sound: the newly proposed throw expression has type `noreturn` and `noreturn` is a subtype of `int`.
 However, semantically it means that the program will never be able to even reach `main`.
-Therefor, an error is still raised, similar to errors during compile time function execution:
+therefore, an error is still raised, similar to errors during compile time function execution:
 ```D
 int a = () {throw new Exception(""); return int.init;}();
 // Error: uncaught CTFE exception`
@@ -719,9 +719,8 @@ else version (DigitalMars)
 ```
 
 It has been claimed that since functions that do not return are rare, the added compiler complexity from adding a bottom type is not worth it.
-While in the short term it might seem like a good solution, such ad-hoc solutions don't scale well and eventually only add more complexity than ever.
-An attribute doesn't solve many of the issues raised above such as the types of `[]` and `null`, or throwing exceptions in lambda functions.
-It becomes the burden of the programmer instead of the type system to handle the "no return" type information correctly.
+However, an attribute doesn't solve the issues raised above such as the types of `[]` and `null`, or throwing exceptions in lambda functions.
+It also becomes the burden of the programmer instead of the type system to handle the "no return" type information correctly.
 
 ```D
 // with noreturn type
@@ -743,9 +742,9 @@ template copyFunc(alias func) {
     }
 }
 ```
-Other proposals like `@disable(return)` or `out(false)` make it even harder to maintain this type information.
+Other proposals like `@disable(return)` or using out-contracts (`out(false)`) make it even harder to maintain this type information.
 
-Even in C sometimes the hackyness of `noreturn` as an attribute shows, and a comment is needed to explain what is happening:
+Even in C sometimes the limitations of `noreturn` as an attribute shows, and a comment is needed to explain what is happening:
 [duktape public api](https://github.com/svaarala/duktape/blob/9fd93f16e85408cfa41bb5bbc12ac37c3d5ffe07/src-input/duktape.h.in#L416)
 > The calls are noreturn but with a return value to allow the "return duk_error(...)" idiom.
 > This may cause some compiler warnings, but without noreturn the generated code is often worse.
