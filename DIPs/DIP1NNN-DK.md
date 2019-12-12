@@ -140,7 +140,8 @@ In D, `std.variant` allows directly assigning a value of any type "with very few
 Another restriction is, of course, a `void` type since the compiler complains "expression ... is void and has no value".
 
 ## Description
-4 things are proposed:
+Four changes to `void` are proposed.
+N.B. the untyped [SIMD types](https://dlang.org/spec/simd.html#x86_64_vec) `void16` and `void32` are unchanged.
 
 **(0) Declaring variables of type void and assigning to them is allowed**
 
@@ -209,10 +210,10 @@ void[string] x; // Error: cannot have associative array of void
 ```
 Similary, an associative array with key type `void` decays into an optional value.
 It is proposed that for generality, `void` is allowed as the key/value type of an associative array.
-(Note that it is not proposed that void[T] and T[void] become the standard set- and optional types.)
+(Note that it is not proposed that `void[T]` and `T[void]` become the preferred set- and optional types.)
 
 ## Alternatives
-Since `void` is so ugly currently, a new type can be made that is a proper unit type.
+Since `void` is currently unprincipled, a new type can be made that is a proper unit type.
 Functions with no return will be inferred as `Unit` instead of `void`, and `void` will implicitly convert to `Unit`.
 ```D
 struct Unit {} // implicitly imported in every module
@@ -224,7 +225,7 @@ auto foo() {
 However, since existing codebases are full of `is(T == void)` checks and functions explicitly annotated with `void` return type, this will be a really large transition.
 The improvement is not large enough to justify the cost of that transition.
 
-Another alternative is to throw in the towel and just leave `void` as the messy type we've come accustomed to.
+Another alternative is to throw in the towel and just leave `void` as the unprincipled type we've come accustomed to.
 While fixing void completely is neigh impossible given its history and existing usage, the DIP argues the proposed changes are a good compromise between a full fix and maintaining backwards compatibility, though any future efforts to improve `void` are not discouraged.
 
 ## Breaking Changes and Deprecations
