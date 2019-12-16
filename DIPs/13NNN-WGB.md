@@ -428,12 +428,92 @@ Class objects cannot have move constructors or move assignment operators.
 ### Last Use
 
 The *Last Use* of an lvalue is the last time in a path of execution that any read
-or write is done to the memory region referred to directly by the lvalue. For example:
+or write is done to the memory region referred to directly by the lvalue.
+
+**Return Statements**. If an lvalue is returned directly via `return x`, that is the last use of `x`.
+If the return statement is more complex, the rightmost use of the lvalue will be considered the last
+use. For example, in `return fun(x, y, z, x)`, the last use of `x` is when passing the fourth parameter.
+
+**Multiple last accesses**. A variable may have multiple last accesses. For example:
 
 ```
-struct S { int i; ... declare EMO ... }
+S foo(bool flag)
+{
+    S s;
+    if(flag)
+        return fun(s);
+    else
+        return gun(s);
+    
+    //return s; -> would invalidate previous last accesses, becoming the new last access of `s`
+}
+```
 
-...
+**Loop statements**. Lvalue accesses inside `while`/`for`/`do-while`/`foreach` bodies will never be regarded as last accesses:
+
+```
+S foo()
+{
+    S s;
+    while (cond)
+    {
+        if (cond2)
+            return s;     // last use -> move
+        else
+            func(s);      // copy
+    }
+    return S();
+}
+```
+
+**Gotos**. An lvalue access that is preceded (directly or not) by a label and succeeded by a `goto` to the aforementioned label, will not be considered a last access (even though the `goto` might not be executed in certain runtime paths).
+
+```
+void foo()
+{
+    S s1;
+    int a;
+l1:
+    ++a;
+    func(s1);     // not last access.
+    if (a != 42)
+       goto l1;
+    
+    S s2;
+    int b = gun(s2);   // not last access, because of sun(s2); gotos to labels that
+                       // do not preced the access of an lvalue do not affect the DFA
+    if (b != 42)
+        goto l2;
+    sun(s2);
+l2:
+}
+```
+
+**Static conditions**. Compile time conditions do not affect the last access decision mechanism. The DFA will be run after all the static conditions have been evaluated:
+
+```
+void foo(T)()
+{
+    S s;
+    func(s);                // this will be the last access of s when foo is
+                            // instantiated with anything other than S
+    static if(is(T == S))
+        gun(s);
+    else
+        fun(a);
+}
+```
+
+**AndAnd/OrOr expressions**. *e1 || e2* and *e1 && e2* expressions are treated the following way: 
+
+  * if `e1` accesses `x` and `e2` does not, then `e1` is the last access of `x`;
+  * if `e2` accesses `x` and `e1` does not, then `e2` is the last access of `x`;
+  * if both `e1` and `e2` access `x`, then `e2` is the last access of `x`;
+
+**Pointers**. Whenever the address of a variable `x` is taken, `x` will lose the possibility of last access optimization.
+For example:
+
+```
 {
   S s;
   int* p = &s.i;
@@ -451,12 +531,11 @@ struct S { int i; ... declare EMO ... }
   ...
   S s;
   S* ps = &s;
-  func(s);   // last use, because despite ps still
-             // pointing to s, it is never used
+  func(s);   // ps still points to s, so it's not last use, even if ps is never used
 }
 
 struct T { int j; S s; ~this(); }
-...
+
 {
   T t;
   func(t.s);  // not last use because of T's destructor
@@ -482,26 +561,6 @@ void func(S);
 func(S());  // S() is an rvalue, so always a move
 ```
 
-In general, determining the Last Use of an lvalue requires *Data Flow Analysis*.
-It is implementation dependent how thorough the DFA is done, and for cases where
-the implementation cannot prove a use is the Last Use, a copy will be performed.
-
-Simple cases such as:
-```
-S test(S s)
-{
-    return func(s);
-}
-```
-should be determined to be Last Use.
-
-
-```
-S s;
-while (cond)
-    func(s);
-```
-should always copy.
 
 ### Destruction
 
