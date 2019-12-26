@@ -3,8 +3,8 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1024](./DIP1024.md)|                                 Shared Atomics| Formal Assessment|
 |[1027](./DIP1027.md)|                           String Interpolation| Community Round 1|
-|[1024](./DIP1024.md)|                                 Shared Atomics|      Final Review|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 
