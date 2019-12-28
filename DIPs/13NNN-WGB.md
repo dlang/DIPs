@@ -31,7 +31,7 @@ and when assigning to objects. Introduces the *Move Constructor* and *Move Assig
 NRVO (Named Return Value Optimization) [1] eliminates redundant copies of objects when
 objects are returned from functions. The converse problem, redundant copies of objects
 when passing them into functions is only partially resolved by passing them by `ref`.
-In particular, when an object is an rvalue, it is more efficient to move it to the called
+In particular, when an object is an rvalue, it is usually more efficient to move it to the called
 function rather than passing a copy, because copies tend to be less efficient to create
 and require an extra destruction. Similarly, if the argument to a function is the last use
 of the object, the object can be moved rather than copied.
@@ -49,7 +49,7 @@ notion of rvalue reference parameters.
 
 ### Initialization
 
-A variable is initialized by copying a value into it (copy construction)
+A variable is initialized by construction, copying a value into it (copy construction)
 or moving a value into it (move construction).
 
 
@@ -109,7 +109,7 @@ f(fwd(s));  // copy
 f(fwd(s));  // move
 f(fwd(S()); // move
 ```
-and have no extra copies are made as a side effect of this forwarding
+and have no extra copies or moves are made as a side effect of this forwarding
 process.
 
 
@@ -194,7 +194,8 @@ A Move Constructor for `struct S` is declared as:
 this(S s) { ... }
 ```
 
-The Move Constructor is nothrow, even if `nothrow` is not explicitly specified.
+The Move Constructor is always nothrow, even if `nothrow` is not explicitly specified.
+A Move Constructor that throws is illegal.
 
 If a Move Constructor is not defined for a struct that has a Move Constructor in
 one or more of its fields, a default one is defined, and fields without a Move Constructor
@@ -275,11 +276,11 @@ EMO objects follow the same overloading rules as non-EMO objects.
 
 ### Move Ref
 
-A *Move Ref* is a parameter or a return value that is a reference to an EMO. (The `ref`
+A *Move Ref* is a parameter that is a reference to an EMO. (The `ref`
 is not used.)
 
 ```
-S func(return S s) // parameter is passed by Move Ref, and returned by Move Ref
+S func(return S s) // parameter is passed by Move Ref, and returned by value
 {
     return s;
 }
@@ -289,7 +290,7 @@ ref S func(return ref S s) // parameter is passed and returned by reference
     return s;
 }
 ```
-It is not possible to pass or return an EMO by value. It is not possible to pass
+It is not possible to pass
 or return a non-EMO object by Move Ref.
 
 
@@ -302,7 +303,7 @@ struct S { ... declare EMO ... }
 func(S()); // S() creates an rvalue, and a reference
            // to that rvalue is passed to func()
 
-void func(S s)
+void func(S s) // call by Move Ref (not by value)
 {
     ...
     // s is destructed here
@@ -824,7 +825,8 @@ for rvalues.
 
 #### Rvalue Reference
 
-A Move Ref is corresponds with a C++ rvalue ref.
+A Move Ref is corresponds with a C++ rvalue ref. This means that to interface with
+C++ rvalue ref parameters, the object on the D side has to be an EMO.
 
 D:
 
