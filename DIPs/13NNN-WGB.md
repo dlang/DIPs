@@ -428,12 +428,177 @@ Class objects cannot have move constructors or move assignment operators.
 ### Last Use
 
 The *Last Use* of an lvalue is the last time in a path of execution that any read
-or write is done to the memory region referred to directly by the lvalue. For example:
+or write is done to the memory region referred to directly by the lvalue. The last use
+of variable declarations is identified by doing dataflow analysis on function local
+variables and function parameters that are passed by value. Global variables and `ref`
+parameters are not checked for last use. For example, for a given function `f`:
 
 ```
-struct S { int i; ... declare EMO ... }
+void fun(S s);
+void f()
+{
+    S s;
+    <stmt_1>;
+    <stmt_2>;
+    ....
+    fun(s);
+    ....
+    <stmt_n>;
+}
+```
 
-...
+The call to `fun` is the last access of `s` if and only if all the statements following it,
+up to `<statement_n>` do not access `s` at all.
+
+The Last Use of an EMO lvalue will be a move, otherwise it will be a copy.
+
+```
+{
+  S s;
+  func(s);  // not last use of s, copy
+  func(s);  // last use of s, move
+}
+```
+
+**Return statements**. If a function local variable or function parameter passed by value is
+returned directly via `return x`, that is the last use of `x`. If the return argument is an
+expression that is using `x` several times, the rightmost use of `x` will be considered the
+last use. For example, in`return fun(x, y, z, x)`, the last use of `x` is when passing the
+fourth parameter.
+
+**Nested functions and lambdas**. Module level functions that contain nested functions or
+lambda functions that access an outer local variable will not be subject to last use dataflow
+analysis. The reason is that a pointer to the nested function or lambda could be escaped from
+the containing function:
+
+```
+void gun();
+void sun();
+auto fun()
+{
+    S a;
+    void nested() { gun(a); }
+    sun(a);                 // last use of `a` in `fun`, but a pointer to `nested`
+                            // is escaped and `nested` accesses `a`
+    return &nested;
+}
+```
+
+Local variables and by value parameters of nested functions are subject to the same last use
+analysis as module level functions.
+
+**Multiple last accesses**. A variable may have multiple last accesses. For example:
+
+```
+S foo(bool flag)
+{
+    S s;
+    if(flag)
+        return fun(s);
+    else
+        return gun(s);
+    
+    //return s; -> would invalidate previous last accesses, becoming the new last access of `s`
+}
+```
+
+**Loop statements**. Local variable/Function parameter passed by value accesses inside
+`while`/`for`/`do-while`/`foreach` bodies will be regarded as last accesses solely in
+the following 2 situations: (1) the access is on an execution path that ends the loop
+(return, break, goto outside of the loop body -with respect to the goto rules mentioned
+below-) or (2) the variable lifetime does not exceed a loop iteration:
+
+```
+void gun(S s);
+S foo()
+{
+    S s;
+    while (cond)
+    {
+        if (cond2)
+            return s;     // case (1) last use -> move
+        else if (cond3)
+            func(s);      // copy
+        else
+        {
+            S s;
+            gun(s);       // case(2) move
+        }
+    }
+    return S();
+}
+```
+
+**Gotos**. An lvalue access that is preceded (directly or not) by a label and succeeded by a `goto` to the aforementioned label, will not be considered a last access (even though the `goto` might not be executed in certain runtime paths).
+
+```
+void foo()
+{
+    S s1;
+    int a;
+l1:
+    ++a;
+    func(s1);     // not last access.
+    if (a != 42)
+       goto l1;
+    
+    S s2;
+    int b = gun(s2);   // not last access, because of sun(s2); gotos to labels that
+                       // do not preced the access of an lvalue do not affect the DFA
+    if (b != 42)
+        goto l2;
+    sun(s2);
+l2:
+}
+```
+
+**Static conditions**. Compile time conditions do not affect the last access decision mechanism. The DFA will be run after all the static conditions have been evaluated:
+
+```
+void foo(T)()
+{
+    S s;
+    func(s);                // this will be the last access of s when foo is
+                            // instantiated with anything other than S
+    static if(is(T == S))
+        gun(s);
+    else
+        fun(a);
+}
+```
+
+**AndAnd/OrOr expressions**. *e1 || e2* and *e1 && e2* expressions are treated the following way: 
+
+  * if `e1` accesses `x` and `e2` does not, then `e1` is the last access of `x`;
+  * if `e2` accesses `x` and `e1` does not, then `e2` is the last access of `x`;
+  * if both `e1` and `e2` access `x`, then `e2` is the last access of `x`;
+  
+**Partial move**. A variable of an aggregated type (struct or class) may contain an EMO field:
+
+```
+void fun(T t);
+void gun(S s);
+struct S
+{
+    T t;    // T is EMO
+}
+{
+    S s;
+    fun(s.t);
+    gun(s);
+}
+```
+
+Although the call to `fun` is the last time `s.t` is accessed, `s` is still used after that. To correctly
+treat this situation, it is necessary, that `s.t` will make a copy, otherwise when `gun` is called `s` will
+be in a partially invalid state (the move could potentially alter `s.t`). However, if `fun` would be the last
+access of `s`, then it would be no problem to move `t`. Therefore, the generalized rule is that an access to
+an EMO field of an aggregate will be moved only if that is the last access of the containing variable.
+
+**Pointers**. Whenever the address of a variable `x` is taken, `x` will lose the possibility of last access optimization.
+For example:
+
+```
 {
   S s;
   int* p = &s.i;
@@ -451,25 +616,14 @@ struct S { int i; ... declare EMO ... }
   ...
   S s;
   S* ps = &s;
-  func(s);   // last use, because despite ps still
-             // pointing to s, it is never used
+  func(s);   // ps still points to s, so it's not last use, even if ps is never used
 }
 
 struct T { int j; S s; ~this(); }
-...
+
 {
   T t;
   func(t.s);  // not last use because of T's destructor
-}
-```
-
-The Last Use of an EMO lvalue will be a move, otherwise it will be a copy.
-
-```
-{
-  S s;
-  func(s);  // not last use of s, copy
-  func(s);  // last use of s, move
 }
 ```
 
@@ -482,26 +636,6 @@ void func(S);
 func(S());  // S() is an rvalue, so always a move
 ```
 
-In general, determining the Last Use of an lvalue requires *Data Flow Analysis*.
-It is implementation dependent how thorough the DFA is done, and for cases where
-the implementation cannot prove a use is the Last Use, a copy will be performed.
-
-Simple cases such as:
-```
-S test(S s)
-{
-    return func(s);
-}
-```
-should be determined to be Last Use.
-
-
-```
-S s;
-while (cond)
-    func(s);
-```
-should always copy.
 
 ### Destruction
 
