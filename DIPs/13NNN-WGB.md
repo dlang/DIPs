@@ -98,7 +98,7 @@ Consider a function `fwd`:
 ```
 ref S fwd(return ref S s) { return s; }
 ```
-which can be used to forward its argument like so:
+which we would like to be used to forward its argument like so:
 
 ```
 void f(S s);
@@ -109,7 +109,7 @@ f(fwd(s));  // copy
 f(fwd(s));  // move
 f(fwd(S()); // move
 ```
-no extra copies are made as a side effect of this forwarding
+and have no extra copies are made as a side effect of this forwarding
 process.
 
 
@@ -407,6 +407,57 @@ void func(s);
 is allowed and the responsiblity of destructing `s` remains with the caller.
 
 
+### Assigning a `ref` EMO to a non-`ref` EMO
+
+Consider:
+```
+void func(ref S s)
+{
+    S t;
+    t = s;  // `s` is copied, not moved, to `t`
+}
+```
+This is because explicit `ref` to EMOs do not own the object they refer
+to, so the only choice is to copy it.
+
+The same semantics apply to passing a `ref` EMO to a non-`ref` parameter:
+```
+void func(S);
+
+void g(ref S s)
+{
+    func(s); // a copy of `s` is made
+}
+```
+
+### Forwarding
+
+Referring back to our desired forwarding function `fwd`:
+
+```
+ref S fwd(return ref S s) { return s; }
+```
+which we would like to be used to forward its argument like so:
+
+```
+void f(S s);
+...
+S s;
+f(fwd(s));
+f(fwd(S());
+```
+Ownership of the argument to fwd() is retained by the caller,
+and so the caller will be responsible for its destruction.
+When the call is made to f(), a copy is made.
+
+If `fwd()` is inlineable, however, the compiler is allowed to examine
+its implementation. If implementation actually does return only a ref to the
+parameter `s`, the copy can be elided if it was the last use of `s`.
+Much like NRVO, it is implementation
+dependent whether this copy elision takes place.
+
+
+
 ### EMO and Garbage Collection
 
 The current semantics are defined so that a naive compacting garbage collector
@@ -497,7 +548,7 @@ S foo(bool flag)
         return fun(s);
     else
         return gun(s);
-    
+
     //return s; -> would invalidate previous last accesses, becoming the new last access of `s`
 }
 ```
@@ -541,7 +592,7 @@ l1:
     func(s1);     // not last access.
     if (a != 42)
        goto l1;
-    
+
     S s2;
     int b = gun(s2);   // not last access, because of sun(s2); gotos to labels that
                        // do not preced the access of an lvalue do not affect the DFA
@@ -567,12 +618,12 @@ void foo(T)()
 }
 ```
 
-**AndAnd/OrOr expressions**. *e1 || e2* and *e1 && e2* expressions are treated the following way: 
+**AndAnd/OrOr expressions**. *e1 || e2* and *e1 && e2* expressions are treated the following way:
 
   * if `e1` accesses `x` and `e2` does not, then `e1` is the last access of `x`;
   * if `e2` accesses `x` and `e1` does not, then `e2` is the last access of `x`;
   * if both `e1` and `e2` access `x`, then `e2` is the last access of `x`;
-  
+
 **Partial move**. A variable of an aggregated type (struct or class) may contain an EMO field:
 
 ```
