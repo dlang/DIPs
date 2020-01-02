@@ -5,11 +5,8 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1027](./DIP1027.md)|                           String Interpolation|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
-|[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
 
 `*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
-
-`**` - under the revised DIP procedures, `Post-Preliminary` is now `Post-Community`
 
 ## Accepted DIPs
 |                           ID|                                 Title|
@@ -53,6 +50,7 @@
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
 |[1004](./other/DIP1004.md)   |                Inherited Constructors|
+|[1012](./other/DIP1012.md)   |                            Attributes|
 
 
 ## Withdrawn DIPS
