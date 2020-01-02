@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1024](./DIP1024.md)|                                 Shared Atomics| Formal Assessment|
 |[1027](./DIP1027.md)|                           String Interpolation|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 |[1012](./DIP1012.md)|                                     Attributes|Post-Preliminary 1`**`|
@@ -23,6 +22,7 @@
 |[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics|
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor|
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls|
+|[1024](./accepted/DIP1024.md)|                        Shared Atomics|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
