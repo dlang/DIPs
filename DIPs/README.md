@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1028](./DIP1028.md)|                         Make @safe the Default| Community Round 1|
 |[1027](./DIP1027.md)|                           String Interpolation|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 
