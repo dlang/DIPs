@@ -154,7 +154,7 @@ A proper solution should make it impossible for invalid values of types to even 
 
 ## Prior work
 
-The need for encapsulation for memory safety has been mentioned in several discussions:
+The need for encapsulation of data / restricted access to data in order to achieve memory safety has been mentioned in several discussions:
 
 - [#8035: tupleof ignoring private shouldn't be accepted in `@safe` code](https://github.com/dlang/dmd/pull/8035) (March 15, 2018)
 
@@ -167,6 +167,10 @@ The need for encapsulation for memory safety has been mentioned in several discu
 - [Should modifying private members be @system?](https://forum.dlang.org/thread/lobjvmjxvvmamklzfzhp@forum.dlang.org) (October 4, 2019)
 
 - [Borrowing and Ownership](https://forum.dlang.org/post/qp565f$2q48$1@digitalmars.com) (October 27, 2019)
+
+- [#7347: Fix issue 20495 (choose copies unused union member, which is unsafe)](https://github.com/dlang/phobos/pull/7347) (January 9, 2020)
+
+- [Re: @trusted attribute should be replaced with @trusted blocks](https://forum.dlang.org/post/mailman.773.1579207677.31109.digitalmars-d@puremagic.com) (January 16, 2020)
 
 ### Other languages
 Many other languages either don't allow systems programming at all (e.g. Java, Python) or don't support language enforced memory safety (e.g. C/C++).
@@ -501,7 +505,7 @@ void main() @safe {
 ### Using uninitialized memory
 This simple stack data structure shows how to safely use an array with partially uninitialized memory.
 In this case the stack data structure is using uninitialized stack memory, but the same idea applies to using uninitialized memory returned by `malloc`.
-Since destructors are still run on the entire array (also the uninitialized part), the stack has a restriction that its element type must be plain old data.
+Since destructors are still run on the entire array (also the uninitialized part), the struct has a template constraint that its element type must be plain old data.
 ```D
 private struct Stack(T, int size = 32) if (__traits(isPOD, T)) {
     private @system T[size] stack = void;
@@ -565,7 +569,7 @@ void main() @safe {
 ### A custom slice type
 Many arrays are small in length and in certain situations you do not want 4 or 8 bytes to store the length when 2 suffices.
 A safe small slice type is created below.
-It has room for extra fields but still fits in two registers.
+It has room for extra fields, but `SmallSlice!T` is no larger than a regular `T[]`: it still fits in two CPU registers.
 ```D
 struct SmallSlice(T) {
     @system private T* ptr = null;
@@ -573,7 +577,7 @@ struct SmallSlice(T) {
     ubyte[size_t.sizeof-2] extraSpace; // 2 on 32-bit, 6 on 64-bit
 
     this(T[] slice) @trusted {
-        ptr = &slice[0];
+        ptr = slice.ptr;
         assert(slice.length <= ushort.max);
         _length = cast(ushort) slice.length;
     }
@@ -704,7 +708,7 @@ It also goes against the established [definition of trusted functions](https://d
 > Furthermore, calls to trusted functions cannot lead to undefined behavior in @safe code that is executed afterwards.
 > It is the responsibility of the programmer to ensure that these guarantees are upheld.
 
-`private` only acts on the module level, so a `@trusted` member function cannot assume anything about the state of the `this` parameter.
+`private` only acts on the module level, so a `@trusted` member function cannot assume anything about member functions just because they are `private`: see also the [zero-terminated string example](#a-zero-terminated-string).
 
 Finally, it would mean that circumventing visibility constraints using `__traits(getMember, ...)` must become `@system` or deprecated entirely similar to `.tupleof`.
 This would break all (`@safe`) code that uses this feature, and re-introduces the problems of [issue 15371](https://issues.dlang.org/show_bug.cgi?id=15371).
@@ -747,15 +751,16 @@ struct S {
 
 void main() @safe {
     S s;
-    *s.a = 0; // this gives an error now? I thought this was safe!
+    *s.a = 0; // this gives an error now
     int[1] intArr = [-1];
-    auto boolArr = cast(bool[]) intArr; // not even this?
+    auto boolArr = cast(bool[]) intArr; // this too
 }
 ```
 
 Whenever this happens, there is a risk of memory corruption, so a compile error would be in its place.
 In any case, a two-year deprecation period is proposed where instead of raising an error, a deprecation message is given whenever the new memory safety rules are broken.
 A preview flag `-preview=systemVariables` can also be added that immediately raises errors for violations while leaving other deprecation messages as warnings.
+There will also be a flag to revert it, `-revert=systemVariables`, so users can choose to keep the old behavior for a little longer.
 
 ## Reference
 
