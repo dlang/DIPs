@@ -42,7 +42,7 @@ bool foo(int x) {
 }
 ```
 While a `bool` usually only can be `true` or `false` and requires 1 bit of storage, foo can actually return three possible things: {`true`, `false`, `⊥`}
-The symbol `⊥` represents `isPrime` getting stuck in an endless loop (in a bad implementation), crashing (e.g. because it's out of memory), or throwing an exception (because x was negative).
+The symbol `⊥` represents `isPrime` getting stuck in an endless loop (in a bad implementation), crashing (e.g. because it's out of memory), or throwing an exception (maybe x was negative).
 In such cases foo does not return a `true` or `false` value like a mathematical function always would.
 Note that having a bottom *type* in a language does not *add* the bottom *value* or any run time cost associated with it, the bottom value is a concept that exists in any turing complete language even without a bottom type.
 
@@ -106,7 +106,7 @@ If the return type of the handler function `(E err)` were inferred to a bottom t
 Another limitation is that the lambda syntax as used for `(T val)` cannot be used for the `(E err)` handler case because D only has the notion of a `throw` statement, not a `throw` expression.
 This is because every expression needs to have a type, and currently there is no suitable return-type for `throw` since it never returns a value.
 This issue came up in the newsgroup: [Throwing from a lambda isn't supported by the compiler](https://forum.dlang.org/post/efwqhlripiwklvecpxux@forum.dlang.org).
-When a `throw` statement is seen as an expression returning the bottom type, the following example can be made to work:
+When a `throw` statement is seen as an expression returning the bottom type, the following example will work:
 ```D
 void foo(int function() f) {}
 
@@ -117,7 +117,8 @@ void main() {
 
 **Other examples:**
 
-In a `switch` statement, it is possible to add a case `default: assert(0);`. This is not possible when using a switch expression, like in the [sumtype](http://code.dlang.org/packages/sumtype) package:
+In a `switch` statement, it is possible to add a case `default: assert(0);`.
+This is not possible when using lambda-handlers to simulate a `switch`, like the [sumtype](http://code.dlang.org/packages/sumtype) package does:
 ```D
 alias Var = SumType!(int, double, string);
 int round(Var v) {
@@ -167,7 +168,7 @@ int[] test() {
 }
 ```
 
-This hack doesn't hold up when the user makes his own type:
+This is a special case the compiler allows, but this does not hold up when the user makes his own type:
 
 ```D
 import std;
@@ -210,7 +211,7 @@ struct MapResult {
 ```
 
 Since `storage[0]` is no longer `void` but now `noreturn`, which can be converted to any other type, it will automatically work.
-Furthermore, `empty()` is easily lowered to `return true;` even without optimizations, and if the return-type of `front()` were declared `auto` it could be statically inferred that it always results in an error.
+Furthermore, the expression `storage.length == 0` can be folded to `true` in function `empty()`, even without optimizations, and if the return-type of `front()` were declared `auto` it could be statically inferred that it always results in an error.
 
 ### The type of the null-pointer
 Currently `typeof(null)` is a special type to the compiler.
@@ -242,13 +243,13 @@ Now this will correctly interact with the type system and allow optimizations.
 
 ### Standard name
 While any user can define their own alias to the bottom type, having a standard name prevents everyone from using a different name for the same thing.
-This dip proposes the name `noreturn` because it makes its semantics and purpose very clear in most use cases.
+This DIP proposes the name `noreturn` because it makes its semantics and purpose very clear in situations where the type name it is spelled out.
 The language Zig also uses this type name, and C++ uses this exact name for their `[[ noreturn ]]` attribute.
 
 The name is not capitalized because it can be seen as a basic type like `int` or `string`, unlike a struct or class.
 
 The name `never` is also a good contender, since it expresses how it can 'never' be returned or instantiated.
-It makes a little more sense that `typeof([]) == never[]` than `typeof([]) == noreturn[]`, but the typename of `[]` is rarely spelled out.
+It makes a little more sense that `typeof([]) == never[]` than `typeof([]) == noreturn[]`, but the typename of `[]` rarely needs to be written in code.
 The return type of functions is commonly spelled out, so `noreturn` is favored.
 
 One exceptional case is:
@@ -297,9 +298,10 @@ Bottom types first came up in the newsgroup on July 08, 2017:
 Walter Bright later wrote DIP 1017:
 [Add Bottom Type](https://github.com/dlang/DIPs/blob/master/DIPs/rejected/DIP1017.md)
 
-During [Community review](https://forum.dlang.org/post/bvyzkatgwlkiserqrcwk@forum.dlang.org), it was critiqued for adding much language complexity without much benefit. The only use case described was optimizing functions that don't return, which could also be achieved with a simple attribute.
+During [Community review](https://forum.dlang.org/post/bvyzkatgwlkiserqrcwk@forum.dlang.org), it was critiqued for adding much language complexity without much benefit.
+The only use case described was optimizing functions that don't return, which could also be achieved with a simple attribute.
 
-During [Final review](https://forum.dlang.org/post/qnrkfiqmtqzpyocxxtsk@forum.dlang.org) it was critiqued for not having addressed the feedback from community review, end it ended up being canned by Walter himself.
+During [Final review](https://forum.dlang.org/post/qnrkfiqmtqzpyocxxtsk@forum.dlang.org) it was critiqued for not having addressed the feedback from community review, end it ended up being withdrawn.
 
 In the [Final Assessment](https://forum.dlang.org/post/msohwtbfpiucioccbcnc@forum.dlang.org) it was mentioned that the DIP author "still believes there is a benefit to adding a bottom type to the language, but this proposal is not the way to go about it.".
 
@@ -331,7 +333,7 @@ Example code from [Marius Schulz](https://mariusschulz.com/blog/the-never-type-i
 ### Zig
 Zig has a keyword `unreachable` representing the bottom value with type `noreturn`.
 Other expressions with this type are `break`, `continue`, `return`, `unreachable`, `while (true) {}`.
-Since Zig is very expression based (in D the above would be statements) it often appears in idioms, for example try-expressions:
+Since Zig is very expression based (in D the above expressions would be statements) it often appears in idioms, for example try-expressions:
 ```
 try parseInt("3") catch unreachable
 ```
@@ -356,7 +358,7 @@ switch(value) {
 }
 ```
 Because Zig's switch is expression based and D is statement based, both can express the same thing.
-However, as shown in the SumType example, D can't do assert(0) in an expression-based switch.
+However, as shown in the SumType example, D can't do `assert(0)` in an expression-based switch.
 
 ## Description
 The following language changes are proposed based on the rationale mentioned above.
@@ -426,7 +428,7 @@ throw E0 + E1 => (throw E0) + E1
 throw E0 = E1 => (throw E0) = E1
 ```
 
-**(5) A function that returns `auto` may be inferred `noreturn` if every leaf ends in an endless loop or noreturn expression.**
+**(5) A function that returns `auto` may be inferred `noreturn` if every code path ends in an endless loop or expression of type `noreturn`.**
 
 Control flow exiting the function counts as `void`, not `noreturn` since users are used to implicit `return` statements at the end of a `void` function.
 ```D
@@ -463,10 +465,11 @@ However, actually using typeof(null) in a function signature is extremely uncomm
 ```D
 noreturn.sizeof == 0;
 ```
-What is the size of the bottom type? Some considerations are:
+What is the size of the bottom type?
+Some considerations are:
 - If something of type A* converts to something of type B* without problems, then one would expect B.sizeof <= A.sizeof. This would imply that noreturn.sizeof >= size_t.max. [(Argued by Timon Gehr)](https://forum.dlang.org/post/okfmt3$vdi$1@digitalmars.com)
 - A boolean requires log2(2)=1 bits storage, a unit type log2(1)=0 bits. Since the bottom type has 0 values, it requires log2(0) bits storage, which is undefined. It approaches -Infinity in the limit.
-- There is no meaningful size, so the size is the bottom value `⊥` which implicitly converts to a `size_t`. Any time `noreturn.sizeof` is used, the program crashes.
+- There is no meaningful size, so the size is the bottom value `⊥` which implicitly converts to a `size_t`. The expression `noreturn.sizeof` is lowered to `assert(0)`.
 - A `union` has the size of the largest member. Adding a `noreturn` field to a `union` never increases the size, so its size is 0.
 
 The last definition seems the simplest and most useful, so it is the proposed one.
@@ -484,27 +487,25 @@ The type `noreturn` has no values, so there is no `init` value either (or the in
 Any time `noreturn.init` appears in code, it gets lowered to `assert(0)`.
 
 ```D
-noreturn*.sizeof == 0
+noreturn*.sizeof == size_t.sizeof;
+noreturn[].sizeof == size_t.sizeof * 2;
 ```
-Currently `typeof(null).sizeof` equals `size_t.sizeof`, but since it's a unit type it doesn't need any storage.
+While a `noreturn*` can only have one value requiring 0 bits of storage, the size is still chosen to be the same as every other pointer.
+This is consistent with the current `typeof(null).sizeof` which also equals `size_t.sizeof`.
 
-```D
-noreturn[].sizeof == 0
-```
 Just like `typeof(null)`, `typeof([])` requires no storage since it only has one value.
-This does mean that a `T[]` is no longer equivalent to this definition:
+However, the size of a `T[]` should be consistent with this struct definition:
 ```D
 struct slice(T) {
     size_t length;
     T* ptr;
 }
 ```
-Since that definition always uses at least `size_t.sizeof` bytes.
 
 ### Interaction with other language features
 
 The previous DIP proposed only allowing using the bottom type as a return type, similar to `void`.
-Such restrictions prevent the bottom type of being a useful degenerate case and make them an annoying edge case.
+Such restrictions prevent the bottom type of being a useful degenerate case and introduces new edge cases instead.
 It is proposed that usage of the bottom type is allowed, and it results in the insertion of `assert(0)` expressions.
 
 **Fields / members**
@@ -515,7 +516,7 @@ int a = throw new Exception("nope");
 ```
 The above is type-sound: the newly proposed throw expression has type `noreturn` and `noreturn` is a subtype of `int`.
 However, semantically it means that the program will never be able to even reach `main`.
-therefore, an error is still raised, similar to errors during compile time function execution:
+Therefore, an error is still raised, similar to errors during compile time function execution:
 ```D
 int a = () {throw new Exception(""); return int.init;}();
 // Error: uncaught CTFE exception`
@@ -528,7 +529,7 @@ It can be seen as giving the type a random value with a biased distribution (bas
 For a bottom type, this will always be the bottom value, generating an `assert(0)`.
 
 Giving a `struct` a `noreturn` field ensures it contains the bottom value, so it collapses into a `noreturn` type (though properties such as `.sizeof` and `.alignof` are retained).
-The definition is okay, but as soon as it is instantiated it generates an `assert(0)`.
+Defining a `struct` with a `noreturn` field is okay, but as soon as it is used it generates an `assert(0)`.
 
 Adding a `noreturn` field to a `union` does essentially nothing.
 A `union` can be seen as a sum-type with possibly ambiguous bit-patterns, so the type-system leaves figuring out the correct type up to the programmer (e.g. by implementing a [tagged union](https://en.wikipedia.org/wiki/Tagged_union)).
@@ -539,7 +540,8 @@ An `enum` can have type `noreturn`, but all members must be given an explicit in
 Normally the compiler will automatically assign values to enum members for integral values (like `bool` and `int`) by counting up starting at 0 up to the maximum, and give a compile-time overflow error afterwards.
 The `noreturn` type immediately overflows on the first enum member by this reasoning.
 
-A static array of `noreturn` with length 0 is a unit type, while a positive length means it has a bottom value, just like a struct.
+A static array of `noreturn` with length 0 is a unit type.
+A static array of `noreturn` with positive length `N` is equivalent to a struct with `N` fields with type `noreturn`: it can be defined, but using it results in `assert(0)`.
 
 Both the D function `main` and `extern(C) main` are allowed to have the return type `noreturn`.
 
@@ -751,8 +753,8 @@ Even in C sometimes the limitations of `noreturn` as an attribute shows, and a c
 
 ## Breaking Changes and Deprecations
 
-Any code assuming `is(typeof([]) == void[])` or `typeof(null).sizeof == size_t.sizeof` holds will break.
-It is unknown whether this is a common occurence, but it is suspected that people don't use typeof(null) very often since there is little reason to.
+Any code assuming `is(typeof([]) == void[])` will break.
+It is unknown whether this is a common occurence, but it is suspected that people rarely use `typeof([])` since there is little reason to.
 
 ## Reference
 
