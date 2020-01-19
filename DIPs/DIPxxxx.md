@@ -30,7 +30,7 @@ This DIP proposes the following two changes:
 
 Currently there is no easy way to set a default for function attributes. This includes the attributes for determining memory safety (`@safe`, `@trusted`, and `@system`) as well as the attributes `nothrow`, `pure`, and `@nogc`; which have varying affects.
 
-The easiest way to try to get behavior that changes the default attributes is to use the feature `@attribute:` that applies an `attribute` to everything after the `:`. There are a few problems that are faced here.
+The easiest way to try to get behavior that changes the default attributes is to use the feature `@attribute:` that applies an `attribute` to everything after the `:`. This currently is the optimal solution as it reduces the amount of attribute bloat on every function, as opposed to labeling every function explicitly with the required attribute. There are still quite a few problems that are faced here.
 
 ```D
 module someModule;
@@ -89,7 +89,7 @@ nothrow @nogc:
 ```
 
 To outline the problems with attempting to apply different default attributes:
-* Not all attributes flow through aggregates, only `@safe`, `@trusted`, and `@system` do so. This means `@attribute:` is a no solution for these attributes. Changing this behavior would also cause significant breaking changes.
+* Not all attributes flow through aggregates, only `@safe`, `@trusted`, and `@system` do so. This means `@attribute:` is a no solution for every attribute. Changing this behavior would also cause significant breaking changes.
 * Templates lose auto inference. As the attributes are applied to *everything* in the scope. This means they are also applied to templates and those templates are thus required to follow the rules of those attributes. Since templates can auto infer these attributes, the desired effect would be to simply have the template continue to be auto inferred. The function calling the template would then enforce any rules that would need to be applied.
 * Attribute bloat at the aggregate scope. Since some attributes don't propagate through all scopes they must be reapplied for each new aggregate scope. This can become tedious and add extra bloat where it shouldn't be necessary.
 * Lack of inverse effects for function attributes leads to odd reordering instead of maintaining the logical order of function definitions affecting readability. The `@attribute:` then appears somewhere in the middle of a large amount of code making it less visible and apparent of what the intention is.
