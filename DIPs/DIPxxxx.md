@@ -144,7 +144,7 @@ impure:
     @nogc void foo(); // ok, is @nogc
 ```
 
-The next part is to allow the default to be set at the module level. This would be done by adding the attribute infront of the module declaration at the beginning of the source file. The attributes that would be considered are as follows: `@safe`, `@trusted`, `@system`, `nothrow`, `throw`, `pure`, `impure`, `@nogc`, and `@gc`.
+The next part is to allow the default to be set at the module level. This would be done by adding the attribute infront of the `module` declaration at the beginning of the source file. The attributes that would be considered are as follows: `@safe`, `@trusted`, `@system`, `nothrow`, `throw`, `pure`, `impure`, `@nogc`, and `@gc`.
 
 ```D
 @safe nothrow pure @nogc module someModule;
@@ -177,7 +177,7 @@ struct SomeOtherStruct {
 }
 ```
 
-Changing the language defaults doesn't address the larger problem. As described in [DIP1028](#Prior&#32;Work) and [DIP10XX](#Prior&#32;Work), which intend to change the language defaults without any easy upgrade path to make old `@system` and `throw` code compilable again. Why `@system:` and `nothrow:` aren't sufficient solutions has already been outlined in the [rationale](#Rationale) regarding the problems with `@attribute:` and defaults. Should `@safe` and `nothrow` become the default, this DIP resolves the problem with letting the user easily choose which defaults they desire for a module. Which before this problem was simply being shifted onto `@system` and `throw` users. With this proposal a user can simply add `@system` or `throw` before `module` in each source file and their code will continue to compile, resolving the issue irregardless of what attribute is the default.
+Changing the language defaults doesn't address the larger problem. As described in [DIP1028](#Prior&#32;Work) and [DIP10XX](#Prior&#32;Work), which intend to change the language defaults without any easy upgrade path to make old `@system` and `throw` code compilable again. Why `@system:` and `nothrow:` aren't sufficient solutions has already been outlined in the [rationale](#Rationale) regarding the problems with `@attribute:` and defaults. Should `@safe` and `nothrow` become the default, this DIP resolves the problem with letting the user easily choose which defaults they desire for a module. Which before this problem was simply being shifted onto `@system` and `throw` users. With this proposal a user can simply add `@system`, `throw`, `@safe`, or `nothrow` before `module` in each source file and their code will continue to compile, resolving the issue of defaults irregardless of what attributes are actually the default. The default can be easily set to whatever meets a user's requirements for their project.
 
 Ultimately `@attribute:` is more of an antipattern than a feature that should be promoted. When it appears in the middle of a large amount of code it can be difficult to see what the intention is and what behavior is being changed. With this proposal, the default can be set at the module level and the outlying functions can be explicitly marked with clear intention. Otherwise when a function isn't explicitly marked, what attributes a function inherits can be easily found at the very first line of the source file. Ideally `@attribute:` would be deprecated at the module level, but this is not the intention of this proposal nor is it a requirement for any future proposal. This proposal does not serve to dictate the best practices of a user, should they desire to continue to use `@attribute:`, it is their option to.
 
