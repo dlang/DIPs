@@ -138,7 +138,7 @@ throw:
     nothrow foo(); // ok, is nothrow
 
 impure:
-    pure void foo(); // ok, is impure
+    pure void foo(); // ok, is pure
 
 @gc:
     @nogc void foo(); // ok, is @nogc
