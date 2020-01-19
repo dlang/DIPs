@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | anass-O                                                         |
 | Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
