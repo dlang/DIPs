@@ -28,7 +28,7 @@ This DIP proposes the following two changes:
 
 ## Rationale
 
-Currently there is no easy way to set a default for function attributes. This includes the attributes for determining memory safety (`@safe`, `@trusted`, and `@system`) as well as the attributes `nothrow`, `pure`, and `@nogc`; which have varying affects.
+Currently there is no easy way to set a default for function attributes. This includes the attributes for determining memory safety (`@safe`, `@trusted`, and `@system`) as well as the attributes `nothrow`, `pure`, and `@nogc`; which have various effects.
 
 The easiest way to try to get behavior that changes the default attributes is to use the feature `@attribute:` that applies an `attribute` to everything after the `:`. This currently is the optimal solution as it reduces the amount of attribute bloat on every function, as opposed to labeling every function explicitly with the required attribute. There are still quite a few problems that are faced here.
 
@@ -144,7 +144,9 @@ impure:
     @nogc void foo(); // ok, is @nogc
 ```
 
-The next part is to allow the default to be set at the module level. This would be done by adding the attribute infront of the `module` declaration at the beginning of the source file. The attributes that would be considered are as follows: `@safe`, `@trusted`, `@system`, `nothrow`, `throw`, `pure`, `impure`, `@nogc`, and `@gc`.
+The next part is to allow the default to be set at the module level. This would be done by adding the attribute in front of the `module` declaration at the beginning of the source file. The attributes that would be considered are as follows: `@safe`, `@trusted`, `@system`, `nothrow`, `throw`, `pure`, `impure`, `@nogc`, and `@gc`.
+
+The attribute applied to the module would then be used as the default. It will not be applied to templates, as `@attribute:` did, templates will remain auto inferred.
 
 ```D
 @safe nothrow pure @nogc module someModule;
@@ -177,11 +179,15 @@ struct SomeOtherStruct {
 }
 ```
 
-Changing the language defaults doesn't address the larger problem. As described in [DIP1028](#Prior&#32;Work) and [DIP10XX](#Prior&#32;Work), which intend to change the language defaults without any easy upgrade path to make old `@system` and `throw` code compilable again. Why `@system:` and `nothrow:` aren't sufficient solutions has already been outlined in the [rationale](#Rationale) regarding the problems with `@attribute:` and defaults. Should `@safe` and `nothrow` become the default, this DIP resolves the problem with letting the user easily choose which defaults they desire for a module. Which before this problem was simply being shifted onto `@system` and `throw` users. With this proposal a user can simply add `@system`, `throw`, `@safe`, or `nothrow` before `module` in each source file and their code will continue to compile, resolving the issue of defaults irregardless of what attributes are actually the default. The default can be easily set to whatever meets a user's requirements for their project.
+Only function attributes are being considered for this DIP as these attributes tend to be applied on a larger scale. You may want an entire library to be `@nogc`, but making an entire library comprised of `immutable` variables isn't very useful. Attributes such as `immutable` also do not suffer the problem related to template auto inferring, which is a main factor in why `@attribute:` is insufficient for function attributes.
+
+Changing the language defaults doesn't address the larger problem that a user can't easily set the defaults they require for a module. As described in [DIP1028](#Prior&#32;Work) and [DIP10XX](#Prior&#32;Work), which intend to change the language defaults without any easy upgrade path to make old `@system` and `throw` code compilable again. Why `@system:` and (the proposed) `throw:` aren't sufficient solutions has already been outlined in the [rationale](#Rationale) regarding the problems with `@attribute:` and defaults. Should `@safe` and `nothrow` become the default, this DIP resolves the problem with letting the user easily choose which defaults they desire for a module. Which before the burden was simply being shifted onto `@system` and `throw` users. With this proposal a user can simply add `@system`, `throw`, `@safe`, or `nothrow` before `module` in each source file. Resolving the issue of defaults irregardless of what attributes are actually the default. The default can be easily set to whatever meets a user's requirements for their module and/or project.
 
 Ultimately `@attribute:` is more of an antipattern than a feature that should be promoted. When it appears in the middle of a large amount of code it can be difficult to see what the intention is and what behavior is being changed. With this proposal, the default can be set at the module level and the outlying functions can be explicitly marked with clear intention. Otherwise when a function isn't explicitly marked, what attributes a function inherits can be easily found at the very first line of the source file. Ideally `@attribute:` would be deprecated at the module level, but this is not the intention of this proposal nor is it a requirement for any future proposal. This proposal does not serve to dictate the best practices of a user, should they desire to continue to use `@attribute:`, it is their option to.
 
-### Grammer Changes
+Part of the rationale for why attributes aren't passed through scopes and aggregates is it would promote declaring attributes at each new scope [\[1\]](#Reference). As described this problem already exists today. If the defaults do not match what you desire, you are **required** to declare attributes at each new aggregate/scope. This is not a pattern you simply can not follow, if it were simply a best practice. But it is practice you are forced to follow as you are unable to change the defaults and the defaults are reset at each new aggregate/scope.
+
+### Grammar Changes
 
 ```diff
 ModuleAttribute:
@@ -217,11 +223,13 @@ AtAttribute:
 
 ## Breaking Changes and Deprecations
 
-Any use of `impure` would need to be substituted for `_impure` or otherwise a different name. This is not a common word to be used and breakage is expected to be minimal.
+Any use of `impure` would need to be substituted for `_impure` or otherwise a different name. This is not a common word to be used and breakage is expected to be minimal. The keyword can be a situational keyword for a limited time to ease the transition.
 
 Any attributes using the `@gc` name would also need to be changed. This is not a common attribute name used and breakage is expected to be minimal.
 
 ## Reference
+
+\[1\] [Walter Bright: Attribute Best Practices](https://forum.dlang.org/post/qvmf7m$qte$1@digitalmars.com)
 
 ## Copyright & License
 Copyright (c) 2020 by the D Language Foundation
