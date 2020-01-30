@@ -4,8 +4,8 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1027](./DIP1027.md)|                           String Interpolation|      Final Review|
-|[1029](./DIP1029.md)|              Add `throw` as Function Attribute| Community Round 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default|  Post-Community 1|
+|[1029](./DIP1029.md)|              Add `throw` as Function Attribute|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 
 `*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
