@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1027](./DIP1030.md)|                                Named Arguments| Community Round 1|
 |[1027](./DIP1027.md)|                           String Interpolation|      Final Review|
 |[1028](./DIP1028.md)|                         Make @safe the Default|  Post-Community 1|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|  Post-Community 1|
