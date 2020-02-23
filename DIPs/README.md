@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1031](./DIP1031.md)|      Deprecate Brace-Style Struct Initializers| Community Round 1|
-|[1027](./DIP1027.md)|                           String Interpolation| Formal Assessment|
 |[1030](./DIP1030.md)|                                Named Arguments| Community Round 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default|  Post-Community 1|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|  Post-Community 1|
@@ -33,6 +32,7 @@
 |[1015](./rejected/DIP1015.md)| Deprecation and removal of implicit conversion from integer and character literals to `bool` |
 |[1016](./rejected/DIP1016.md)|              `ref T` accepts r-values|
 |[1017](./rejected/DIP1017.md)|                       Add Bottom Type|
+|[1027](./rejected/DIP1027.md)|                  String Interpolation|
 
 ## Postponed DIPs
 |                           ID|                                 Title|
