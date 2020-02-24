@@ -50,6 +50,9 @@ gets rewritten as:
 ```
 writefln(_d_interpolated_string!("I ate ", _d_interpolated_format_spec(null), " and ", _d_interpolated_format_spec("%d"), " totalling ", _d_interpolated_format_spec(null), " fruit.")(), apples, bananas, apples + bananas);
 ```
+
+where `_d_interpolated_string` and `_d_interpolated_format_spec` are defined exclusively inside druntime.
+
 This will also work with `printf`:
 
 ```
@@ -177,7 +180,7 @@ i""q{apples and $("bananas")}
 ```
 yielding a tuple expression:
 ```
-_d_interpolated_string!("apples and ", _d_interpolated_format_spec(null)), ("bananas")
+_d_interpolated_string!("apples and ", _d_interpolated_format_spec(null))(), ("bananas")
 ```
 
 ### Library additions
