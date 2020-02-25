@@ -316,21 +316,13 @@ A new version of the compiler is released and the user, eager to try D's new str
 auto window = createWindow(i"Process debugger $pid");
 ```
 
-It compiles without error. In bliss, the happy user thinks: "d rox". Then... the program is run and the window width is extraordinary. But the documentation says it will be automatically sized by default. The confused user wonders: why did this change? They run the program again and get another random width. Is the library incompatible with the new dmd version?
+This would compile without error, but would not do what the user intended. D would pass the variable `pid` as the second argument to the function, which would interpret it as window width. Without a way to detect this misuse, which is likely to be a common mistake made by programmers more familiar with string interpolation in other languages, users will be unpleasantly surprised with buggy code.
 
-After some time, they notice the window title has changed to "Process debugger %" before being cut off by the taskbar width. "This new dmd version must be super buggy," they think, "it corrupted my string!"
+The `_d_interpolated_string` struct provides such a way to detect misues. In fact, the library author doesn't have to do anything - the user will see a helpful error message from the compiler and perhaps try `i"Process debugger $pid".idup` instead, or another suitable alternative.
 
-Exasperated, they go online to ask the D gurus if anyone else has experienced this bizarre behavior. After an hour of wasted time, they finally mention having experimented with D's new string interpolation feature earlier in the day.
+As an added benefit, if the library author does choose to adapt to the interpolated string, she can do so while keeping it separate from its existing default arguments by way of overloading the first argument on the new type yielded by `_d_interpolated_string`.
 
-The helpful people in the D forum point them at the spec: "I know it looks like a string," the Master explains, "but it is actually lowered to an auto-expanding tuple whose first element is a string. That's causing your problem. I'd love to fix it in the library, but it is literally impossible to differentiate this case from legitimate usage :("
-
-"D is weird," the user replies, deflated and defeated, "I think I'm just going to use Python. Have you see its f-strings?"
-
-***
-
-On the other hand, with `_d_interpolated_string`, it IS possible to tell those uses apart! In fact, the library author doesn't have to do anything - the user will see a helpful error message from the compiler and perhaps try `i"Process debugger $pid".idup` instead, or another suitable alternative.
-
-If the library author does choose to adapt to the interpolated string, she can do so while keeping it separate from its existing default arguments by way of overloading the first argument on the new type yielded by `_d_interpolated_string`.
+Other alternatives discussed in the community included a compiler-recognized attribute on the parameter to indicate it takes a format string, but once we define rules for all the edge cases for ABI, mangling, overloading, etc., such a thing would have simply reinvented a struct type in a more awkward fashion. It is better to lean on rules the language and its users already understand than invent special rules for this one case.
 
 #### On implicit conversions
 
@@ -436,9 +428,11 @@ With D functions like `writefln` providing an overload specifically on `_d_inter
 this can be detected and treated as a compile-time error (which the sample library implementation
 would do), corrected to `%%s`, or even interleaved correctly by library code.
 
+Making these work implicitly would mean sacrificing the type safety identified in the `createWindow` case mentioned previously or baking knowledge of format strings into the language (and someone defining a rule so user-defined functions can utilize it), and this comes back to awkwardly reinventing a type.
+
 #### W and D Interpolated Strings
 
-`wchar` and `dchar` interpolated strings are not allowed at this time.
+`wchar` and `dchar` interpolated strings are not allowed at this time. If they were to be added, however, `i"..."w` would work the same way, except passing `wstring` instead of `string` to `_d_interpolated_string`.
 
 ## Breaking Changes and Deprecations
 
