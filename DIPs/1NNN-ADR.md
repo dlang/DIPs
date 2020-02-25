@@ -48,10 +48,10 @@ writefln(i"I ate $apples and ${%d}bananas totalling $(apples + bananas) fruit.")
 ```
 gets rewritten as:
 ```
-writefln(_d_interpolated_string!("I ate ", _d_interpolated_format_spec(null), " and ", _d_interpolated_format_spec("%d"), " totalling ", _d_interpolated_format_spec(null), " fruit.")(), apples, bananas, apples + bananas);
+writefln(.object._d_interpolated_string!("I ate ", .object._d_interpolated_format_spec(null), " and ", .object._d_interpolated_format_spec("%d"), " totalling ", .object._d_interpolated_format_spec(null), " fruit.")(), apples, bananas, apples + bananas);
 ```
 
-where `_d_interpolated_string` and `_d_interpolated_format_spec` are defined exclusively inside druntime.
+Note that `_d_interpolated_string` and `_d_interpolated_format_spec` are defined exclusively inside druntime, looked up specifically from `object.d` and may NOT be user-defined or overridden in library code.
 
 This will also work with `printf`:
 
@@ -257,7 +257,7 @@ string idup(I, T...)(I fmt, T args) if(is(I == _d_interpolated_string!Args, Args
 }
 ```
 
-Since `idup` is already a symbol and since this new overload is constrained to just the new type, this has no effect on existing code and does not contribute to namespace pollution. Moreover, since `"string".idup` is already an accepted convention for converting `const` strings to the immutable-based `string` type, it is also a natural extension of existing user skills for string assignment. Lastly, it is already known that `.idup` invokes the GC and associated allocator, so it should come to no surprise that `i"".idup` does as well. However, normal string `idup` does not import Phobos while this does, that is a hidden implementation detail that can be improved upon in the future and strikes the best current balance between usability and elegance of implementation.
+Since `idup` is already a symbol and since this new overload is constrained to just the new type, this has no effect on existing code and does not contribute to namespace pollution. Moreover, since `"string".idup` is already an accepted convention for converting `const` strings to the immutable-based `string` type, it is also a natural extension of existing user skills for string assignment. Lastly, it is already known that `.idup` invokes the GC and its associated allocation, so it should come to no surprise that `i"".idup` does as well. However, normal string `idup` does not import Phobos while this does, that is a hidden implementation detail that can be improved upon in the future and strikes the best current balance between usability and elegance of implementation.
 
 In Phobos
 ```
