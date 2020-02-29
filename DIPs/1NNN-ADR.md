@@ -1,5 +1,5 @@
 
-# String Interpolation
+# Formatted string tuple literals
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -11,7 +11,7 @@
 
 ## Abstract
 
-Instead of requiring a format string followed by an argument list, string interpolation enables
+Instead of requiring a format string followed by an argument list, string interpolation via formatted string tuple literals enables
 embedding the arguments in the string itself.
 
 
@@ -38,8 +38,8 @@ easier to review for correctness.
 * Interpolated strings have been implemented and well-received in many languages.
 For many such examples, see [String Interpolation](https://en.wikipedia.org/wiki/String_interpolation).
 * Previous version of this DIP and its associated discussions
-* [C#'s implementation](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated#compilation-of-interpolated-strings)
-* [Javascript's implementation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals)
+* [C#'s implementation](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated#compilation-of-interpolated-strings) which returns a formattable object that user functions can use
+* [Javascript's implementation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) which passes `string[], args...` to a builder function very similarly to this proposal
 
 ## Description
 
