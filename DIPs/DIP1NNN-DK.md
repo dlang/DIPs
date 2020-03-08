@@ -440,7 +440,7 @@ If there is code breakage, it will likely come from overlap or void initializati
 ```D
 immutable ubyte ub = 3;
 bool getValidBool()   pure @system {return true;}
-bool getInvalidBool() pure @system {return *(cast(bool*) ub);}
+bool getInvalidBool() pure @system {return *(cast(bool*) &ub);}
 
 bool b0 = getValidBool();   // despite unsafe type with @system initialization expression, inferred as @safe
 bool b1 = getInvalidBool(); // inferred as system
