@@ -258,8 +258,7 @@ It is worth re-iterating that 'unsafe types' are not inferior to 'safe' types or
 
 **(0) _Writing_ to variables or fields marked `@system` is not allowed in `@safe` code**
 
-This does not apply to local variables however, where `@system` remains ignored.
-A function already has full control over the scope of its local variables, unless a `@safe` way of inspecting closures is introduced.
+Examples:
 
 ```D
 @system int x;
@@ -271,11 +270,11 @@ struct S {
 S s;
 
 void main() @safe {
-    x += 10; // error: can't modify @system variable 'x'
-    s.y += 10; // error: can't modify @system field 'y'
+    x += 10; // error: cannot modify @system variable 'x'
+    s.y += 10; // error: cannot modify @system field 'y'
 
     @system int z;
-    z += 1; // still allowed
+    z += 1; // error: cannot modify @system variable 'z'
 }
 
 // inferred as a @system function
