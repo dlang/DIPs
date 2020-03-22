@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1031](./DIP1031.md)|      Deprecate Brace-Style Struct Initializers| Community Round 1|
+|[1031](./DIP1031.md)|      Deprecate Brace-Style Struct Initializers|  Post-Community 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default|  Post-Community 1|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|  Post-Community 1|
 |[1030](./DIP1030.md)|                                Named Arguments|  Post-Community 1|
