@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1031](./DIP1031.md)|      Deprecate Brace-Style Struct Initializers|  Post-Community 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default|  Post-Community 1|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|  Post-Community 1|
 |[1030](./DIP1030.md)|                                Named Arguments|  Post-Community 1|
@@ -62,3 +61,4 @@
 |-----------------------------|--------------------------------------|
 |[1025](./other/DIP1025.md)   |Dynamic Arrays Only Shrink, Never Grow|
 |[1026](./other/DIP1026.md)   |Deprecate Context-Sensitive String Literals|
+|[1031](./other/DIP1031.md)   |Deprecate Brace-Style Struct Initializers|
