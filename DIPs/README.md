@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Community Round 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default|      Final Review|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|  Post-Community 1|
 |[1030](./DIP1030.md)|                                Named Arguments|  Post-Community 1|
