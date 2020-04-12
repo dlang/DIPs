@@ -55,9 +55,8 @@ void foo(int[] arr, int x) {
 ```
 A unit type has only one value, so 0 bits of storage are needed.
 Calling `assertInBounds` can produce two things: {`()`, `⊥`}
-Either it succeeds or it causes a crash.
+Either it returns (represented by the unit value `()`) or it causes a crash (represented by the bottom value `⊥`).
 Since the unit value carries no information, it is discarded and doesn't produce any code or use any memory.
-The name of the unit value that is used here `()` is chosen arbitrarily, it could also be named `null`, `std::monostate` (C++), `undefined` (JavaScript), `None` (Scala) or `void.init`.
 Note that `void` currently has some restrictions and oddities making it not a proper unit type, [another DIP](https://github.com/dkorpel/DIPs/blob/fix-void/DIPs/DIP1NNN-DK.md) aims to fix that.
 
 Finally, consider a function that always crashes:
@@ -66,7 +65,7 @@ auto foo() {
     assert(0);
 }
 ```
-It can only result in {`⊥`}, but the compiler infers this as a function returning `void`, thus believing it could also return `()`.
+It can only result in a bottom value `⊥`, but the compiler infers this as a function returning `void`, thus believing it could also return a unit value `()`.
 When the body is not known of foo there is no way of knowing that it can never actually return `()`.
 
 ## Rationale
