@@ -5,8 +5,8 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|      Final Review|
 |[1028](./DIP1028.md)|                         Make @safe the Default| Formal Assessment|
-|[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Community Round 1|
 |[1030](./DIP1030.md)|                                Named Arguments|  Post-Community 1|
+|[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 
 `*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
