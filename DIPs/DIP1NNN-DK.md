@@ -9,10 +9,10 @@
 | Status:         | Draft                                                           |
 
 ## Abstract
-It is proposed that certain holes or limitations in the type system are addressed by introducing a [bottom type](https://en.wikipedia.org/wiki/Bottom_type).
+It is proposed that certain holes and limitations in D's type system are addressed by introducing a [bottom type](https://en.wikipedia.org/wiki/Bottom_type).
 A bottom type has 0 values and is useful for representing run-time errors and non-terminating functions.
 A previous proposal, [DIP1017](https://github.com/dlang/DIPs/blob/master/DIPs/rejected/DIP1017.md), has been rejected.
-It is believed that the DIP focused too much on one specific use case (specifying a function will not return) and didn't thoroughly describe the interactions with the rest of the language.
+It is believed that the DIP focused too much on one specific use case (specifying a function will not return) and did not consider interactions with the rest of the language.
 
 ## Contents
 * [Background theory](#background-theory)
@@ -30,8 +30,8 @@ Pure functions in programming languages can often be thought of as mathematical 
 A big problem with this comparison is that mathematical functions are defined to give an answer, while a computer has to perform computation [[1]](#reference).
 It is possible that a procedure just loops forever, and finding this out beforehand in general is impossible because of the [Halting Problem](https://en.wikipedia.org/wiki/Halting_problem).
 One solution is to not allow programs that may not halt.
-[Coq](https://en.wikipedia.org/wiki/Coq) does this, and consequently it's not turing complete.
-The more common solution is to have one implicit extra member to every type: the bottom value, denoted by `⊥` (called 'falsum').
+[Coq](https://en.wikipedia.org/wiki/Coq) does this, and consequently it is not turing complete.
+The more common solution is to have one implicit extra member to every type: the bottom value, denoted by `⊥`.
 This is not a traditional value that is stored in memory with a certain bit-pattern, it simply represents the possibility that the code never reaches the point where an actual value of that type would be returned or assigned.
 
 For example:
@@ -41,10 +41,11 @@ bool foo(int x) {
     return isPrime(x);
 }
 ```
-While a `bool` usually only can be `true` or `false` and requires 1 bit of storage, foo can actually return three possible things: {`true`, `false`, `⊥`}
-The symbol `⊥` represents `isPrime` getting stuck in an endless loop (in a bad implementation), crashing (e.g. because it's out of memory), or throwing an exception (maybe x was negative).
+While a `bool` is only 1-bit with two possible values, calling foo can actually result in three possible things: {`true`, `false`, `⊥`}
+The bottom value `⊥` represents `isPrime` getting stuck in an endless loop (in a bad implementation), crashing (e.g. because it's out of memory), or throwing an exception (maybe x was negative).
 In such cases foo does not return a `true` or `false` value like a mathematical function always would.
-Note that having a bottom *type* in a language does not *add* the bottom *value* or any run time cost associated with it, the bottom value is a concept that exists in any turing complete language even without a bottom type.
+Note that having a bottom *type* in a programming language does not *add* the bottom *value* or any run time cost associated with it.
+The bottom value is a concept that exists in any turing complete language even without a bottom type.
 
 The bottom type should not be confused with a unit type, such as `void`:
 ```D
@@ -70,7 +71,7 @@ When the body is not known of foo there is no way of knowing that it can never a
 
 ## Rationale
 In this section several situations where a bottom type is useful in D are shown.
-The bottom type is referred to as `noreturn` in code, in the last subsection this name will be discussed.
+The bottom type is referred to as `noreturn` in code, in the last subsection this choice of name will be discussed.
 
 ### Flow analysis across functions
 Currently D recognizes code after a `throw` statement, endless loop such as `for(;;){}` or `assert(0)` expression as dead code.
@@ -102,8 +103,8 @@ This will not compile, because the second handler function is inferred to have a
 Even though an observer (and possibly an optimizing backend) can see that `value()` will never return when the `(E err)` handler is chosen, the compiler front-end is forced to assign a return value to the function literal and ensure every expression and template instantiation is type sound.
 If the return type of the handler function `(E err)` were inferred to a bottom type, this code would work.
 
-Another limitation is that the lambda syntax as used for `(T val)` cannot be used for the `(E err)` handler case because D only has the notion of a `throw` statement, not a `throw` expression.
-This is because every expression needs to have a type, and currently there is no suitable return-type for `throw` since it never returns a value.
+Another limitation is that the lambda syntax (`(T val) => val`) cannot be used for the `(E err)` handler case because D only has the notion of a `throw` statement, not a `throw` expression.
+This is because every expression needs to have a type, and currently there is no suitable return type for `throw` since it never returns a value.
 This issue came up in the newsgroup: [Throwing from a lambda isn't supported by the compiler](https://forum.dlang.org/post/efwqhlripiwklvecpxux@forum.dlang.org).
 When a `throw` statement is seen as an expression returning the bottom type, the following example will work:
 ```D
@@ -124,14 +125,14 @@ int round(Var v) {
     return v.match!(
         (int x) => return x;
         (double x) => return cast(int) x;
-        other => assert(0); // currently doesn't compile
+        other => assert(0); // currently does not compile
     );
 }
 ```
 
-With a bottom type it's possible to use `std.exception: handle` to turn exceptions into errors without surrounding the code in a try-catch block.
+With a bottom type it is possible to use `std.exception: handle` to turn exceptions into errors without surrounding the code in a try-catch block.
 ```D
-auto s = "10,20,30"; // guaranteed well formed integers
+auto s = "10,20,30"; // guaranteed well-formed integers
 auto r = s.splitter(',').map!(a => to!int(a));
 auto h = r.handle!(ConvException, RangePrimitive.front, (e, r) => assert(0));
 ```
@@ -167,7 +168,7 @@ int[] test() {
 }
 ```
 
-This is a special case the compiler allows, but this does not hold up when the user makes his own type:
+This is a special case the compiler allows, but this does not hold up when the programmer makes their own type:
 
 ```D
 import std;
@@ -210,7 +211,7 @@ struct MapResult {
 ```
 
 Since `storage[0]` is no longer `void` but now `noreturn`, which can be converted to any other type, it will automatically work.
-Furthermore, the expression `storage.length == 0` can be folded to `true` in function `empty()`, even without optimizations, and if the return-type of `front()` were declared `auto` it could be statically inferred that it always results in an error.
+Furthermore, the expression `storage.length == 0` can be constant folded to `true` in function `empty()`, even without optimizations, and if the return-type of `front()` were declared `auto` it could be statically inferred that it always results in an error.
 
 ### The type of the null-pointer
 Currently `typeof(null)` is a special type to the compiler.
@@ -229,9 +230,9 @@ When asking the reference compiler what `typeof(*null)` is, it tells `Error: can
 It is proposed that `is(typeof(*null) == noreturn)` and `is(typeof(null) == noreturn*)`.
 
 ### Functions that cannot return
-Currently, the reference D compiler keeps a list of internal functions that it knows won't return.
-Being able to specify that a function does not return has advantages for optimization, but currently the list is not extensible.
-The C Standard function [`exit()`](https://www.tutorialspoint.com/c_standard_library/c_function_exit.htm) does not return, but as the source is not available to the D compiler it is not marked as such.
+Currently, the reference D compiler keeps a list of internal functions that never return.
+Being able to specify that a function does not return has advantages for optimization, but currently the internal list is not extensible.
+The C Standard function [`exit()`](https://www.tutorialspoint.com/c_standard_library/c_function_exit.htm) does not return, but as the source is not available to the D compiler it is not recognized as such.
 With a `noreturn` type, it could be expressed like this:
 
 ```D
@@ -243,7 +244,7 @@ Now this will correctly interact with the type system and allow optimizations.
 ### Standard name
 While any user can define their own alias to the bottom type, having a standard name prevents everyone from using a different name for the same thing.
 This DIP proposes the name `noreturn` because it makes its semantics and purpose very clear in situations where the type name it is spelled out.
-The language Zig also uses this type name, and C++ uses this exact name for their `[[ noreturn ]]` attribute.
+The language [Zig](https://ziglang.org/) also uses this type name, and C++ uses this exact name for their `[[ noreturn ]]` attribute.
 
 The name is not capitalized because it can be seen as a basic type like `int` or `string`, unlike a struct or class.
 
@@ -284,9 +285,12 @@ The rationale for `TBottom` is summarized in a [newsgroup post](https://forum.dl
 > type.
 
 Counter argmuments:
-- The current type names are often not based on mathematical or "official" names. `struct` and `union` are not named `product` and `sum`. `void` is not called `TUnit`. `char` is not called `UTF8CodeUnit`.
-- When a user truly wants to learn about `noreturn` in D, he invariably needs to check out the D documentation where it can be pointed out that it is indeed a bottom type.
-- No other language uses "bottom" in their typename for the bottom type and it's unreasonable to expect programmers are familiar with type theory.
+- The current type names are often not based on mathematical or "official" names.
+`struct` and `union` are not named `product` and `sum`.
+`void` is not called `TUnit`.
+`char` is not called `UTF8CodeUnit`.
+- When a user truly wants to learn about `noreturn` in D, he invariably needs to refer to the D documentation where it can be pointed out that it is indeed a bottom type.
+- No other programming language uses "bottom" in their typename for the bottom type and it is unreasonable to expect that most programmers are familiar with type theory.
 - New users may not encounter explicit mentions of the bottom type for a long time, but when they do, `TBottom exit();` will be confusing while `noreturn exit();` is immdediately obvious.
 
 ## Prior work
@@ -357,7 +361,9 @@ switch(value) {
 }
 ```
 Because Zig's switch is expression based and D is statement based, both can express the same thing.
-However, as shown in the SumType example, D can't do `assert(0)` in an expression-based switch.
+However, as shown in the SumType example, D cannot do `assert(0)` in an expression-based switch.
+
+See also: [Zig's documentation on `noreturn`](https://ziglang.org/documentation/0.6.0/#noreturn).
 
 ## Description
 The following language changes are proposed based on the rationale mentioned above.
@@ -454,7 +460,7 @@ auto foo(int x) {
 ```D
 noreturn.mangleof == "!";
 ```
-This choice is mostly arbitrary (as long as it's unique it's okay for name mangling), but using ! will be familiar to Rust users.
+This choice is mostly arbitrary, but using ! is short and consistent with Rust's name.
 
 Currently `typeof(null).mangleof` == "n".
 This will be changed to "p!" (pointer to bottom type).
