@@ -15,6 +15,7 @@ Add `...` expression to perform explicit tuple unpacking.
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
 * [Description](#description)
+* [Compilation Performance](#compilation-performance)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Reference](#reference)
 * [Copyright & License](#copyright--license)
@@ -75,7 +76,23 @@ The effect on user code will be increased readibility, a reduction in program lo
 
 Sensitive applications tend to include programs that perform systematic reflection, compile-time parsing, implementation of call-shim's (ie; foreign language binding), or any compile-time pre-processing that can't be strictly performed with CTFE.
 
-## Compilation performance
+### Grammar Changes
+```diff
+PostfixExpression:
+    PrimaryExpression
+    PostfixExpression . Identifier
+    PostfixExpression . TemplateInstance
+    PostfixExpression . NewExpression
+    PostfixExpression ++
+    PostfixExpression --
++   PostfixExpression ...
+    PostfixExpression ( ArgumentListopt )
+    TypeCtorsopt BasicType ( ArgumentListopt )
+    IndexExpression
+    SliceExpression
+```
+
+## Compilation Performance
 Many D projects experience very slow compilation caused by explosive template expansion. Leading causes of template explosion tend to involve recursive expansion, and this most often looks like some form of static map (including `staticMap`).
 
 Existing solutions where `...` may be applied are implemented using recursive template instantiation. Each template instantiation populates the symbol table, and it is common that the arguments to such templates generate very long mangled names.
