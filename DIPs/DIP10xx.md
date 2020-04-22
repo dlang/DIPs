@@ -25,7 +25,7 @@ Static map is a common and very useful operation, but the mechanisms to implemen
 
 It is proposed that the language implement an expression to perform static map efficiently and concisely which will eliminate the necessity to use template expansion tricks to implement these patterns in programs, and avoid the compile time costs associated.
 
-This DIP proposes a unary `...` expression which explores an expression for tuples, and expands into a tuple of expressions's with tuples replaced by the respective tuple elements.
+This DIP proposes a unary `...` syntax which explores an expression for tuples, and expands to a tuple of expressions's with tuples replaced by their respective tuple elements.
 
 For example:
 ```d
@@ -50,7 +50,7 @@ int[] myArr;
 assert([ myArr[Tup + 1]... ] == [ myArr[Tup[0] + 1], myArr[Tup[1] + 1], myArr[Tup[2] + 1] ]);
 ```
 
-This is an effective and terse implementation of a static map.
+This is an effective and terse implementation of a static map applying a sequence of values to a common expression.
 
 If multiple tuples are discovered beneath `expr`, they are expanded in parallel, and they must have equal length.
 
