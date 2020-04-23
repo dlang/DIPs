@@ -23,6 +23,8 @@ Add `...` expression to perform explicit tuple unpacking.
 ## Rationale
 Static map is a common and very useful operation, but the mechanisms to implement a static map in D are awkward, and have a huge cost in compile time.
 
+Specifcally the auto expansion of tuples leads to the need of using wrapper templates which inhibit the expansion. (In the order of N^2 instantiated templates per tuple length of N)
+
 It is proposed that the language implement an expression to perform static map efficiently and concisely which will eliminate the necessity to use template expansion tricks to implement these patterns in programs, and avoid the compile time costs associated.
 
 This DIP proposes a unary `...` syntax which explores an expression for tuples, and expands to a tuple of expressions's with tuples replaced by their respective tuple elements.
