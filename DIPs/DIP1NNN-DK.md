@@ -12,7 +12,7 @@
 It is proposed that certain holes and limitations in D's type system be addressed by introducing [a bottom type](https://en.wikipedia.org/wiki/Bottom_type).
 A bottom type has 0 values and is useful for representing run-time errors and non-terminating functions.
 [A previous proposal, DIP1017](https://github.com/dlang/DIPs/blob/master/DIPs/rejected/DIP1017.md), was rejected.
-It is believed that the DIP focused too much on one specific use case (specifying a function will not return) and did not consider interactions with the rest of the language.
+That DIP did not explore use cases of the bottom type beyond specifying that a function will not return, so this DIP tries to improve that.
 
 ## Contents
 * [Background theory](#background-theory)
@@ -57,7 +57,7 @@ void foo(int[] arr, int x) {
 A unit type has only one value, so 0 bits of storage are needed.
 Calling `assertInBounds` can produce two things: {`()`, `⊥`}
 Either it returns (represented by the unit value `()`) or it causes a crash (represented by the bottom value `⊥`).
-Since the unit value carries no information, it is discarded and doesn't produce any code or use any memory.
+Since the unit value carries no information, it is discarded and does not produce any code or use any memory.
 Note that `void` currently has some restrictions and oddities making it not a proper unit type; [another DIP](https://github.com/dkorpel/DIPs/blob/fix-void/DIPs/DIP1NNN-DK.md) aims to fix that.
 
 Finally, consider a function that always crashes:
@@ -215,7 +215,7 @@ Furthermore, the expression `storage.length == 0` can be constant folded to `tru
 
 ### The type of the null-pointer
 Currently `typeof(null)` is a special type to the compiler.
-It is a subtype of every pointer, array, and class, but it can't be resolved as a pointer type of anything.
+It is a subtype of every pointer, array, and class, but it cannot be resolved as a pointer type of anything.
 ```D
 void foo(T)(T* ptr) {}
 
@@ -249,7 +249,7 @@ This DIP proposes the name `noreturn` to make its semantics and purpose very cle
 The name is not capitalized because it can be seen as a basic type like `int` or `string`, unlike a struct or class.
 
 The name `never` is also a good contender, since it expresses how the type can 'never' be returned or instantiated.
-`typeof([]) == never[]` than `typeof([]) == noreturn[]` makes a little more sense, but the typename of `[]` rarely needs to be written in code.
+`typeof([]) == never[]` makes a little more sense than `typeof([]) == noreturn[]`, but the typename of `[]` rarely needs to be written in code.
 The return type of functions is commonly spelled out, so `noreturn` is favored.
 
 One exceptional case is:
@@ -302,7 +302,7 @@ Walter Bright later wrote DIP 1017:
 [Add Bottom Type](https://github.com/dlang/DIPs/blob/master/DIPs/rejected/DIP1017.md)
 
 [During Community Review](https://forum.dlang.org/post/bvyzkatgwlkiserqrcwk@forum.dlang.org), DIP 1017 was criticized for adding much language complexity without much benefit.
-The only use case described was optimizing functions that don't return, which could also be achieved with a simple attribute.
+The only use case described was optimizing functions that do not return, which could also be achieved with a simple attribute.
 
 [During Final Review](https://forum.dlang.org/post/qnrkfiqmtqzpyocxxtsk@forum.dlang.org), DIP 1017 was criticized for not having addressed the feedback from Community Review, and it ended up being withdrawn.
 
@@ -394,7 +394,7 @@ E.g., the expression `assert(0) + assert(0)` would normally cause an ambiguity e
 With this rule, it holds that `is(typeof(assert(0) + assert(0)) == noreturn)`.
 Another example: In `[1, 2, 3] ~ assert(0)`, is it concatenating an `int` or an `int[]`?
 Since `noreturn` is the subtype of everything, it would technically be ambiguous.
-In practice, it doesn't matter---the resulting expression has type `int[]` and compiles to:
+In practice, it does not matter---the resulting expression has type `int[]` and compiles to:
 ```D
 auto __tmp = [1, 2, 3];
 assert(0);
@@ -421,7 +421,7 @@ For all types T, the following will hold:
 - 5, 6 and 7 mean that `null` (which is of type `noreturn*`) may still be assigned to a function pointer or array.
 
 Note that rules 1 to 4 don not naturally follow from rule 0 since pointers and arrays are currently not covariant in element types, and function pointers are not covariant in return types.
-This means that one may define `class C : Object`, but that doesn't mean `is(C[] : Object[])`.
+This means that one may define `class C : Object`, but that does not mean `is(C[] : Object[])`.
 Also, `is(dchar* : int*) == false` and `is(char function() : ubyte function()) == false`.
 
 **(4) Throw expressions are added to the language, replacing throw statements.**
@@ -537,7 +537,7 @@ Defining a `struct` with a `noreturn` field is allowed, but as soon as it is use
 
 Adding a `noreturn` field to a `union` does essentially nothing.
 A `union` can be seen as a sum-type with possibly ambiguous bit-patterns, so the type-system leaves figuring out the correct type up to the programmer (e.g. by implementing a [tagged union](https://en.wikipedia.org/wiki/Tagged_union)).
-Every type already implicitly includes the bottom value `⊥`, so adding the bottom type member to a `union` doesn't contribute to the set of possible values.
+Every type already implicitly includes the bottom value `⊥`, so adding the bottom type member to a `union` does not contribute to the set of possible values.
 Accessing the `noreturn` field generates an `assert(0)` expression.
 
 An `enum` can have type `noreturn`, but all members must be given an explicit initial value (which must be the bottom value).
@@ -575,7 +575,7 @@ int foo(U u) {
         writeln("this is dead code");
     }
     writeln("x is 0");
-    noreturn b = void; // = void doesn't make a difference
+    noreturn b = void; // = void makes no difference
     writeln("this is dead code, no need to return an int");
 }
 ```
@@ -689,7 +689,7 @@ UnaryExpression:
 Though C functions may be declared using the `noreturn` type because of the implicit conversion and no name mangling, C++ function pointers have the return type in their mangling.
 When interfacing with C++ functions, changing the return type to `noreturn` when it has the `[[ noreturn ]]` attribute is not always possible.
 Since C++ has no type for it, `noreturn` in `extern(C++)` can be mangled as `void`, which is a common return type for `[[ noreturn ]]` functions in C++.
-When the return type isn't void, it can still be worked around by either ignoring the `[[ noreturn ]]` or adding wrapper code:
+When the return type is not `void`, it can still be worked around by either ignoring the `[[ noreturn ]]` or adding wrapper code:
 
 ```D
 extern(C++) int cppExit(); // returns int for some reason
@@ -709,7 +709,7 @@ auto f = () => cast(noreturn) cppExit();
 ```
 
 ### Alternatives
-It has been proposed that an attribute such as `@noreturn` could be a simpler solution for specifying that a function does not return.
+It [has been proposed that an attribute such as `@noreturn`](https://forum.dlang.org/post/ipmpdpcgadbolwryjbuu@forum.dlang.org) could be a simpler solution for specifying that a function does not return.
 Many C compilers have a specific attribute like this, and C++11 even introduced a standard `[[noreturn]]` annotation.
 Since the DMD, LDC, and GDC compilers each use a C-backend that supports the notion of "no return" functions, it could simply be unified in library code:
 ```D
@@ -748,7 +748,7 @@ template copyFunc(alias func) {
     }
 }
 ```
-Other proposals like `@disable(return)`, or out-contracts (`out(false)`), make it even harder to maintain this type information.
+Other proposals like [`@disable(return)`](https://forum.dlang.org/post/ojt3sr$2pr2$1@digitalmars.com), or [out-contracts (`out(false)`](https://forum.dlang.org/post/gcudddmijrwwljwbzqrq@forum.dlang.org), make it even harder to maintain this type information.
 
 Even in C, sometimes the limitations of `noreturn` as an attribute show, and a comment is needed to explain what is happening:
 [duktape public api](https://github.com/svaarala/duktape/blob/9fd93f16e85408cfa41bb5bbc12ac37c3d5ffe07/src-input/duktape.h.in#L416)
