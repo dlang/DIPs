@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)| Community Round 1|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates| Community Round 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default| Formal Assessment|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|        Post-Final|
