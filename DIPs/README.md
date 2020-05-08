@@ -4,11 +4,11 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)| Community Round 1|
-|[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates| Community Round 1|
 |[1028](./DIP1028.md)|                         Make @safe the Default| Formal Assessment|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|        Post-Final|
 |[1030](./DIP1030.md)|                                Named Arguments|  Post-Community 1|
 |[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Post-Community 1|
+|[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
 |[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
 
 `*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
