@@ -5,6 +5,7 @@
 | DIP:            | 10xx                                                            |
 | Review Count:   | 0                                                               |
 | Author:         | Manu Evans turkeyman@gmail.com                                  |
+| Co-Author:      | Stefan Koch uplink.coder@gmail.com                              |
 | Implementation: | https://github.com/TurkeyMan/dmd/tree/dotdotdot                 |
 | Status:         | Draft                                                           |
 
@@ -14,6 +15,7 @@ Add `...` expression to perform explicit tuple unpacking.
 ## Contents
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
+* [Precedent in D](#precedent-in-d)
 * [Description](#description)
 * [Compilation Performance](#compilation-performance)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
@@ -38,6 +40,9 @@ For example:
 C++11 implemented template parameter pack expansion with similar semantics, and it has been a great success in the language.
 
 Applied together with D's superior metaprogramming feature set, we can gain even greater value from this novel feature.
+
+## Precedent in D
+Under the current semantic `.offsetof` applied to a field tuple (`.tupleof`) does create a new tuple consisting of `offsetof` applied to each field. 
 
 ## Description
 Add a unary operator `...` with precedence below other unary operations, and above binary operations.
