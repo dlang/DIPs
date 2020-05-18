@@ -9,9 +9,6 @@
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|        Post-Final|
 |[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Post-Community 1|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
-|[1011](./DIP1011.md)|                               extern(delegate)|  Formal Review`*`|
-
-`*` - under the revised DIP procedures, `Formal Review` is now `Formal Assessment`
 
 ## Accepted DIPs
 |                           ID|                                 Title|
@@ -56,6 +53,7 @@
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
 |[1004](./other/DIP1004.md)   |                Inherited Constructors|
+|[1011](./other/DIP1011.md)   |                      extern(delegate)|
 |[1012](./other/DIP1012.md)   |                            Attributes|
 
 
