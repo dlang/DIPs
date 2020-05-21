@@ -5,7 +5,6 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1030](./DIP1030.md)|                                Named Arguments|      Final Review|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)| Community Round 1|
-|[1028](./DIP1028.md)|                         Make @safe the Default| Formal Assessment|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute|        Post-Final|
 |[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Post-Community 1|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
@@ -22,6 +21,7 @@
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor|
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls|
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics|
+|[1028](./accepted/DIP1028.md)|                Make @safe the Default|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
