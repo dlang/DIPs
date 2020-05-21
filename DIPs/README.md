@@ -5,9 +5,9 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1029](./DIP1029.md)|              Add `throw` as Function Attribute| Formal Assessment|
 |[1030](./DIP1030.md)|                                Named Arguments|      Final Review|
-|[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)| Community Round 1|
 |[1032](./DIP1032.md)|Function pointers and Delegate Parameters Inherit Attributes from Function|Post-Community 1|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
+|[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|  Post-Community 1|
 
 ## Accepted DIPs
 |                           ID|                                 Title|
