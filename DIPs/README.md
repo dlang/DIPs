@@ -21,7 +21,6 @@
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor|
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls|
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics|
-|[1028](./accepted/DIP1028.md)|                Make @safe the Default|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
@@ -32,6 +31,7 @@
 |[1016](./rejected/DIP1016.md)|              `ref T` accepts r-values|
 |[1017](./rejected/DIP1017.md)|                       Add Bottom Type|
 |[1027](./rejected/DIP1027.md)|                  String Interpolation|
+|[1028](./rejected/DIP1028.md)|                Make @safe the Default|
 
 ## Postponed DIPs
 |                           ID|                                 Title|
