@@ -28,7 +28,7 @@ It also fixes some existing issues with `@safe` code.
 ## Background
 
 A distinction can be made between syntactic types and semantic types.
-Syntactic types are the things the compiler understands: you can't assign a string to an int, you can't pass an integer array to a function that takes a float parameter etc.
+Syntactic types are the things the compiler understands: you cannot assign a string to an int, you cannot pass an integer array to a function that takes a float parameter etc.
 While this helps catching bugs that assembly programmers encounter, it has its limitations with regards to data abstraction and unsafe features.
 Often it is useful to make types that have additional constraints on the primitive types they consist of, or types that from the outside are safe and type-sound, but internally use unsafe operations that circumvent the type system.
 This can only work if the language in which such types are defined has the needed encapsulation capabilities.
@@ -60,7 +60,7 @@ void main() @safe {
 
 However, sometimes using these operations is necessary for performance.
 Take for example a [tagged union](https://en.wikipedia.org/wiki/Tagged_union).
-To save on memory, it overlaps multiple fields of possibly different types, and then uses an integer to keep track which type of the union is currently valid.
+To save on memory, it overlaps multiple fields of possibly different types, and then uses an integer tag to keep track which type of the union is currently valid.
 As discussed above however, this is not allowed in `@safe` code when pointers, arrays or classes are among the union members.
 One idea is to encapsulate a tagged union using a templated type and use `@trusted` getter methods that ensure the pointer members are only accessed when the tag ensures the underlying data is a valid pointer.
 The package [sumtype](http://code.dlang.org/packages/sumtype) does this.
@@ -86,7 +86,7 @@ void main() @safe {
 		(ref int* ptr) {*ptr = 1000;}, // but we made it call this one
 	);
 
-	writeln(*immutPtr); // prints '1000'. the immutable pointer got mutated!
+	writeln(*immutPtr); // prints '1000'. The immutable pointer was mutated.
 }
 ```
 
@@ -101,10 +101,10 @@ This is especially necessary for the recent push of `@safe` non-garbage collecte
 - [DIP1021](https://github.com/dlang/DIPs/blob/master/DIPs/accepted/DIP1021.md)
 - [my vision of D's future](https://dlang.org/blog/2019/10/15/my-vision-of-ds-future/)
 
-Take reference counting for example: As long as the reference count can be meddled with from `@safe` code, freeing the memory can't be `@trusted` and D won't support `@safe` reference counting.
+Take reference counting for example: As long as the reference count can be meddled with from `@safe` code, freeing the memory cannot be `@trusted`, making D not support `@safe` reference counting.
 
 It is important to note that the concepts in this DIP have nothing to do with memory allocation or lifetimes however.
-Even when freeing memory did not exist, restricting variable and field access from `@safe` code is still useful.
+Even without freeing memory, restricting variable and field access from `@safe` code is still useful.
 Ensuring that `free` on manually managed memory can be encapsulated in a `@trusted` function is an important _application_ of this DIP though.
 
 ### Existing holes in `@safe`
@@ -147,10 +147,10 @@ See issue 19968: [@safe code can create invalid bools resulting in memory corrup
 The issue is marked fixed after DMD PR [#10055](https://github.com/dlang/dmd/pull/10055) was merged, which defensively inserts a bitwise 'and' operation (`b & 1`) when `bool` values are promoted to integers.
 This is not a complete solution however, since there are also other ways in which invalid booleans give undefined behavior: [void initializated bool can be both true and false](https://issues.dlang.org/show_bug.cgi?id=20148).
 This happens because negation of a `bool` is simply toggling the least significant bit with the xor operator (`b ^ 1`), which only works if all other bits are 0.
-This could, again, be fixed by inserting more `& 1` instructions, but it starts to defeat the purpose of a specialized `bool` primitive type when it can't be guaranteed to be `0` or `1`: you might as well make `bool` a wrapper around `ubyte` then.
+This could, again, be fixed by inserting more `& 1` instructions, but it starts to defeat the purpose of a specialized `bool` primitive type when it cannot be guaranteed to be `0` or `1`: you might as well make `bool` a wrapper around `ubyte` then.
 
-And even if you accept this solution for booleans, the solution of ensuring validity on usage can't work on pointers, since there is no simple operation that type checks a pointer at run-time.
-A proper solution should make it impossible for invalid values of types to even reach `@safe` code.
+And even if you accept this solution for booleans, the solution of ensuring validity on usage cannot work on pointers, since there is no simple operation that type checks a pointer at run-time.
+A proper solution would be to keep an invariant that only [safe values](https://dlang.org/spec/function.html#safe-values) of types can reach `@safe` functions.
 
 ## Prior work
 
@@ -173,7 +173,7 @@ The need for encapsulation of data / restricted access to data in order to achie
 - [Re: @trusted attribute should be replaced with @trusted blocks](https://forum.dlang.org/post/mailman.773.1579207677.31109.digitalmars-d@puremagic.com) (January 16, 2020)
 
 ### Other languages
-Many other languages either don't allow systems programming at all (e.g. Java, Python) or don't support language enforced memory safety (e.g. C/C++).
+Many other languages either do not allow systems programming at all (e.g. Java, Python) or do not support language enforced memory safety (e.g. C/C++).
 
 A notable exception is Rust, where the equivalent of this DIP has been proposed multiple times before:
 [Unsafe fields #381](https://github.com/rust-lang/rfcs/issues/381)
@@ -202,7 +202,7 @@ More information about Rust's stand on unsafe functions can be found here:
 
 ### Existing rules for `@system`
 
-Before the proposed changes, we quickly go over the relevant existing rules of what declarations can have the `@system` attribute:
+Before the proposed changes, here is an overview of the relevant existing rules of what declarations can have the `@system` attribute.
 ```D
 @system int w = 2; // compiles, does nothing
 @system enum int x = 3; // compiles, does nothing
@@ -220,7 +220,7 @@ void func(@system int x) // error: @system attribute for function parameter is n
 template Temp(@system int x) {} // error: basic type expected, not @
 ```
 In short, anything that can be marked `private` can also be marked `@system`.
-Additionally, local variables can be marked `@system` (while they can't be marked `private`).
+Additionally, local variables can be marked `@system` (while they cannot be marked `private`).
 
 Any function attribute can be attached to a variable declaration, but they cannot be retrieved:
 ```D
@@ -233,6 +233,8 @@ pragma(msg, __traits(getAttributes, x)); // tuple()
 In the proposed changes I use the term "unsafe types".
 
 An unsafe type is a type which has underlying bit-patterns that risk causing memory corruption in `@safe` code.
+A safe type on the other hand only exists of [safe values](https://dlang.org/spec/function.html#safe-values).
+
 The prime example of an unsafe type is a pointer, but any type that contains a pointer is also unsafe:
 - classes
 - arrays
@@ -242,11 +244,11 @@ The prime example of an unsafe type is a pointer, but any type that contains a p
 If I were allowed to arbitrarily change the bits of one of those types, I could construct a garbage pointer that can cause memory corruption in `@safe` code.
 By contrast, if I could arbitrarily change the bits of safe types such as `int` or `float`, it is not sufficient for memory corruption in `@safe` code.
 There is no equivalent to a dereference operator for an `int` or `float`, all their operators do not touch other memory.
-I can use a garbage `int` as an array index and get unpredictable results, but when the index it out of bounds checks a Range error is thrown preventing memory corruption.
+I can use a garbage `int` as an array index and get unpredictable results, but when the index it out of bounds, a `RangeError` is thrown preventing memory corruption.
 
 Unsafe types can be used just fine in `@safe` code for the most part, there are only some restrictions to ensure their integrity:
-- they can't be void-initialized
-- they can't be overlapped in a union
+- they cannot be void-initialized
+- they cannot be overlapped in a union
 - a `T[]` cannot be cast to a `U[]` when U is an unsafe type.
 - certain operators (pointer arithmetic, unsafe casts) are disallowed
 
@@ -284,32 +286,94 @@ auto foo() {
 ```
 
 Further operations disallowed in `@safe` code on `@system` variables or fields are:
-- taking its address using `&`
-- passing it as an argument to a function parameter marked `ref`
-- returning it by `ref`
+- creating a mutable pointer to it using `&`
+- passing it as an argument to a function parameter marked `ref` without `const`
+- returning it by `ref` without `const`
 
-A struct or union with `@system` fields can not be constructed using [static initializtion](https://dlang.org/spec/struct.html#static_struct_init) or the automatically generated constructor in `@safe` code.
-A `@trusted` constructor can be defined to allow construction in `@safe` code.
-Note that the `.init` value of a type is always usable in `@safe` code.
-
-When using an `alias` to a `@system` variable, that alias has the same restrictions regarding `@system`.
+When using an `alias` to a `@system` variable, that alias has the same restrictions as the symbol it aliases to.
 
 ```D
-struct S {
-    @system int y;
+@system int x = 3;
+alias xAlias = x;
+
+void increment(ref int x) @safe {
+    x++;
+}
+
+void checkX(const(int)* x) @safe {
+    assert(*x < 10);
 }
 
 void main() @safe {
-    S s0 = {y: 3}; // error, static initialization used to write to @system field
-    S s1 = S(3); // error, automatically generated constructor used to write to @system field
-    S s2 = S.init; // allowed
+    xAlias += 1; // error, cannot modify `@system` variable `x`
+    increment(xAlias); // error, cannot take mutable reference of `@system` variable `x`
+    checkX(&x); // fine, because the parameter is const. Otherwise it would be an error.
+}
+```
 
-    int* yPtr = &s2.y; // not allowed to take pointer of @system variable in @safe code
-    *yPtr = 3; // if the above was allowed, this would write to a @system field in @safe code
+Initialization of a `@system` variable or field is allowed in `@safe` code.
+This includes [static initializtion](https://dlang.org/spec/struct.html#static_struct_init), the automatically generated constructor, user-defined constructors, and the `.init` value of a type.
+
+```D
+@system int x;
+
+shared static this() @safe {
+    x = 3; // allowed, this is initialization
+    x = 3; // second time disallowed, this is assignment to a `@system` variable
 }
 
-@system int z;
-alias zAlias = z; // this alias can't be used to bypass @system
+struct T {
+    @system int y;
+    @system int z = 3; // allowed
+    this(int y, int z) @safe {
+        this.y = y; // allowed, this is initialization
+        this.y = y; // second time disallowed, this is assignment to a `@system` variable
+        this.z = z; // disallowed, this is assignment
+    }
+}
+
+struct S {
+    @system int y = 2;
+}
+
+void main() @safe {
+    S s0 = {y: 3}; // static initialization
+    S s1 = S(3); // automatically generated constructor
+    S s2 = S.init; // .init value
+    S s3; // same as above
+    s3 = s2; // disallowed
+}
+```
+
+Note that while it may be desirable to require a `@trusted` annotation near initialization of `@system` variables, realizing this is problematic since there is no syntax for `@trusted` assignment.
+`@trusted` as a function annotation has its limitations:
+- it does not work for global or local variables, since a `@trusted` lambda there would move the declaration to that function's scope.
+- it not only trusts initialization of the variable on left hand side of the `=`, but also the initialization expression on right hand side.
+- it disables `scope` / `return scope` checks of `-dip1000`
+
+```D
+struct S {
+    this(ref scope S s) @system {
+        *(cast(int*) 0xDEADBEEF) = 0;
+    }
+}
+
+struct Wrapper(T) {
+    @system T t;
+    this(T t) @trusted {
+        this.t = t; // Oops! Calls a `@system` copy constructor
+    }
+}
+
+void main() @safe {
+    auto w = Wrapper!S(S.init); // program killed by signal 11
+
+    () @trusted {@system int x = 3;}();
+    // x is not in scope anymore
+}
+
+@system int x = (() @trusted => 3)(); // this still does not mark the assignment `@trusted`
+//() @trusted {@system int x = 3;}(); // does not work
 ```
 
 **(1) An aggregate with at least one `@system` field is an unsafe type**
@@ -463,7 +527,7 @@ After this DIP is implemented, these will all become correct usages of `@trusted
 This example shows how to safely overlap an unsafe type with another type.
 ```D
 struct Var {
-    private @system union {
+    private union {
         string asString = "var";
         double asDouble;
     }
@@ -539,10 +603,10 @@ void main() @safe {
 ```
 
 ### A custom allocator
-Here we make a simple 'bump the pointer' allocator.
+This is a simple 'bump the pointer' allocator.
 ```D
 @system private ubyte[4096] heap;
-@system private size_t heapIndex;
+@system private size_t heapIndex = 0;
 
 /// allocate an array of T
 /// never frees the memory
@@ -570,7 +634,7 @@ Many arrays are small in length and in certain situations you do not want 4 or 8
 A safe small slice type is created below.
 It has room for extra fields, but `SmallSlice!T` is no larger than a regular `T[]`: it still fits in two CPU registers.
 ```D
-struct SmallSlice(T) {
+struct SmallSlice(T) if (__traits(isPOD, T)) {
     @system private T* ptr = null;
     @system private ushort _length = 0;
     ubyte[size_t.sizeof-2] extraSpace; // 2 on 32-bit, 6 on 64-bit
@@ -598,10 +662,14 @@ void main() @safe {
 
 ### A zero-terminated string
 String literals in D are zero-terminated, but as soon as you assign it to a `const(char)*` that type information is lost and using it becomes unsafe.
-With `@system` fields we can make a `@safe` zero terminated string type.
+With `@system` fields a `@safe` zero terminated string type can be made.
 ```D
 struct Cstring {
     @system const(char)* ptr = null;
+
+    this(const(char)* ptr) @system {
+        this.ptr = ptr;
+    }
 
     size_t length() const @trusted {
         import core.stdc.string: strlen;
@@ -627,13 +695,14 @@ void main() @safe {
 In an [emulator](https://en.wikipedia.org/wiki/Emulator) or [virtual machine](https://en.wikipedia.org/wiki/Virtual_machine) it is often needed to simulate another instruction set or byte code.
 A performance critical part of that is dispatching the instructions: based on an instruction's opcode (a small integer) a certain piece of code needs to be run that simulates that specific instruction.
 This is often achieved using a `switch`, [computed `goto`](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables/), or an array of function pointers.
-Below is a simple example using the array method, and we use `.ptr` to avoid bounds checks which are relatively expensive in this case.
+Below is a simple example using the array method.
+The `.ptr` property is used to avoid bounds checks, which are relatively expensive in this case.
 We could have also used a `switch`, but currently that always has bounds checks in D (see [issue 13169](https://issues.dlang.org/show_bug.cgi?id=13169)).
 
-In any case: it is important that the instruction opcodes are not exceeding the size of the jump table, or we get memory corruption.
+In any case: it is important that the instruction opcodes are not exceeding the size of the jump table, or memory gets corrupted.
 This is where `@system` variables come in, ensuring such invalid opcodes cannot reach `@safe` code.
 Notice how `VmInstruction` is an unsafe type that does not contain any pointer members, unlike the previous examples.
-Even though usually you can overlap a `ubyte` in a `union` in `@safe` code, with our wrapper struct we tell the compiler that this is not memory safe for `VmInstruction`.
+Even though usually you can overlap a `ubyte` in a `union` in `@safe` code, with our wrapper struct the compiler knows that this is not memory safe for `VmInstruction`.
 
 ```D
 enum Opcode : ubyte {
@@ -642,6 +711,10 @@ enum Opcode : ubyte {
 
 struct VmInstruction {
     @system Opcode opcode; // this need not be private, just a valid enum member
+    this(Opcode opcode) @safe {
+        assert(opcode <= Opcode.max, "opcode out of range");
+        this.opcode = opcode;
+    }
 }
 
 int gCounter;
@@ -661,7 +734,8 @@ void execute(VmInstruction[] code) @trusted {
 }
 
 void main() @safe {
-    VmInstruction[1] code = [VmInstruction(cast(Opcode) 20)];
+    VmInstruction[1] code;
+    code[0].opcode = cast(Opcode) 20;
     execute(code);
 }
 ```
@@ -707,7 +781,7 @@ It also goes against the established [definition of trusted functions](https://d
 > Furthermore, calls to trusted functions cannot lead to undefined behavior in @safe code that is executed afterwards.
 > It is the responsibility of the programmer to ensure that these guarantees are upheld.
 
-`private` only acts on the module level, so a `@trusted` member function cannot assume anything about member functions just because they are `private`: see also the [zero-terminated string example](#a-zero-terminated-string).
+`private` only acts on the module level, so a `@trusted` member function cannot assume anything about member functions just because they are `private`.
 
 Finally, it would mean that circumventing visibility constraints using `__traits(getMember, ...)` must become `@system` or deprecated entirely similar to `.tupleof`.
 This would break all (`@safe`) code that uses this feature, and re-introduces the problems of [issue 15371](https://issues.dlang.org/show_bug.cgi?id=15371).
