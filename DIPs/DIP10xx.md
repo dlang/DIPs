@@ -25,7 +25,7 @@ Add `...` expression to perform explicit tuple unpacking.
 ## Rationale
 Static map is a common and very useful operation, but the mechanisms to implement a static map in D are awkward, and have a huge cost in compile time.
 
-Specifcally the auto expansion of tuples leads to the need of using wrapper templates which inhibit the expansion. (In the order of N^2 instantiated templates per tuple length of N)
+In particular, the auto expansion of tuples requires using wrapper templates which inhibit the expansion to perform an element-wise expressions, and recursive template expansions to perform iterative algorithms. As such the solutions often result in template implementations with quadratic complexity.
 
 It is proposed that the language implement an expression to perform static map efficiently and concisely which will eliminate the necessity to use template expansion tricks to implement these patterns in programs, and avoid the compile time costs associated.
 
@@ -40,9 +40,6 @@ For example:
 C++11 implemented template parameter pack expansion with similar semantics, and it has been a great success in the language.
 
 Applied together with D's superior metaprogramming feature set, we can gain even greater value from this novel feature.
-
-## Precedent in D
-Under the current semantic `.offsetof` applied to a field tuple (`.tupleof`) does create a new tuple consisting of `offsetof` applied to each field. 
 
 ## Description
 Add a unary operator `...` with precedence below other unary operations, and above binary operations.
