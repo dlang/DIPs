@@ -15,7 +15,6 @@ Add `...` expression to perform explicit tuple unpacking.
 ## Contents
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
-* [Precedent in D](#precedent-in-d)
 * [Description](#description)
 * [Compilation Performance](#compilation-performance)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
@@ -23,11 +22,11 @@ Add `...` expression to perform explicit tuple unpacking.
 * [Copyright & License](#copyright--license)
 
 ## Rationale
-Static map is a common and very useful operation, but the mechanisms to implement a static map in D are awkward, and have a huge cost in compile time.
+Static transformations like map and fold are common and very useful operations, but the mechanisms to implement them in D are awkward, and have a huge cost in compile time.
 
-In particular, the auto expansion of tuples requires using wrapper templates which inhibit the expansion to perform an element-wise expressions, and recursive template expansions to perform iterative algorithms. As such the solutions often result in template implementations with quadratic complexity.
+The main struggle producing efficient implementations is the tuple unpacking semantics which usually necessitate recursive template expansions, often reaching quadratic complexity for relatively simple operations.
 
-It is proposed that the language implement an expression to perform static map efficiently and concisely which will eliminate the necessity to use template expansion tricks to implement these patterns in programs, and avoid the compile time costs associated.
+It is proposed that the language implement an expression to perform explicit tuple expansions at the expression level, which can express static map/fold operations efficiently and concisely, eliminating the necessity to use template expansion tricks to implement these patterns in programs and avoid the compile time costs associated.
 
 This DIP proposes a unary `...` syntax which explores an expression for tuples, and expands to a tuple of expressions's with tuples replaced by their respective tuple elements.
 
@@ -76,9 +75,25 @@ Notably, existing code can take immediate advantage of the improvements in compi
 alias staticMap(alias F, T...) = F!T...;
 ```
 
+A second form shall exist which may implement a static reduce operation with the syntax `expr [BinOp] ...`, which will expand expr as above, but joining the resulting terms by a chain of `BinOp` operators.
+
+```d
+(Tup == 10) || ...  -->  ( Tup[0] == 10 || Tup[1] == 10 || ... || Tup[$-1] == 10 )
+```
+
+For example:
+```d
+bool anyOnes = (Values == 1) || ...;
+bool allOnes = (Values == 1) && ...;
+int sum = Values + ...;
+assert(anyOnes == true && allOnes == false && sum == 6);
+```
+
 The effect on user code will be increased readibility, a reduction in program logic indirections via 'utility' template definitions, and a dramatic improvement in compile time for sensitive applications.
 
 Sensitive applications tend to include programs that perform systematic reflection, compile-time parsing, implementation of call-shim's (ie; foreign language binding), or any compile-time pre-processing that can't be strictly performed with CTFE.
+
+Using the tools described here, an enormous quantity of boilerplate/cruft, and recursive template instantions cease to exist, which can constitute the majority of compile time in many applications.
 
 ### Grammar Changes
 ```diff
@@ -90,6 +105,7 @@ PostfixExpression:
     PostfixExpression ++
     PostfixExpression --
 +   PostfixExpression ...
++   PostfixExpression BinOp ...
     PostfixExpression ( ArgumentListopt )
     TypeCtorsopt BasicType ( ArgumentListopt )
     IndexExpression
@@ -97,9 +113,9 @@ PostfixExpression:
 ```
 
 ## Compilation Performance
-Many D projects experience very slow compilation caused by explosive template expansion. Leading causes of template explosion tend to involve recursive expansion, and this most often looks like some form of static map (including `staticMap`).
+Many D projects experience very slow compilation caused by explosive template expansion. Leading causes of template explosion tend to involve recursive expansion, and this most often looks like some form of static map (including `staticMap`), or static fold.
 
-Existing solutions where `...` may be applied are implemented using recursive template instantiation. Each template instantiation populates the symbol table, and it is common that the arguments to such templates generate very long mangled names.
+Existing solutions where `...` may be applied are implemented using recursive template instantiation. Each template instantiation populates the symbol table, and it is common that the arguments to such templates generate very long and expensive mangled names.
 
 By contrast, operator `...` generates no junk symbols at all and so avoids associated cost in compile time.
 
@@ -107,7 +123,7 @@ Experimental implementation has shown compile time improvement by orders of magn
 
 Cost to compile-time of operator `...` is negligible and strictly linear with the length of source tuples, whereas recursive template instantion has quadratic cost in compile time due to growing symbol names and mangling costs with each iteration.
 
-In practise, this quadratic cost applies effective upper-limits on the length of lists that can be handled at compile time. We can lift these practical limits using operator `...`
+In practise, this quadratic cost applies effective upper-limits on the length of lists that can be handled at compile time. We will lift these practical limits substantially using operator `...`.
 
 ## Breaking Changes and Deprecations
 None
