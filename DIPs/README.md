@@ -3,11 +3,11 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1032](./DIP1032.md)|Function Pointer and Delegate Parameters Inherit Attributes from Function|Final Review|
 |[1030](./DIP1030.md)|                                Named Arguments| Formal Assessment|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
+|[1032](./DIP1032.md)|Function Pointer and Delegate Parameters Inherit Attributes from Function|Post-Final|
 
 ## Accepted DIPs
 |                           ID|                                 Title|
