@@ -245,6 +245,7 @@ Would be lowered by the compiler to the list:
                         " fruit."),
     apples, bananas, (apples + bananas)
 ```
+The following new code would be added to object.d:
 
 ```D
 struct _d_interpolated_string(Parts...) {
