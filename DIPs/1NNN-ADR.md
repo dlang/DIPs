@@ -1,15 +1,17 @@
 
 # Formatted string tuple literals
 
-| Field           | Value                                                           |
-|-----------------|-----------------------------------------------------------------|
-| DIP:            | 1027 v2                                                         |
-| Review Count:   | 0                                                               |
-| Author:         | D community team effort based on Walter's original DIP          |
-| Implementation: |                                                                 |
-| Status:         | Initial formalization                                           |
+| Field           | Value                                                                                                |
+|-----------------|------------------------------------------------------------------------------------------------------|
+| DIP:            | 1NNN                                                                                                 |
+| Review Count:   | 0                                                                                                    |
+| Author:         | Adam D. Ruppe + Steven Schveighoffer (+ D community team effort based on Walter's original DIP 1027) |
+| Implementation: |                                                                                                      |
+| Status:         | Initial formalization                                                                                |
 
 ## Abstract
+
+*NOTE: This DIP is based heavily on DIP 1027, and as such has much of the same contents, rationale, description, etc.*
 
 Instead of requiring a format string followed by an argument list, string interpolation via formatted string tuple literals enables
 embedding the arguments in the string itself.
@@ -37,9 +39,11 @@ easier to review for correctness.
 
 * Interpolated strings have been implemented and well-received in many languages.
 For many such examples, see [String Interpolation](https://en.wikipedia.org/wiki/String_interpolation).
-* Previous version of this DIP and its associated discussions
+* [DIP1027](https://github.com/dlang/DIPs/blob/master/DIPs/rejected/DIP1027.md)
 * [C#'s implementation](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated#compilation-of-interpolated-strings) which returns a formattable object that user functions can use
 * [Javascript's implementation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) which passes `string[], args...` to a builder function very similarly to this proposal
+* Jason Helson submitted a DIP [String Syntax for Compile-Time Sequences](https://github.com/dlang/DIPs/pull/140).
+* [Jonathan Marler's Interpolated Strings](http://github.com/dlang/dmd/pull/7988)
 
 ## Description
 
@@ -48,26 +52,70 @@ writefln(i"I ate $apples and ${%d}bananas totalling $(apples + bananas) fruit.")
 ```
 gets rewritten as:
 ```
-writefln(.object._d_interpolated_string!("I ate ", .object._d_interpolated_format_spec(null), " and ", .object._d_interpolated_format_spec("%d"), " totalling ", .object._d_interpolated_format_spec(null), " fruit.")(), apples, bananas, apples + bananas);
+writefln(<interpolationSpec>, apples, bananas, apples + bananas);
 ```
 
-Note that `_d_interpolated_string` and `_d_interpolated_format_spec` are defined exclusively inside druntime, looked up specifically from `object.d` and may NOT be user-defined or overridden in library code.
+The `interpolationSpec` parameter will have a type defined by druntime. The exact type name is unnamed for this spec. It is used by accepting a template parameter for the function being called. Each of the `$` parameters is considered an interpolation parameter.
 
-This will also work with `printf`:
+The `{%d}` syntax is for circumstances when the format specifier needs to be given by the user for that parameter.
+What goes between the `{` `}` is not specified, so this capability can be used by any function
+in the present, past, or future without needing to update the core language or runtime library.
+
+The spec can be used as follows:
+k
+`spec.toFormatString!(defaultSpec)` produces a compile-time format string with all the interpolated strings replaced as follows:
+1. If the prefix `{...}` is put between the `$` and the parameter, whatever is inside the `{` `}` is used.
+2. Otherwise, `defaultSpec` is used.
+
+`spec.hasAllSpecs` is a compile-time boolean which indicates whether all interpolation parameters had specs defined with a `{}` prefix.
+
+`spec` will automatically convert to a compile-time Null-terminated C string if `spec.hasAllSpecs` is true. This allows one to use it for already-defined C functions such as `printf`.
+
+Example:
+
+```D
+void foo(T, Args...)(T spec, Args)
+if (isInterpolationSpec!T) // used for overloading with other functions
+{
+    import std.stdio;
+    string fmt = spec.toFormatString!"%s"; // also can be called at compile-time.
+    writeln(`D format spec: "`, fmt, `"`);
+    static if (spec.hasAllSpecs) // if all specs are specified
+    {
+        immutable char *zFormat = spec; // automatically converts to a C null-terminated string.
+        writeln(`C format spec: "`, zFormat[0 .. strlen(zFormat)], `"`);
+    }
+}
+
+void main()
+{
+    int apples = 5;
+    int bananas = 6;
+
+    foo(i"I ate $apples and ${%d}bananas totalling $(apples + bananas) fruit.");
+    // output:
+    // D format spec: "I ate %s and %d totalling %s fruit."
+
+    foo(i"I ate ${%d}apples and ${%d}bananas totalling ${%d}(apples + bananas) fruit.");
+    // output:
+    // D format spec: "I ate %d and %d totalling %d fruit."
+    // C format spec: "I ate %d and %d totalling %d fruit."
+}
+```
+Example of `printf` usage:
 
 ```
 printf(i"I ate ${%d}apples and ${%d}bananas totalling ${%d}(apples + bananas) fruit.\n");
 ```
-becomes:
+becomes (after converting the spec to a Null-terinated C string):
 ```
-printf(_d_interpolated_string!("I ate ", _d_interpolated_format_spec("%d"), " and ", _d_interpolated_format_spec("%d"), " totalling ", _d_interpolated_format_spec("%d"), " fruit.\n")(), apples, bananas, apples + bananas);
+printf("I ate %d and %d totalling %d fruit.", bananas, apples + bananas);
 ```
+Any other usage of the interpolation spec parameter is not defined by the D specification, and subject to change at any time.
 
-The `{%d}` syntax is for circumstances when the format specifier needs to be given by the user.
-What goes between the `{` `}` is not specified, so this capability can be used by any function
-in the present, past, or future without needing to update the core language or runtime library.
+In particular you should not depend on the name of the spec type, or how it is implemented.
+
 Interpolated strings agnostic about what the format specifications are.
-
 
 The interpolated string starts as a special string token, `InterpolatedString`, which is the same as a
 `DoubleQuotedString` but with an `i` prefix and no `StringPostFix`.
@@ -133,23 +181,20 @@ CharacterNoParen:
 ```
 
 The `InterpolatedExpression` is converted to a tuple expression, where the first tuple element
-is the lowered druntime template instantiation and the `Argument`s form the remainder of the tuple elements.
+is the druntime interpolation spec, and the `Argument`s form the remainder of the tuple elements.
 
-The druntime `object._d_interpolated_string` struct constructor or function is called with no runtime arguments and a compile time argument list constructed as follows:
+The compiler implements the following rules before passing the appropriate data to the runtime for each element:
 
 If the `Element` is:
 
-* `Character`, it is written to the output string.
-* `'$$'`, a '$' is written to the output string.
+* `Character`, it is used as part of the format string.
+* `'$$'`, a '$' is written to the format string.
 
-If a `'$'` occurs without a following `'$'`, it terminates the current output string (if any), appends it to the template argument list, and appends a new argument to the template instantiation as follows:
+If a `'$'` occurs without a following `'$'`, this will denote an interpolation parameter.
 
-* `'$' Argument`, then `_d_interpolated_format_spec(null)` is appended to the argument list.
-* `'$' '{' FormatString '}' Argument`, then `_d_interpolated_format_spec(FormatString)` is appended to the argument list. Note that `FormatString` may be the empty string, which is passed as `""` instead of as `null`. For example `i"${}foo"` is passed as `_d_interpolated_string!(_d_interpolated_format_spec(""))()`.
-
-If characters remain, it continues the processing loop with a fresh template argument to `_d_interpolated_string`.
-
-The result of this `_d_interpolated_string` function call becomes the first element of the tuple.
+If the Element sequence is:
+* `'$' Argument`, then the runtime is instructed to place the default format specifier into the format string. The default format specifier is defined by user code as a template parameter to `spec.toFormatString`.
+* `'$' '{' FormatString '}' Argument`, then the runtime is instructed to put `FormatString` into the format string.
 
 If the `Argument` is an `Identifier`, it is appended to the tuple as an `IdentifierExpression`.
 If the `Argument` is an `Expression`, it is lexed and parsed (including the surrounding parentheses)
@@ -167,6 +212,8 @@ void foo(string s) {}
 foo(i"test $(4)"); // a CT error due to type mismatch. The compiler should suggest functions (see below) to remedy the user's problem.
 ```
 
+If the druntime implementation symbols are not present in `object.d`, use of interpolated strings MUST result in a compile-time error. The compiler SHOULD issue a user-friendly diagnostic, for example "string interpolation support not found in druntime" instead of leaking implementation details in error messages.
+
 ### Concatenations
 
 In order to facilitate convenient formatting of long strings, if a `StringLiteral` follows an `InterpolatedString`,
@@ -178,22 +225,34 @@ such as:
 ```
 i""q{apples and $("bananas")}
 ```
-yielding a tuple expression:
+would be identical to:
 ```
-_d_interpolated_string!("apples and ", _d_interpolated_format_spec(null))(), ("bananas")
+i"apples and $(\"bananas\")"
+```
+### Example Implementation
+
+This implementation is provided for reference, but is not necessarily how the compiler and durntime will interact when processing interpolated strings. Therefore, while it is useful for discussion, this implementation will NOT be part of the D specification, and the actual implementation may vary.
+
+In this implementation, the compiler uses lowering to provide all the information to the runtime. For example:
+```
+i"I ate $apples and ${%d}bananas totalling $(apples + bananas) fruit."
 ```
 
-### Library additions
-
-While the compiler only lowers to library calls and thus does not need to know about any of this, user functionality relies on a small library implementation.
-
-One suggested implementation would be:
-
+Would be lowered by the comipler to the list:
+```D
+.object._d_interpolated_string!("I ate ", .object._d_interpolated_format_spec(null),
+                        " and ", .object._d_interpolated_format_spec("%d"),
+                        " totalling ", .object._d_interpolated_format_spec(null),
+                        " fruit."),
+    apples, bananas, (apples + bananas)
 ```
+
+```D
 struct _d_interpolated_string(Parts...) {
         static:
 
-        private bool hasAllSpecs() {
+        private bool _hasAllSpecs() {
+            assert(__ctfe);
             foreach(part; Parts)
                static if(is(typeof(part) == _d_interpolated_format_spec))
                   if(part.spec is null)
@@ -201,41 +260,32 @@ struct _d_interpolated_string(Parts...) {
             return true;
         }
 
+        public enum hasAllSpecs = _hasAllSpecs();
+
         private string toFormatStringImpl(string defaultSpec) {
-           if(__ctfe) {
-                string ret;
-                foreach(part; Parts)
-                        static if(is(typeof(part) == _d_interpolated_format_spec)) {
-                                if(part.spec is null)
-                                        ret ~= defaultSpec;
-                                else
-                                        ret ~= part.spec;
-                        } else static if(is(typeof(part) : const(char)[]))
-                                ret ~= part;
-                        else static assert(0);
-                return ret;
-           } else assert(0);
+            assert(__ctfe);
+            string ret;
+            foreach(part; Parts)
+                    static if(is(typeof(part) == _d_interpolated_format_spec)) {
+                            if(part.spec is null)
+                                    ret ~= defaultSpec;
+                            else
+                                    ret ~= part.spec;
+                    } else static if(is(typeof(part) : const(char)[]))
+                            ret ~= part;
+                    else static assert(0);
+            return ret;
         }
 
         private immutable(char*) toFormatStringzImpl() {
                 return toFormatString!(null).ptr;
         }
 
-	// we may also add a lambda for escaping chars to this
         public template toFormatString(string defaultSpec) {
                 enum toFormatString = toFormatStringImpl(defaultSpec);
         }
 
-        static if(hasAllSpecs()) {
-                // alias this to a string, even a string literal, loses
-                // the implicit conversion to const(char)* needed by
-                // printf. so gotta use a wrapper that explicitly returns
-                // that :(
-		//
-		// A future compiler enhancement could allow alias this to
-		// a string literal to also implicitly cast to const(char)*,
-		// just like the string literal itself, further enhancing
-		// this experience
+        static if(hasAllSpecs) {
                 alias toFormatStringzImpl this;
         }
 }
@@ -243,15 +293,17 @@ struct _d_interpolated_string(Parts...) {
 immutable struct _d_interpolated_format_spec {
         string spec;
 }
+
+enum isInterpolationSpec(T) = is(T == _d_interpolated_string!P, P...);
 ```
 
-If the library functions are not present in `object.d`, use of interpolated strings MUST result in a compile-time error. The compiler SHOULD issue a user-friendly diagnostic, for example "string interpolation support not found in druntime" instead of leaking implementation details in error messages.
+### Optional `idup` mechanism
 
-As an addition for user-friendliness, I also suggest we add an `idup` overload to `object.d` specialized for arguments starting with an instantiation of `_d_interpolated_string`, and overloads for existing Phobos format string functions that forward to the *compile time* overloads.
+As an addition for user-friendliness, we also suggest we add an `idup` overload to `object.d` specialized for a tuple that is recognized as starting with an interpolation spec.
 
 In object.d
 ```
-string idup(I, T...)(I fmt, T args) if(is(I == _d_interpolated_string!Args, Args...)) {
+string idup(I, T...)(I fmt, T args) if (isInterpolationSpec!I) {
         import std.format;
         return format!(I.toFormatString!"%s")(args);
 }
@@ -259,10 +311,14 @@ string idup(I, T...)(I fmt, T args) if(is(I == _d_interpolated_string!Args, Args
 
 Since `idup` is already a symbol and since this new overload is constrained to just the new type, this has no effect on existing code and does not contribute to namespace pollution. Moreover, since `"string".idup` is already an accepted convention for converting `const` strings to the immutable-based `string` type, it is also a natural extension of existing user skills for string assignment. Lastly, it is already known that `.idup` invokes the GC and its associated allocation, so it should come to no surprise that `i"".idup` does as well. However, normal string `idup` does not import Phobos while this does, that is a hidden implementation detail that can be improved upon in the future and strikes the best current balance between usability and elegance of implementation.
 
-In Phobos
-```
-auto writefln(Fmt, Args...)(Fmt fmt, Args args) if(is(Fmt == _d_interpolated_string!Ignored, Ignored...)) {
-        import std.stdio; // of course this should be IN std.stdio, making this import unnecessary
+### Usage in existing string-accepting functions
+
+No doubt there are many functions that accept a format string followed by the parameters for the format string. Such overloads can use the `isInterpolationSpec` test to ensure they do not clash with the normal string overload.
+
+For example, `std.stdio.writefln` can be amended with the following overload:
+
+```D
+auto writefln(Fmt, Args...)(Fmt fmt, Args args) if (isInterpolationSpec!Fmt)
         return std.stdio.writefln!(fmt.toFormatString!"%s", Args)(args);
 }
 // ditto for formattedWrite, format, and any other uses.
@@ -277,17 +333,16 @@ writefln(i"Hello, ${%d}name"); // causes a compile error for invalid format spec
 
 Note that this comes despite the compiler itself knowing absolutely nothing about format specifiers - it is entirely implemented in library code, and third parties may provide their own formats and checks.
 
-We may also provide user-friendly aliases for `_d_interpolated_string` and `_d_interpolated_format_spec`, but the color of the bikeshed is not important to this DIP author.
-
 ### Justifications
 
-The library wrapper may seem superfluous, however it serves three key roles:
+The complexity of the format spec may seem superfluous, however it serves three key roles:
 
-1. It divorces the compiler entirely from details of generated format strings.
+1. It divorces the compiler entirely from details of generated format strings. For example, different functions that accept format strings might use different default format specifiers.
+2. It allows overloading existing string-accepting functions to prevent accidental usage that happen to fit the parameter list (see example below).
 2. It provides necessary error checking capabilities.
 3. It provides an additional API for user functions to introspect the string, building on D's existing compile-time capabilities.
 
-The previous version of this DIP proposed a simple string literal instead of the result of `_d_interpolated_string` as the first argument passed. This is problematic because it introduces potentially subtle errors in likely usage.
+The previous version of this DIP proposed a simple string literal as the first argument passed. This is problematic because it introduces potentially subtle errors in likely usage.
 
 #### Wrong-use in unrelated function
 
@@ -318,15 +373,15 @@ auto window = createWindow(i"Process debugger $pid");
 
 This would compile without error, but would not do what the user intended. D would pass the variable `pid` as the second argument to the function, which would interpret it as window width. Without a way to detect this misuse, which is likely to be a common mistake made by programmers more familiar with string interpolation in other languages, users will be unpleasantly surprised with buggy code.
 
-The `_d_interpolated_string` struct provides such a way to detect misues. In fact, the library author doesn't have to do anything - the user will see a helpful error message from the compiler and perhaps try `i"Process debugger $pid".idup` instead, or another suitable alternative.
+The `isInterpolationSpec` check provides such a way to detect misues. In fact, the library author doesn't have to do anything - the user will see a helpful error message from the compiler and perhaps try `i"Process debugger $pid".idup` instead, or another suitable alternative.
 
-As an added benefit, if the library author does choose to adapt to the interpolated string, she can do so while keeping it separate from its existing default arguments by way of overloading the first argument on the new type yielded by `_d_interpolated_string`.
+As an added benefit, if the library author does choose to adapt to the interpolated string, she can do so while keeping it separate from its existing default arguments by way of overloading the first argument on the new type.
 
 Other alternatives discussed in the community included a compiler-recognized attribute on the parameter to indicate it takes a format string, but once we define rules for all the edge cases for ABI, mangling, overloading, etc., such a thing would have simply reinvented a struct type in a more awkward fashion. It is better to lean on rules the language and its users already understand than invent special rules for this one case.
 
 #### On implicit conversions
 
-To avoid these unintentional bugs in libraries that don't anticipate interpolated strings, this DIP does NOT recommend implicit conversion of the `_d_interpolated_string` structure to `string`, excepting special circumstances. In the example druntime implementation code above, I included `static if(hasAllSpecs)` as a condition for `alias this`.
+To avoid these unintentional bugs in libraries that don't anticipate interpolated strings, this DIP does NOT recommend implicit conversion of the interpolation spec structure to `string`, excepting special circumstances. In the example druntime implementation code above, we included `static if(hasAllSpecs)` as a condition for `alias this`.
 
 The logic here is if the user takes the additional effort to explicitly write format specifiers for all interpolated values, they've demonstrated significant understanding of how the feature works both in general and for their specific use case. In that case, we can allow implicit conversion so the interpolated string can be used by existing functions.
 
@@ -338,7 +393,9 @@ printf("${%d}count ${%s}(name.toStringz)(s) available.");
 
 This gives maximum compatibility with existing functions balanced against safety of accidentally calling existing functions inappropriately.
 
-Whereas most existing functions that can use this are C functions and `alias this` suffers a current limitation of allowing `string` or `const(char*)`, but not both, I chose in the example code to use the C compatible version instead of the D compatible one. If `alias this` were enhanced in the future, perhaps we'd allow that implicit conversion too given the same use effort of spelling out specifiers. Also, when using D functions, you can generally call `.idup` on the interpolated string, or if avoiding garbage collected memory, you'd want to call another function to prepare the string into an alternate buffer anyway. Since Phobos functions can (and should) be overloaded on the new type, the user is unlikely to require additional implicit conversions anyway.
+Whereas most existing functions that can use this are C functions and `alias this` suffers a current limitation of allowing `string` or `const(char*)`, but not both, I chose in the example code to use the C compatible version instead of the D compatible one. If `alias this` were enhanced in the future, perhaps we'd allow that implicit conversion too given the same use effort of spelling out specifiers.
+
+Also, when using D functions, you can generally call `.idup` on the interpolated string, or if avoiding garbage collected memory, you'd want to call another function to prepare the string into an alternate buffer anyway. Since Phobos functions can (and should) be overloaded on the new type, the user is unlikely to require additional implicit conversions anyway.
 
 #### Interpolation to different formats
 
@@ -383,7 +440,7 @@ query(i"Select name from people where name like ${?1}pattern and age > ${?2}min_
 
 How annoying, I had to fix up all the subsequent placeholder numbers. Can't this be done automatically?
 
-With `_d_interpolated_string`, it can! The database library can add an overload for it that iterates the arguments and generates the correct sql string for its database target, transparently to the user, without risking any code breakage on the existing `query` functions. Everyone wins!
+With this DIP, it can! The database library can add an overload for it that provides a searchable default, and at compile-time, replaces the generated string with one that has the correct numbered sequence of placeholders, transparently to the user, without risking any code breakage on the existing `query` functions. A possible improvement in the future might allow more sophisticated format string generation, allowing for the database library to do this directly using the format spec.
 
 However, a word of warning. Suppose the user tried `query(i"Select name from people where age > $min_age");` and the library did NOT overload for it. The compiler may suggest "did you try .idup?" in its error message, trying to be helpful and point the user toward coercing it into a traditional `string` argument.
 
@@ -409,7 +466,7 @@ It is impossible to provide a format specifier `i"${this_part}foo` at run time. 
 
 #### Mixing Conventional Format Arguments With Interpolated Strings in legacy functions
 
-Interpolated string formats cannot be mixed with conventional elements unless the receiving function overloads on `_d_interpolated_string`:
+Interpolated string formats cannot be mixed with conventional elements unless the receiving function overloads on the interpolation spec type.
 
 ```
 const char* tool = "hammer";
@@ -424,15 +481,17 @@ as the interpolated arguments will always come first, and out of order with the 
 arguments. This error is not detected by the compiler, but since the user must proactively write
 a format specifier, it ought not happen frequently by accident.
 
-With D functions like `writefln` providing an overload specifically on `_d_interpolated_string`,
+With D functions like `writefln` providing an overload specifically for interpolated strings,
 this can be detected and treated as a compile-time error (which the sample library implementation
 would do), corrected to `%%s`, or even interleaved correctly by library code.
 
 Making these work implicitly would mean sacrificing the type safety identified in the `createWindow` case mentioned previously or baking knowledge of format strings into the language (and someone defining a rule so user-defined functions can utilize it), and this comes back to awkwardly reinventing a type.
 
+Note that with a small improvement to provide the count of the interpolation parameters, subsequent interpolation strings could be used inside `writefln`.
+
 #### W and D Interpolated Strings
 
-`wchar` and `dchar` interpolated strings are not allowed at this time. If they were to be added, however, `i"..."w` would work the same way, except passing `wstring` instead of `string` to `_d_interpolated_string`.
+`wchar` and `dchar` interpolated strings are not allowed at this time. If they were to be added, however, `i"..."w` would work the same way, except the interpolation spec would be configured to return `wstring` when calling `spec.toFormatString`.
 
 ## Breaking Changes and Deprecations
 
@@ -440,37 +499,9 @@ Since the interpolated string is a new token, no existing code is broken.
 
 ## Reference
 
-* [DIP 1027---String Interpolation---Community Review Round 1]
-(https://digitalmars.com/d/archives/digitalmars/D/DIP_1027---String_Interpolation---Community_Review_Round_1_333503.html)
-
 ## Copyright & License
 Copyright (c) 2019 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
 ## Reviews
-
-### Community Review Round 1
-
-[Reviewed Version](https://github.com/dlang/DIPs/blob/148001a963f5d6e090bb6beef5caf9854372d0bc/DIPs/DIP1027.md)
-
-[Discussion](https://forum.dlang.org/post/abhpqwxqgiyzgqxmjaky@forum.dlang.org)
-
-The review generated a tremendous volume of feedback and discussion. Key points that were raised include:
-
-* the choice of `%` instead of something more familiar from other language, like `$`. Related, the lowering of `%%` to `%` was raised multiple times as being problematic. The DIP author modified the proposal to use `$` instead.
-* the requirement of the `i` prefix. The DIP author explained that an interpolated string has to be a separate token.
-* what about concatenating multiple strings to the interpolated string with `~`? The DIP author explained that this presents a problem during semantic analysis. He said it can be solved by allowing automatic concatenation of any strings following an interpolated string. Although such behavior is deprecated for string literals, and interpolated string is not treated as a string literal.
-* the choice of lowering an interpolated string to a tuple of format string + arguments as opposed to a tuple of strings and arguments. The DIP author responded that he didn't see the point.
-* why not lower to a function call? The DIP author responded that functions currently can't return tuples and it wouldn't work with `printf`.
-* why not a library solution? The DIP author said he tried, but it requires an awkward syntax.
-* why no assignment to string? The DIP author presented several reasons why this was undesirable, including: requires GC allocation, worse performance due to intermediate buffer, will not work with BetterC, and more.
-* the lowering of `%{FormatString}` only works with `printf` and `writef`. The DIP author decided to change it to simply `{FormatString}`, e.g., `{%d}` instead of `%{d}`, and treating everything in the braces as a whole string rather than as a suffix to `%`.
-
-Much of the discussion revolved around the syntax and the choice of lowering to a tuple of format string and arguments, and questions about interaction with other language features (e.g., templates, token strings). The DIP author's position, established over several comments, was essentially:
-
-* tuples can easily be manipulated to suit the user's needs
-* the implementation must be compatible with BetterC, meaning `printf` and similar C functions
-* the implementation must not trigger GC allocations
-* the implementation must not depend on Phobos
-* the implementation must be performant
