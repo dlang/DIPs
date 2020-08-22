@@ -55,15 +55,15 @@ gets rewritten as:
 writefln(<interpolationSpec>, apples, bananas, apples + bananas);
 ```
 
-The `interpolationSpec` parameter will have a type defined by druntime. The exact type name is unnamed for this spec. It is used by accepting a template parameter for the function being called. Each of the `$` parameters is considered an interpolation parameter.
+The `interpolationSpec` parameter will have a type defined by druntime. The exact type name is unnamed for this spec. It is used by accepting a template parameter for the function being called. Each of the `$` tokens in the string is considered an interpolation parameter.
 
 The `{%d}` syntax is for circumstances when the format specifier needs to be given by the user for that parameter.
 What goes between the `{` `}` is not specified, so this capability can be used by any function
-in the present, past, or future without needing to update the core language or runtime library.
+in the present, past, or future without needing to update the core language or runtime library. It also makes interpolated strings agnostic about what the format specifications are.
 
 The spec can be used as follows:
-k
-`spec.toFormatString!(defaultSpec)` produces a compile-time format string with all the interpolated strings replaced as follows:
+
+`spec.toFormatString!(defaultSpec)` produces a compile-time format string with all the interpolated strings replaced as defined after the grammar below, but summarized as follows:
 1. If the prefix `{...}` is put between the `$` and the parameter, whatever is inside the `{` `}` is used.
 2. Otherwise, `defaultSpec` is used.
 
@@ -115,7 +115,6 @@ Any other usage of the interpolation spec parameter is not defined by the D spec
 
 In particular you should not depend on the name of the spec type, or how it is implemented.
 
-Interpolated strings agnostic about what the format specifications are.
 
 The interpolated string starts as a special string token, `InterpolatedString`, which is the same as a
 `DoubleQuotedString` but with an `i` prefix and no `StringPostFix`.
@@ -188,7 +187,7 @@ The compiler implements the following rules before passing the appropriate data 
 If the `Element` is:
 
 * `Character`, it is used as part of the format string.
-* `'$$'`, a '$' is written to the format string.
+* `'$$'`, a '$' is used as part of the format string.
 
 If a `'$'` occurs without a following `'$'`, this will denote an interpolation parameter.
 
@@ -231,14 +230,14 @@ i"apples and $(\"bananas\")"
 ```
 ### Example Implementation
 
-This implementation is provided for reference, but is not necessarily how the compiler and durntime will interact when processing interpolated strings. Therefore, while it is useful for discussion, this implementation will NOT be part of the D specification, and the actual implementation may vary.
+This implementation is provided for reference, but is not necessarily how the compiler and druntime will interact when processing interpolated strings. Therefore, while it is useful for discussion, this implementation will NOT be part of the D specification, and the actual implementation may vary.
 
 In this implementation, the compiler uses lowering to provide all the information to the runtime. For example:
 ```
 i"I ate $apples and ${%d}bananas totalling $(apples + bananas) fruit."
 ```
 
-Would be lowered by the comipler to the list:
+Would be lowered by the compiler to the list:
 ```D
 .object._d_interpolated_string!("I ate ", .object._d_interpolated_format_spec(null),
                         " and ", .object._d_interpolated_format_spec("%d"),
@@ -299,7 +298,7 @@ enum isInterpolationSpec(T) = is(T == _d_interpolated_string!P, P...);
 
 ### Optional `idup` mechanism
 
-As an addition for user-friendliness, we also suggest we add an `idup` overload to `object.d` specialized for a tuple that is recognized as starting with an interpolation spec.
+As an addition for user-friendliness, we also suggest to add an `idup` overload to `object.d` specialized for a tuple that is recognized as starting with an interpolation spec.
 
 In object.d
 ```
@@ -426,7 +425,7 @@ A user with some understanding of D's new string interpolation feature may attem
 query(i"Select name from people where age > $min_age");
 ```
 
-With a plain string, that will compile successfully, but throw a sql syntax error. Oh, the user realizes, I need to add the specifier:
+If the spec were a plain string, that will compile successfully, but throw a sql syntax error. Oh, the user realizes, I need to add the specifier:
 
 ```
 query(i"Select name from people where age > ${?1}min_age");
