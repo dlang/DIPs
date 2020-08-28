@@ -7,7 +7,6 @@
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
-|[1032](./DIP1032.md)|Function Pointer and Delegate Parameters Inherit Attributes from Function|Post-Final|
 
 ## Accepted DIPs
 |                           ID|                                 Title|
@@ -57,10 +56,10 @@
 |[1011](./other/DIP1011.md)   |                      extern(delegate)|
 |[1012](./other/DIP1012.md)   |                            Attributes|
 
-
 ## Withdrawn DIPS
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
 |[1025](./other/DIP1025.md)   |Dynamic Arrays Only Shrink, Never Grow|
 |[1026](./other/DIP1026.md)   |Deprecate Context-Sensitive String Literals|
 |[1031](./other/DIP1031.md)   |Deprecate Brace-Style Struct Initializers|
+|[1032](./other/DIP1032.md)   |Function Pointer and Delegate Parameters Inherit Attributes from Function|
