@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1036](./DIP1036.md)|                Formatted String Tuple Literals| Community Round 1|
-|[1030](./DIP1030.md)|                                Named Arguments| Formal Assessment|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
@@ -22,6 +21,7 @@
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls|
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics|
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|
+|[1030](./accepted/DIP1030.md)|                       Named Arguments|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
