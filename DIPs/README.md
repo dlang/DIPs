@@ -39,8 +39,6 @@
 |-----------------------------|--------------------------------------|
 |[1005](./other/DIP1005.md)   |      Dependency-Carrying Declarations|
 |[1008](./other/DIP1008.md)   |                  Exceptions and @nogc|
-|[1019](./other/DIP1019.md)   |                  Named Arguments Lite|
-|[1020](./other/DIP1020.md)   |                      Named Parameters|
 |[1022](./other/DIP1022.md)   |                      foreach auto ref|
 |[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
 
@@ -49,6 +47,8 @@
 |-----------------------------|--------------------------------------|
 |[1000](./other/DIP1000.md)   |                       Scoped Pointers|
 |[1006](./other/DIP1006.md)   |Providing More Selective Control Over Contracts|
+|[1019](./other/DIP1019.md)   |                  Named Arguments Lite|
+|[1020](./other/DIP1020.md)   |                      Named Parameters|
 
 ## Abandoned DIPS
 |                           ID|                                 Title|
