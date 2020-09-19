@@ -51,6 +51,21 @@ Detailed technical description of the new semantics. Language grammar changes
 (or change) must be mentioned. Examples demonstrating the new semantics will
 strengthen the proposal and should be considered mandatory.
 
+### Grammar Changes
+
+```diff
+AtAttribute:
+    @ disable
+    @ nogc
+    @ live
++   @ nodiscard
+    Property
+    @ safe
+    @ system
+    @ trusted
+    UserDefinedAttribute
+```
+
 ## Breaking Changes and Deprecations
 This section is not required if no breaking changes or deprecations are anticipated.
 
