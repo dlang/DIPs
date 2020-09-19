@@ -55,12 +55,43 @@ into errors was submitted as [issue 5464](https://issues.dlang.org/show_bug.cgi?
 [ClangWarnUnusedResult]: https://clang.llvm.org/docs/AttributeReference.html#nodiscard-warn-unused-result
 
 ## Description
-Required.
 
-Detailed technical description of the new semantics. Language grammar changes
-(per https://dlang.org/spec/grammar.html) needed to support the new syntax
-(or change) must be mentioned. Examples demonstrating the new semantics will
-strengthen the proposal and should be considered mandatory.
+### Syntax
+
+`@nodiscard` is an [attribute][Attribute] that can be applied to individual
+declarations, to a block (`@nodiscard { }`), or to all subsequent declarations
+in the current scope (`@nodiscard:`).
+
+`@nodiscard` is not a [type constructor][TypeCtor] or a [storage
+class][StorageClass].
+
+[Attribute]: https://dlang.org/spec/attribute.html
+[TypeCtor]: https://dlang.org/spec/grammar.html#TypeCtor
+[StorageClass]: https://dlang.org/spec/grammar.html#StorageClass
+
+### Semantics
+
+It is a compile-time error to discard an expression if:
+
+* It is a call to a function whose declaration is annotated with `@nodiscard`.
+* Its type is an [aggregate type][AggregateDeclaration] whose declaration is
+  annotated with `@nodiscard`.
+
+An expression is considered to be discarded if and only if:
+
+* It is the top-level *Expression* in an *ExpressionStatement*.
+* It is the *AssignExpression* on the left-hand side of a *CommaExpression*.
+
+`@nodiscard` does not modify the type of any aggregate or function it is
+applied to, and does not participate in name mangling.
+
+`@nodiscard` does not apply to declarations inside the body of a `@nodiscard`
+aggregate or function declaration.
+
+`@nodiscard` has no effect on declarations other than aggregate and function
+declarations.
+
+[AggregateDeclaration]: https://dlang.org/spec/grammar.html#AggregateDeclaration
 
 ### Grammar Changes
 
