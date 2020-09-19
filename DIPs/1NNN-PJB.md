@@ -33,6 +33,17 @@ chances of the DIP being understood and carefully evaluated.
 
 ## Prior Work
 
+### In D
+
+The D compiler already warns about discarding the value of an expression with
+no side effects, including the return value of a `pure` function. Several
+possible enhancements to this feature were discussed in the comments on [issue
+3882](https://issues.dlang.org/show_bug.cgi?id=3882), and an enhancement
+request for a `@nodiscard` attribute that would turn discarded return values
+into errors was submitted as [issue 5464](https://issues.dlang.org/show_bug.cgi?id=5464).
+
+### In Other Languages
+
 * C++17's [`[[nodiscard]]` attribute][Cpp17Nodiscard].
 * Rust's [`#[must_use]` attribute][RustMustUse].
 * GCC's [`warn_unused_result` attribute][GccWarnUnusedResult].
