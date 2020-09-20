@@ -57,7 +57,8 @@ forums; see the [Reference](#reference) section below for details.
 An expression is considered to be discarded if and only if:
 
 * It is the top-level *Expression* in an *ExpressionStatement*.
-* It is the *AssignExpression* on the left-hand side of a *CommaExpression*.
+* It is the *AssignExpression* on the left-hand side of the comma in a
+  *CommaExpression*.
 
 It is a compile-time error to discard the value of an expression if:
 
@@ -66,24 +67,20 @@ It is a compile-time error to discard the value of an expression if:
 * The value's type is an aggregate (a `struct`, `union`, `class`, or
   `interface`) whose declaration is annotated with `@nodiscard`.
 
-The distinction between "expression" and "value" here is significant. Consider
-the following example:
+The distinction between "expression" and "value" here is significant. In
+particular, it means that the *value* returned from a `@nodiscard`
+function may discarded as long as the function call is enclosed in some other
+*expression*; for example:
 
 ```d
-// A function that returns a @nodiscard type
-@nodiscard struct S {}
-S foo() { return S(); }
-
-// A @nodiscard function
-@nodiscard int bar() { return 0; }
-
-// Generic identity function
-T identity(T)(T value) { return value; }
+@nodiscard int func() { return 0; }
 
 void main()
 {
-    identity(foo()); // error: ignored value of @nodiscard type S
-    identity(bar()); // ok, neither identity nor int is @nodiscard
+    import std.stdio: writeln;
+
+    // no error; func() is "used" by the comma expression
+    (writeln("hi"), func());
 }
 ```
 
