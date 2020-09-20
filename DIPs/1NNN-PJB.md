@@ -55,42 +55,49 @@ and forums; see the [Reference](#reference) section below for details.
 
 ## Description
 
-### Syntax
-
-`@nodiscard` is an [attribute][Attribute] that can be applied to individual
-declarations, to a block (`@nodiscard { }`), or to all subsequent declarations
-in the current scope (`@nodiscard:`).
-
-`@nodiscard` is not a [type constructor][TypeCtor] or a [storage
-class][StorageClass].
-
-[Attribute]: https://dlang.org/spec/attribute.html
-[TypeCtor]: https://dlang.org/spec/grammar.html#TypeCtor
-[StorageClass]: https://dlang.org/spec/grammar.html#StorageClass
-
-### Semantics
-
-It is a compile-time error to discard an expression if:
-
-* It is a call to a function whose declaration is annotated with `@nodiscard`.
-* Its type is an [aggregate type][AggregateDeclaration] whose declaration is
-  annotated with `@nodiscard`.
-
 An expression is considered to be discarded if and only if:
 
 * It is the top-level *Expression* in an *ExpressionStatement*.
 * It is the *AssignExpression* on the left-hand side of a *CommaExpression*.
 
-`@nodiscard` does not modify the type of any aggregate or function it is
-applied to, and does not participate in name mangling.
+It is a compile-time error to discard the value of an expression if:
 
-`@nodiscard` does not apply to declarations inside the body of a `@nodiscard`
-aggregate or function declaration.
+* The expression is a call to a function whose declaration is annotated with
+  `@nodiscard`.
+* The value's type is an aggregate (a `struct`, `union`, `class`, or
+  `interface`) whose declaration is annotated with `@nodiscard`.
 
-`@nodiscard` has no effect on declarations other than aggregate and function
-declarations.
+The distinction between "expression" and "value" here is significant. Consider
+the following example:
 
-[AggregateDeclaration]: https://dlang.org/spec/grammar.html#AggregateDeclaration
+```d
+// A function that returns a @nodiscard type
+@nodiscard struct S {}
+S foo() { return S(); }
+
+// A @nodiscard function
+@nodiscard int bar() { return 0; }
+
+// Generic identity function
+T identity(T)(T value) { return value; }
+
+void main()
+{
+    identity(foo()); // error: ignored value of @nodiscard type S
+    identity(bar()); // ok, neither identity nor int is @nodiscard
+}
+```
+
+Using `@nodiscard` has no effects on a program other than the ones described
+above. In particular:
+
+* `@nodiscard` does not affect the type of any aggregate or function it is
+  applied to, and does not participate in name mangling.
+* `@nodiscard` does not apply to declarations inside the body of a `@nodiscard`
+  aggregate or function declaration (that is, it does not "flow through" from
+  outer scopes to inner ones).
+* `@nodiscard` has no effect on declarations other than aggregate and function
+  declarations.
 
 ### Grammar Changes
 
