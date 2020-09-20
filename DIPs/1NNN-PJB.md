@@ -36,9 +36,9 @@ chances of the DIP being understood and carefully evaluated.
 
 The D compiler already warns about discarding the value of an expression with
 no side effects, including a call to a strongly-pure function. An attribute
-allowing the programmer to apply this warning to specific function calls and
-specific types of values has been proposed several times on the D issue tracker
-and forums; see the [Reference](#reference) section below for details.
+that would allow the programmer to mark specific functions or types as
+non-discardable has been proposed several times on the D issue tracker and
+forums; see the [Reference](#reference) section below for details.
 
 ### In Other Languages
 
