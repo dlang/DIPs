@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Paul Backus \<snarwin@gmail.com\>                               |
+| Author:         | Paul Backus (snarwin@gmail.com)                                 |
 | Implementation: | <https://github.com/dlang/dmd/pull/11765>                       |
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
@@ -13,7 +13,6 @@
 Required.
 
 Short and concise description of the idea in a few lines.
-
 
 ## Contents
 * [Rationale](#rationale)
