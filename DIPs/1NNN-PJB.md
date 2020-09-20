@@ -73,14 +73,31 @@ function may discarded as long as the function call is enclosed in some other
 *expression*; for example:
 
 ```d
-@nodiscard int func() { return 0; }
+struct Result { int n; }
+@nodiscard Result func() { return Result(0); }
 
 void main()
 {
     import std.stdio: writeln;
 
-    // no error; func() is "used" by the comma expression
-    (writeln("hi"), func());
+    // no error; return value of func is "used" by the comma expression
+    (writeln("side effect"), func());
+}
+```
+
+However, this is not possible if `@nodiscard` is applied to the return type
+instead of the function:
+
+```d
+@nodiscard struct Result { int n; }
+Result func() { return Result(0); }
+
+void main()
+{
+    import std.stdio: writeln;
+
+    // error; value of comma expression is @nodiscard, because it is a Result
+    (writeln("side effect"), func());
 }
 ```
 
