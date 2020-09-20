@@ -36,11 +36,10 @@ chances of the DIP being understood and carefully evaluated.
 ### In D
 
 The D compiler already warns about discarding the value of an expression with
-no side effects, including the return value of a `pure` function. Several
-possible enhancements to this feature were discussed in the comments on [issue
-3882](https://issues.dlang.org/show_bug.cgi?id=3882), and an enhancement
-request for a `@nodiscard` attribute that would turn discarded return values
-into errors was submitted as [issue 5464](https://issues.dlang.org/show_bug.cgi?id=5464).
+no side effects, including a call to a strongly-pure function. An attribute
+allowing the programmer to apply this warning to specific function calls and
+specific types of values has been proposed several times on the D issue tracker
+and forums; see the [Reference](#reference) section below for details.
 
 ### In Other Languages
 
@@ -118,8 +117,21 @@ user code and have no well-defined deprecation process have a minimal chance of
 being approved.
 
 ## Reference
-Optional links to reference material such as existing discussions, research papers
-or any other supplementary materials.
+
+* [Issue 3882 - Unused result of pure functions][Issue3882]
+* [Issue 5464 - Attribute to not ignore function result][Issue5464]
+* [Issue 20165 - Add standard @nodiscard attribute for functions][Issue20165]
+* [xxxInPlace or xxxCopy?][Thread3] (D.General)
+* [There is anything like nodiscard attribute in D?][Thread2] (D.Learn)
+* [Idiomatic way to express errors without resorting to exceptions][Thread1]
+  (D.Learn)
+
+[Issue3882]: https://issues.dlang.org/show_bug.cgi?id=3882
+[Issue5464]: https://issues.dlang.org/show_bug.cgi?id=5464
+[Issue20165]: https://issues.dlang.org/show_bug.cgi?id=20165
+[Thread1]: https://forum.dlang.org/thread/ih7sfi$1q6f$1@digitalmars.com
+[Thread2]: https://forum.dlang.org/thread/rzfshzfrxrlbxyvcngke@forum.dlang.org
+[Thread3]: https://forum.dlang.org/thread/hhpqmifgjslpzbzfauab@forum.dlang.org
 
 ## Copyright & License
 Copyright (c) 2020 by the D Language Foundation
