@@ -10,9 +10,13 @@
 
 ## Abstract
 
-Required.
-
-Short and concise description of the idea in a few lines.
+Ignoring the return value of a function is a common programming mistake,
+especially when it comes to functions that use their return values to signal
+errors. While exceptions allow a function to signal errors that cannot be
+ignored, using them has costs that programmers are not always able or willing
+to pay. For those use-cases where exceptions are not a good fit, this DIP
+proposes a new attribute, `@nodiscard`, that allows the programmer to make
+ignoring the return value of a function into a compile-time error.
 
 ## Contents
 * [Rationale](#rationale)
