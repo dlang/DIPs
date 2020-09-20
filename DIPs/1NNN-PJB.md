@@ -114,13 +114,14 @@ AtAttribute:
 ```
 
 ## Breaking Changes and Deprecations
-This section is not required if no breaking changes or deprecations are anticipated.
 
-Provide a detailed analysis on how the proposed changes may affect existing
-user code and a step-by-step explanation of the deprecation process which is
-supposed to handle breakage in a non-intrusive manner. Changes that may break
-user code and have no well-defined deprecation process have a minimal chance of
-being approved.
+Existing code that uses `@nodiscard` as a user-defined attribute may fail to
+compile, or may compile but have its meaning silently changed. Therefore,
+acceptance of this DIP should be followed by a deprecation period, during which
+the use of `nodiscard` as a UDA name is flagged as deprecated by the compiler.
+During the deprecation period, the command-line option `-preview=nodiscard`
+will enable the new behavior; afterward, the command-line option
+`-revert=nodiscard` will disable it.
 
 ## Reference
 
