@@ -4,9 +4,9 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|      Final Review|
-|[1036](./DIP1036.md)|                Formatted String Tuple Literals| Community Round 1|
 |[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
+|[1036](./DIP1036.md)|                Formatted String Tuple Literals|  Post-Community 1|
 
 ## Accepted DIPs
 |                           ID|                                 Title|
