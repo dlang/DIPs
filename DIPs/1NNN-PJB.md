@@ -71,10 +71,10 @@ It is a compile-time error to discard the value of an expression if:
 * The value's type is an aggregate (a `struct`, `union`, `class`, or
   `interface`) whose declaration is annotated with `@nodiscard`.
 
-The distinction between "expression" and "value" here is significant. In
-particular, it means that the *value* returned from a `@nodiscard`
-function may discarded as long as the function call is enclosed in some other
-*expression*; for example:
+The distinction between "expression" and "value" in this definition is
+significant. In particular, it means that the *value* returned from a
+`@nodiscard` function may discarded as long as the function call is enclosed in
+some other *expression*; for example:
 
 ```d
 struct Result { int n; }
@@ -84,12 +84,14 @@ void main()
 {
     import std.stdio: writeln;
 
-    // no error; return value of func is "used" by the comma expression
+    // no error:
+    //   - return value of func is "used" by the comma expression
+    //   - writeln is not pure, so the comma expression can be discarded
     (writeln("side effect"), func());
 }
 ```
 
-However, this is not possible if `@nodiscard` is applied to the return type
+By contrast, this is not possible if `@nodiscard` is applied to the return type
 instead of the function:
 
 ```d
@@ -100,21 +102,21 @@ void main()
 {
     import std.stdio: writeln;
 
-    // error; value of comma expression is @nodiscard, because it is a Result
+    // error: value of comma expression is a Result, which cannot be discarded
     (writeln("side effect"), func());
 }
 ```
 
-Using `@nodiscard` has no effects on a program other than the ones described
-above. In particular:
+Using `@nodiscard` has no effects on the semantics of a program other than the
+ones described above. In particular:
 
 * `@nodiscard` does not affect the type of any aggregate or function it is
   applied to, and does not participate in name mangling.
 * `@nodiscard` does not apply to declarations inside the body of a `@nodiscard`
   aggregate or function declaration (that is, it does not "flow through" from
   outer scopes to inner ones).
-* `@nodiscard` has no effect on declarations other than aggregate and function
-  declarations.
+* `@nodiscard` has no semantic effect on declarations other than aggregate and
+  function declarations.
 
 ### Grammar Changes
 
