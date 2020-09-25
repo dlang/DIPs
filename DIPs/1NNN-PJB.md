@@ -10,13 +10,11 @@
 
 ## Abstract
 
-Ignoring the return value of a function is a common programming mistake,
-especially when it comes to functions that use their return values to signal
-errors. While exceptions allow a function to signal errors that cannot be
-ignored, using them has costs that programmers are not always able or willing
-to pay. For those use-cases where exceptions are not a good fit, this DIP
-proposes a new attribute, `@nodiscard`, that allows the programmer to make
-ignoring the return value of a function into a compile-time error.
+This DIP proposes a new attribute, `@nodiscard`, that allows the programmer to
+make ignoring a function's return value into a compile-time error. It can be
+used to implement alternative error-handling mechanisms for code that cannot
+use exceptions, and to prevent bugs when interfacing with external functions
+that report errors via their return values.
 
 ## Contents
 * [Rationale](#rationale)
@@ -28,11 +26,93 @@ ignoring the return value of a function into a compile-time error.
 * [Reviews](#reviews)
 
 ## Rationale
-Required.
 
-A short motivation about the importance and benefits of the proposed change.  An existing,
-well-known issue or a use case for an existing projects can greatly increase the
-chances of the DIP being understood and carefully evaluated.
+### Error handling without exceptions
+
+Currently, in D, if a function wants to send a signal to its caller that the
+caller cannot ignore, the only way to do so is to throw an exception. For a
+variety of reasons, however, the use of exceptions is not always possible or
+desirable. Examples of code that may want or need to avoid exceptions include:
+
+* Code that is written in a language other than D (e.g., C or C++).
+* Code written in D that may be called from another language.
+* Code that does not want to depend on the D runtime.
+* Code that cannot afford the runtime performance overhead of exceptions.
+
+These use-cases represent a minority of code, but not a negligible one. Of the
+1868 packages on [code.dlang.org][Dub] at the time of writing:
+
+* 273 (14%) are categorized as "D language bindings" (that is, code written in other
+languages).
+* 93 (5%) are categorized as "optimized for fast execution" (that is, code
+  that cannot afford extra runtime performance overhead).
+* 54 (3%) are categorized as "suitable for `@nogc` use," the closest category
+  available to "usable without the D runtime" or "`-betterC` compatible."
+
+The total number of packages in these categories, filtered for duplicates, is
+384, or 20% of registered packages. This suggests that roughly *one in five* D
+language projects has at least one reason to be interested in an error-handling
+mechanism that does not use exceptions.
+
+#### Alternatives
+
+One possible alternative to exceptions, [proposed by Vladimir
+Panteleev][SuccessType], is for a function to return an error code wrapped in a
+`struct` that `assert`s (or `throw`s) in its destructor at runtime if it has
+not been used (i.e., by calling a particular method). While this addresses some
+of the use-cases above, it has several shortcomings compared to `@nodiscard`.
+
+1. It reports ignored errors at runtime rather than compile time.
+2. It cannot be used directly with functions written in other languages.
+3. It requires additional syntax in both the callee and its callers to wrap
+   and unwrap the error code.
+
+By contrast, `@nodiscard` can be used without caveats to provide compile-time
+protection against ignored errors in all of the use-cases listed above.
+
+[Dub]: https://code.dlang.org/
+
+### Almost-pure functions
+
+There are some functions that, while not being completely `pure`, are
+nevertheless extremely unlikely to ever be called solely for their side
+effects.
+
+One example of such a function is `std.format.format` when called with
+floating-point numbers as arguments. It is not `pure`, because it accesses the
+global floating-point environment, but it is extremely unlikely to ever be
+called for that purpose alone, and ignoring its return value is very likely to
+be a programming mistake.
+
+This DIP does not recommend adding `@nodiscard` to any existing functions in
+Phobos or the D runtime, since doing so would constitute a breaking API change.
+However, authors of new almost-`pure` functions would benefit from having
+`@nodiscard` in the language, and existing projects (including Phobos and the D
+runtime) could still adopt `@nodiscard` on a case-by-case basis if the benefit
+were judged to be worth the potential for breakage.
+
+#### Alternatives
+
+The most straightforward way to fix a function that is almost-`pure` is to make
+it *acutally* `pure`. For `pure` functions, `@nodiscard` is not necessary,
+since the D compiler already warns about discarding their return values.
+
+While this solution is ideal in theory, it is likely to be infeasible in
+practice. Many functions in Phobos and the D runtime have been known to be
+almost-`pure` for a long time (for example, impurity of floating-point to
+string conversion was pointed out in [a Bugzilla comment in
+2014][Issue7438Comment8]). That they have not yet been made completely `pure`
+suggests that there are non-trivial obstacles in the way of doing so.
+
+As long as those obstacles exist, there is an ongoing risk of new code
+stumbling into them, leading to the continued proliferation of almost-`pure`
+functions in the D ecosystem. `@nodiscard` would allow the authors of these new
+functions to, as it were, "stop the bleeding," without necessarily addressing
+the underlying cause. Later, if and when it becomes possible for them to make
+their functions completely `pure`, and the `@nodiscard` attribute is no longer
+needed, it can be safely removed.
+
+[Issue7438Comment8]: https://issues.dlang.org/show_bug.cgi?id=7438#c8
 
 ## Prior Work
 
@@ -152,6 +232,7 @@ will enable the new behavior; afterward, the command-line option
 * [There is anything like nodiscard attribute in D?][Thread2] (D.Learn)
 * [Idiomatic way to express errors without resorting to exceptions][Thread1]
   (D.Learn)
+* [Vladimir Panteleev's `Success` type.][SuccessType]
 
 [Issue3882]: https://issues.dlang.org/show_bug.cgi?id=3882
 [Issue5464]: https://issues.dlang.org/show_bug.cgi?id=5464
@@ -159,6 +240,7 @@ will enable the new behavior; afterward, the command-line option
 [Thread1]: https://forum.dlang.org/thread/ih7sfi$1q6f$1@digitalmars.com
 [Thread2]: https://forum.dlang.org/thread/rzfshzfrxrlbxyvcngke@forum.dlang.org
 [Thread3]: https://forum.dlang.org/thread/hhpqmifgjslpzbzfauab@forum.dlang.org
+[SuccessType]: https://forum.dlang.org/thread/apphidjekselhhctclgr@forum.dlang.org#post-fttcdxppydmkvusmrdgh:40forum.dlang.org
 
 ## Copyright & License
 Copyright (c) 2020 by the D Language Foundation
