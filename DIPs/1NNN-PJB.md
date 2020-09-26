@@ -50,8 +50,8 @@ languages).
   available to "usable without the D runtime" or "`-betterC` compatible."
 
 The total number of packages in these categories, filtered for duplicates, is
-384, or 20% of registered packages. This suggests that roughly *one in five* D
-language projects has at least one reason to be interested in an error-handling
+384, or 20% of registered packages. This suggests that roughly one in five D
+projects have at least one reason to be interested in an error-handling
 mechanism that does not use exceptions.
 
 #### Alternatives
@@ -59,8 +59,9 @@ mechanism that does not use exceptions.
 One possible alternative to exceptions, [proposed by Vladimir
 Panteleev][SuccessType], is for a function to return an error code wrapped in a
 `struct` that `assert`s (or `throw`s) in its destructor at runtime if it has
-not been used (i.e., by calling a particular method). While this addresses some
-of the use-cases above, it has several shortcomings compared to `@nodiscard`.
+not been used (where "using" means calling a particular method). While this
+addresses some of the use-cases above, it has several shortcomings compared to
+`@nodiscard`.
 
 1. It reports ignored errors at runtime rather than compile time.
 2. It cannot be used directly with functions written in other languages.
@@ -104,10 +105,10 @@ worth the potential for breakage.
 ### In D
 
 The D compiler already warns about discarding the value of an expression with
-no side effects, including a call to a strongly-pure function. An attribute
-that would allow the programmer to mark specific functions or types as
-non-discardable has been proposed several times on the D issue tracker and
-forums; see the [Reference](#reference) section below for details.
+no side effects, including a call to a strongly-`pure` and `nothrow` function.
+An attribute that would allow the programmer to mark specific functions or
+types as non-discardable has been proposed several times on the D issue tracker
+and forums; see the [Reference](#reference) section below for details.
 
 ### In Other Languages
 
@@ -123,60 +124,72 @@ forums; see the [Reference](#reference) section below for details.
 
 ## Description
 
-An expression is considered to be discarded if and only if:
+An expression is considered to be discarded if and only if either of the
+following is true:
 
-* It is the top-level *Expression* in an *ExpressionStatement*.
+* It is the top-level *Expression* in an *ExpressionStatement*, or
 * It is the *AssignExpression* on the left-hand side of the comma in a
   *CommaExpression*.
 
-It is a compile-time error to discard the value of an expression if:
+It is a compile-time error to discard an expression if either of the following
+is true:
 
-* The expression is a call to a function whose declaration is annotated with
+* It is a call to a function whose declaration is annotated with
+  `@nodiscard`, or
+* It is not an assignment expression, and its type is an aggregate (a `struct`,
+  `union`, `class`, or `interface`) whose declaration is annotated with
   `@nodiscard`.
-* The value's type is an aggregate (a `struct`, `union`, `class`, or
-  `interface`) whose declaration is annotated with `@nodiscard`.
 
-The distinction between "expression" and "value" in this definition is
-significant. In particular, it means that the *value* returned from a
-`@nodiscard` function may discarded as long as the function call is enclosed in
-some other *expression*; for example:
+Note that the former is a syntax-level check, while the latter is a type-level
+check. This means that the *value* returned from a `@nodiscard` function may in
+fact be discarded, as long as the function call itself is enclosed in some
+other expression. For example:
 
 ```d
+// un-annotated type
 struct Result { int n; }
+
+// @nodiscard function
 @nodiscard Result func() { return Result(0); }
 
 void main()
 {
     import std.stdio: writeln;
 
-    // no error:
-    //   - return value of func is "used" by the comma expression
-    //   - writeln is not pure, so the comma expression can be discarded
+    // no error: the return value of func is "used" by the comma expression
     (writeln("side effect"), func());
 }
 ```
 
-By contrast, this is not possible if `@nodiscard` is applied to the return type
-instead of the function:
+By contrast, a value of a `@nodiscard` type will always cause an error if it is
+discarded, regardless of the expression that discards it:
 
 ```d
+// @nodiscard type
 @nodiscard struct Result { int n; }
+
+// un-annotated function
 Result func() { return Result(0); }
 
 void main()
 {
     import std.stdio: writeln;
 
-    // error: value of comma expression is a Result, which cannot be discarded
+    // error: the return type of func is also the type of the comma expression
     (writeln("side effect"), func());
 }
 ```
 
+In all cases, an error resulting from `@nodiscard` can be suppressed by
+prepending `cast(void)` to the offending expression, since a *CastExpression*
+is not a function call, and `void` is not an aggregate type annotated with
+`@nodiscard`.
+
 Using `@nodiscard` has no effects on the semantics of a program other than the
 ones described above. In particular:
 
-* `@nodiscard` does not affect the type of any aggregate or function it is
-  applied to, and does not participate in name mangling.
+* `@nodiscard` is not part of the type of any symbol it is applied to, and does
+  not participate in name mangling.
 * `@nodiscard` does not apply to declarations inside the body of a `@nodiscard`
   aggregate or function declaration (that is, it does not "flow through" from
   outer scopes to inner ones).
