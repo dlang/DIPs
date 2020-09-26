@@ -72,47 +72,32 @@ protection against ignored errors in all of the use-cases listed above.
 
 [Dub]: https://code.dlang.org/
 
-### Almost-pure functions
+### Functions without specified side effects
 
-There are some functions that, while not being completely `pure`, are
-nevertheless extremely unlikely to ever be called solely for their side
-effects.
+Some functions have side effects, but are nevertheless unlikely to be called
+for those side effects alone. Examples of such functions include:
 
-One example of such a function is `std.format.format` when called with
-floating-point numbers as arguments. It is not `pure`, because it accesses the
-global floating-point environment, but it is extremely unlikely to ever be
-called for that purpose alone, and ignoring its return value is very likely to
-be a programming mistake.
+* Functions that acquire resources, such as `malloc` and `mmap`.
+* Functions that generate random numbers, such as `rand` and `uniform`.
+* Generic functions that may or may not cause side effects in order to produce
+  a particular result, such as `filter` and `map`.
+
+What these functions have in common is that their side effects, if any, are
+considered implementation details, rather than being part of their documented
+behavior. As a result, calling code cannot rely on them to cause any *specific*
+side effects without risking breakage if and when those implementation details
+change.
+
+While ignoring the return values of these functions is unlikely to result in
+disaster, it is still a probable programming mistake, which `@nodiscard` could
+help guard against.
 
 This DIP does not recommend adding `@nodiscard` to any existing functions in
 Phobos or the D runtime, since doing so would constitute a breaking API change.
-However, authors of new almost-`pure` functions would benefit from having
-`@nodiscard` in the language, and existing projects (including Phobos and the D
-runtime) could still adopt `@nodiscard` on a case-by-case basis if the benefit
-were judged to be worth the potential for breakage.
-
-#### Alternatives
-
-The most straightforward way to fix a function that is almost-`pure` is to make
-it *acutally* `pure`. For `pure` functions, `@nodiscard` is not necessary,
-since the D compiler already warns about discarding their return values.
-
-While this solution is ideal in theory, it is likely to be infeasible in
-practice. Many functions in Phobos and the D runtime have been known to be
-almost-`pure` for a long time (for example, impurity of floating-point to
-string conversion was pointed out in [a Bugzilla comment in
-2014][Issue7438Comment8]). That they have not yet been made completely `pure`
-suggests that there are non-trivial obstacles in the way of doing so.
-
-As long as those obstacles exist, there is an ongoing risk of new code
-stumbling into them, leading to the continued proliferation of almost-`pure`
-functions in the D ecosystem. `@nodiscard` would allow the authors of these new
-functions to, as it were, "stop the bleeding," without necessarily addressing
-the underlying cause. Later, if and when it becomes possible for them to make
-their functions completely `pure`, and the `@nodiscard` attribute is no longer
-needed, it can be safely removed.
-
-[Issue7438Comment8]: https://issues.dlang.org/show_bug.cgi?id=7438#c8
+However, authors of new code would still benefit from having `@nodiscard` in
+the language, and existing projects (including Phobos and the D runtime) could
+adopt `@nodiscard` on a case-by-case basis if the benefit were judged to be
+worth the potential for breakage.
 
 ## Prior Work
 
