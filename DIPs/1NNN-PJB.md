@@ -226,9 +226,9 @@ will enable the new behavior; afterward, the command-line option
 * [Issue 3882 - Unused result of pure functions][Issue3882]
 * [Issue 5464 - Attribute to not ignore function result][Issue5464]
 * [Issue 20165 - Add standard @nodiscard attribute for functions][Issue20165]
-* [xxxInPlace or xxxCopy?][Thread3] (D.General)
+* [xxxInPlace or xxxCopy?][Thread1] (D.General)
 * [There is anything like nodiscard attribute in D?][Thread2] (D.Learn)
-* [Idiomatic way to express errors without resorting to exceptions][Thread1]
+* [Idiomatic way to express errors without resorting to exceptions][Thread3]
   (D.Learn)
 * [Vladimir Panteleev's `Success` type.][SuccessType]
 
