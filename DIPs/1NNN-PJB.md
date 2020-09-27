@@ -6,7 +6,7 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Paul Backus (snarwin@gmail.com)                                 |
 | Implementation: | <https://github.com/dlang/dmd/pull/11765>                       |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
