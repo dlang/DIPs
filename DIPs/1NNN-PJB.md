@@ -81,14 +81,14 @@ Unfortunately, using `out` parameters for error handling is not a
 general-purpose solution, because the programmer is not always free to change a
 function's signature to include an `out` parameter. Reasons for this include:
 
-* The function is part of an external library written in another language.
-* The function is an override of a virtual function that is part of an
-  established public API.
-* The function is used as an argument to a higher-order function such as `map`
-  or `filter` that requires a particular signature.
+* The function's signature is part of an established public API, and changing
+  it would break other code.
+* The function is used as a callback by another function that requires it to
+  have a specific signature.
+* The function is an operator overload.
 
-By contrast, `@nodiscard` can be used with any kind of function, because all
-functions have a return type.
+By contrast, `@nodiscard` can be used with any function, because all functions
+have a return type.
 
 [Dub]: https://code.dlang.org/
 
