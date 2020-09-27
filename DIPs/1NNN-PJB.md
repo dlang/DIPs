@@ -30,9 +30,10 @@ that report errors via their return values.
 ### Error handling without exceptions
 
 Currently, in D, if a function wants to send a signal to its caller that the
-caller cannot ignore, the only way to do so is to throw an exception. For a
-variety of reasons, however, the use of exceptions is not always possible or
-desirable. Examples of code that may want or need to avoid exceptions include:
+caller cannot ignore, the only way to do so in general is to throw an
+exception. For a variety of reasons, however, the use of exceptions is not
+always possible or desirable. Examples of code that may want or need to avoid
+exceptions include:
 
 * Code that is written in a language other than D (e.g., C or C++).
 * Code written in D that may be called from another language.
@@ -70,6 +71,24 @@ addresses some of the use-cases above, it has several shortcomings compared to
 
 By contrast, `@nodiscard` can be used without caveats to provide compile-time
 protection against ignored errors in all of the use-cases listed above.
+
+Another alternative is for a function to return error information via
+an `out` parameter. Since a call to the function will not compile with a
+missing argument, the calling code is forced, at compile time, to visibly
+acknowledge the possibility of an error.
+
+Unfortunately, using `out` parameters for error handling is not a
+general-purpose solution, because the programmer is not always free to change a
+function's signature to include an `out` parameter. Reasons for this include:
+
+* The function is part of an external library written in another language.
+* The function is an override of a virtual function that is part of an
+  established public API.
+* The function is used as an argument to a higher-order function such as `map`
+  or `filter` that requires a particular signature.
+
+By contrast, `@nodiscard` can be used with any kind of function, because all
+functions have a return type.
 
 [Dub]: https://code.dlang.org/
 
