@@ -64,9 +64,9 @@ not been used (where "using" means calling a particular method). While this
 addresses some of the use-cases above, it has several shortcomings compared to
 `@nodiscard`.
 
-1. It reports ignored errors at runtime rather than compile time.
-2. It cannot be used directly with functions written in other languages.
-3. It requires additional syntax in both the callee and its callers to wrap
+* It reports ignored errors at runtime rather than compile time.
+* It cannot be used directly with functions written in other languages.
+* It requires additional syntax in both the callee and its callers to wrap
    and unwrap the error code.
 
 By contrast, `@nodiscard` can be used without caveats to provide compile-time
