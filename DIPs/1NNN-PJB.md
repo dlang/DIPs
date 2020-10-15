@@ -35,7 +35,7 @@ exception. For a variety of reasons, however, the use of exceptions is not
 always possible or desirable. Examples of code that may want or need to avoid
 exceptions include:
 
-* Code that is written in a language other than D (e.g., C or C++).
+* Code that is written in a language other than D (for example, C or C++).
 * Code written in D that may be called from another language.
 * Code that does not want to depend on the D runtime.
 * Code that cannot afford the runtime performance overhead of exceptions.
@@ -99,8 +99,8 @@ for those side effects alone. Examples of such functions include:
 
 * Functions that acquire resources, such as `malloc` and `mmap`.
 * Functions that generate random numbers, such as `rand` and `uniform`.
-* Generic functions that may or may not cause side effects in order to produce
-  a particular result, such as `filter` and `map`.
+* Generic functions that may or may not cause side effects depending on their
+  arguments, such as `filter` and `map`.
 
 What these functions have in common is that their side effects, if any, are
 considered implementation details, rather than being part of their documented
