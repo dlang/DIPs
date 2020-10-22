@@ -1,4 +1,4 @@
-# Add unary operator `...`
+# Add Unary Operator `...`
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -10,7 +10,7 @@
 | Status:         | Draft                                                           |
 
 ## Abstract
-Add `...` expression to perform explicit tuple unpacking.
+Add an expression, `...`, to perform explicit tuple unpacking.
 
 ## Contents
 * [Rationale](#rationale)
@@ -22,30 +22,24 @@ Add `...` expression to perform explicit tuple unpacking.
 * [Copyright & License](#copyright--license)
 
 ## Rationale
-Static transformations like map and fold are common and very useful operations, but the mechanisms to implement them in D are awkward, and have a huge cost in compile time.
+Static transformations like _map_ and _fold_ are common and useful, but the mechanisms to implement them in D are awkward and have a high compile-time cost. The main struggle in producing efficient implementations is the tuple unpacking semantics, which usually necessitate recursive template expansions, often reaching quadratic complexity for relatively simple operations.
 
-The main struggle producing efficient implementations is the tuple unpacking semantics which usually necessitate recursive template expansions, often reaching quadratic complexity for relatively simple operations.
+It is proposed that the language implement an expression to perform explicit tuple expansions at the expression level, which can express static map/fold operations efficiently and concisely, eliminating the necessity of using template expansion tricks to implement these patterns and avoid the associated compile-time costs.
 
-It is proposed that the language implement an expression to perform explicit tuple expansions at the expression level, which can express static map/fold operations efficiently and concisely, eliminating the necessity to use template expansion tricks to implement these patterns in programs and avoid the compile time costs associated.
+This DIP proposes a unary `...` syntax, which explores an expression for tuples and expands to a tuple of expressions in which each tuple is replaced with its respective elements.
 
-This DIP proposes a unary `...` syntax which explores an expression for tuples, and expands to a tuple of expressions's with tuples replaced by their respective tuple elements.
-
-For example:
+For example, given a tuple `Tup` containing three elements:
 ```d
-(Tup*10)...  -->  ( Tup[0]*10, Tup[1]*10, ... , Tup[$-1]*10 )
+(Tup*10)...  -->  ( Tup[0]*10, Tup[1]*10, Tup[2]*10 )
 ```
 
 ## Prior Work
-C++11 implemented template parameter pack expansion with similar semantics, and it has been a great success in the language.
-
-Applied together with D's superior metaprogramming feature set, we can gain even greater value from this novel feature.
+C++11 implemented template parameter pack expansion with similar semantics, and it has been a great success in the language. Coupled with D's superior metaprogramming feature set, D users can gain even greater value from this novel feature.
 
 ## Description
-Add a unary operator `...` with precedence below other unary operations, and above binary operations.
+Add a post-fix unary operator `...` which takes the form `expr...`, where the result is a tuple of expressions.
 
-It would take the form `expr...` where the result is a tuple of expressions.
-
-The implementation will explore `expr` for any tuples present in the expression tree, and duplicate `expr` with each tuple being substitute for the respective tuple element.
+The implementation will explore `expr` for any tuples present in the expression tree, duplicate `expr` for each element in the discovered tuple, replacing the tuples with their respective elements. The result is a new tuple of `expr` duplicates with this substitution applied. If no tuples are discovered in the expression tree, an error is issued.
 
 ```d
 alias Tup = AliasSeq!(1, 2, 3);
@@ -53,16 +47,16 @@ int[] myArr;
 assert([ myArr[Tup + 1]... ] == [ myArr[Tup[0] + 1], myArr[Tup[1] + 1], myArr[Tup[2] + 1] ]);
 ```
 
-This is an effective and terse implementation of a static map applying a sequence of values to a common expression.
+This is an efficient and terse implementation of a static map applying a sequence of values to a common expression.
 
-If multiple tuples are discovered beneath `expr`, they are expanded in parallel, and they must have equal length.
+If multiple tuples are discovered beneath `expr`, they are expanded in parallel. They must have equal length, or an error is issued.
 
 ```d
 alias Values = AliasSeq!(1, 2, 3);
 alias Types = AliasSeq!(int, short, float);
 pragma(msg, cast(Types)Values...);
 
-> 1, short(2), 3.0f
+> cast(int)1, cast(short)2, cast(float)3
 
 alias OnlyTwo = AliasSeq!(10, 20);
 pragma(msg, (Values + OnlyTwo)...);
@@ -70,15 +64,15 @@ pragma(msg, (Values + OnlyTwo)...);
 > error: tuples beneath `...` expression have mismatching length
 ```
 
-Notably, existing code can take immediate advantage of the improvements in compile time by upgrading the implementation of `staticMap`, and consequently, many parts of phobos:
+Notably, existing code can take immediate advantage of the improvements in compile time by upgrading the implementation of `staticMap` and, consequently, many parts of Phobos:
 ```d
 alias staticMap(alias F, T...) = F!T...;
 ```
 
-A second form shall exist which may implement a static reduce operation with the syntax `expr [BinOp] ...`, which will expand expr as above, but joining the resulting terms by a chain of `BinOp` operators.
+A second form shall exist which may implement a static reduce operation with the syntax `expr [BinOp] ...`, which will expand `expr` as above, but joins the resulting terms by a chain of `BinOp` operators. The result of this expansion is a single expression rather than a tuple of expressions.
 
 ```d
-(Tup == 10) || ...  -->  ( Tup[0] == 10 || Tup[1] == 10 || ... || Tup[$-1] == 10 )
+(Tup == 10) || ...  -->  ( Tup[0] == 10 || Tup[1] == 10 || Tup[2] == 10 )
 ```
 
 For example:
@@ -89,11 +83,11 @@ int sum = Values + ...;
 assert(anyOnes == true && allOnes == false && sum == 6);
 ```
 
-The effect on user code will be increased readibility, a reduction in program logic indirections via 'utility' template definitions, and a dramatic improvement in compile time for sensitive applications.
+The effect on user code will be increased readibility, a reduction in program logic indirections via 'utility' template definitions, and an improvement in compile time for sensitive applications.
 
-Sensitive applications tend to include programs that perform systematic reflection, compile-time parsing, implementation of call-shim's (ie; foreign language binding), or any compile-time pre-processing that can't be strictly performed with CTFE.
+Sensitive applications tend to include programs that perform systematic reflection, compile-time parsing, implementation of call-shims (i.e., foreign language bindings), or any compile-time preprocessing that cannot be strictly performed with CTFE.
 
-Using the tools described here, an enormous quantity of boilerplate/cruft, and recursive template instantions cease to exist, which can constitute the majority of compile time in many applications.
+Through application of the tools described here, the authors predict that a significant amount of boilerplate/cruft and recursive template instantions, which can constitute the majority of compile time in many applications, will cease to exist.
 
 ### Grammar Changes
 ```diff
@@ -113,17 +107,13 @@ PostfixExpression:
 ```
 
 ## Compilation Performance
-Many D projects experience very slow compilation caused by explosive template expansion. Leading causes of template explosion tend to involve recursive expansion, and this most often looks like some form of static map (including `staticMap`), or static fold.
+D projects can experience slow compilation due to explosive template expansion. Leading causes of template explosion tend to involve recursive expansion, and this most often looks like some form of static map (including `staticMap`), or static fold.
 
-Existing solutions where `...` may be applied are implemented using recursive template instantiation. Each template instantiation populates the symbol table, and it is common that the arguments to such templates generate very long and expensive mangled names.
+Existing solutions where `...` may be applied are implemented using recursive template instantiation. Each template instantiation populates the symbol table, and it is common that the arguments to such templates generate very long and expensive mangled names. By contrast, operator `...` generates no junk symbols, so avoids the associated cost in compile time. Experimental implementation has shown compile time improvement by orders of magnitude in sensitive programs.
 
-By contrast, operator `...` generates no junk symbols at all and so avoids associated cost in compile time.
+The compile-time cost of operator `...` is negligible and strictly linear with the length of source tuples, whereas recursive template instantion has quadratic cost in compile time due to a growing number of symbol name and increased mangling costs with each iteration. In practice, this quadratic cost applies effective upper-limits on the length of lists that can be handled at compile time. The use of operator `...` will lift these practical limits substantially.
 
-Experimental implementation has shown compile time improvement by orders of magnitude in sensitive programs.
-
-Cost to compile-time of operator `...` is negligible and strictly linear with the length of source tuples, whereas recursive template instantion has quadratic cost in compile time due to growing symbol names and mangling costs with each iteration.
-
-In practise, this quadratic cost applies effective upper-limits on the length of lists that can be handled at compile time. We will lift these practical limits substantially using operator `...`.
+The experimental implementation has demonstrated the performance improvements described above.
 
 ## Breaking Changes and Deprecations
 None
