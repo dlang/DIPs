@@ -195,13 +195,17 @@ In `Tokens ;` Tokens may include `;` only in unbalanced braces. The first semico
 
 MixinStatement:
         mixin ( ArgumentList ) ;
-+       mixin [ TokenMixinArguments ,opt ] { Tokens }
-+       mixin [ TokenMixinArguments ,opt ] Tokens ;
++       mixin [ TokenMixinArguments , ] { Tokens }
++       mixin [ TokenMixinArguments   ] { Tokens }
++       mixin [ TokenMixinArguments , ] Tokens ;
++       mixin [ TokenMixinArguments   ] Tokens ;
 
     MixinDeclaration:
         mixin ( ArgumentList ) ;
-+       mixin [ TokenMixinArguments ,opt ] { Tokens }
-+       mixin [ TokenMixinArguments ,opt ] Tokens ;
++       mixin [ TokenMixinArguments , ] { Tokens }
++       mixin [ TokenMixinArguments   ] { Tokens }
++       mixin [ TokenMixinArguments , ] Tokens ;
++       mixin [ TokenMixinArguments   ] Tokens ;
 
     MixinExpression:
         mixin ( ArgumentList )
