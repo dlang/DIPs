@@ -9,8 +9,7 @@
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
-This DIP allows user-defined attributes to access the declarations onto which they are attached. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_ATTRIBUTE\_\_" to the grammar. When used as a default 
-initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
+D's user-defined attributes are already great, this DIP simple change to make them better: Let the UDA see sideways, that is, let it see what it is attached to. Letting them do this let's them eliminate many tasks the preprocessor can do that D cannot. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_ATTRIBUTE\_\_" to the grammar. When used as a default initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
 
 Note that the exact name (i.e. "ATTRIBUTE") is easily changed.
 ## Contents
@@ -88,12 +87,16 @@ This DIP proposes a simple solution to this problem: Let the UDA see sideways, t
     enum MyUDA;
     template HandleTheUDA(alias handleThis) {/* impl */}
     @MyUDA void widget() {}
-    //Ugly
+
     mixin HandleTheUDA!handleThis;
-    //Slow, we don't want to search the entire module just for one UDA
+    //^A mixin per symbol is ugly
+    
     mixin HandleTheUDA!home;
+    //^A searching mixin has the potential to be very slowwe don't want to search the entire module just for one UDA
 ```
-i.e. With this DIP, MyUDA can be declared as a template that can perform the `mixin` itself. This does not add any new dragons or side effects beyond what the original construct could do.
+i.e. This DIP enables the library writer to create a UDA that can manage the per-symbol `mixin` itself. In translating our example to this new idiom *MyUDA* would go from being an `enum` to a template as the code contained within *HandleTheUDA* is now done at the UDA instead. When the library is consumed, however, the API would be the same due to the use of default parameters (other than the lack of `mixin`s).
+
+This does not add any new dragons or side effects beyond what the original construct could do.
 ## Prior Work
 ### A pattern that already does the job
 The following pattern can be used within a UDA to find what said UDA is attached to.
@@ -101,20 +104,15 @@ The following pattern can be used within a UDA to find what said UDA is attached
 //Module is needed for obvious reasons, the line parameter makes it unique for most uses
 template FinderUDA(string name, string m = __MODULE__, int l = __LINE__)
 {
-    import std.format;
 	import std.traits;
     enum FinderUDA;
-    mixin(format!"alias mod = %s;"(m));
+    mixin("alias mod = " ~ m ~ ";");
     //Your implementation goes here
     pragma(msg, getSymbolsByUDA!(mod, FinderUDA));
 }
 
 @FinderUDA!"Hello" 
-void wow()
-{
-	import std.stdio;
-    writeln("WOW!");
-}
+void wow() { }
 ```
 In this case it prints "tuple(wow)".
 
@@ -148,7 +146,7 @@ SpecialKeyword:
     __PRETTY_FUNCTION__
 +   __ATTRIBUTE__
 ```
-It will always resolve to a string array literal.
+It will always resolve to a string array literal - A user-defined attribute may be attached to one *or more* declarations, necessitating the use of `string[]` rather than `string` (See examples below).
 ```D
 void main(string[] args)
 {
@@ -156,7 +154,7 @@ void main(string[] args)
     pragma(msg, typeof(attr), attr); //"const(string[]) and []"
 }
 ```
-This literal shall be empty unless `__ATTRIBUTE__` is used as a default initializer, in which case it shall be resolved to either to be either empty or an array literal of the fully qualified names of all declarations a UDA is attached to, if and only if (subject to existing default initializer resolution) it is resolved to an expression within said *UserDefinedAttribute*
+This literal shall be empty unless `__ATTRIBUTE__` is used as a default initializer, in which case it shall be resolved to either to be either empty or an array literal of the fully qualified names of all declarations a UDA is attached to, if and only if (subject to existing default initializer resolution behaviour) it is resolved to an expression within said *UserDefinedAttribute*
 
 ### Some specific examples:
 A templated struct
@@ -213,9 +211,11 @@ template runThisFunction(string name, string[] attrs = __ATTRIBUTE__)
     {
         import std.stdio;
         static foreach(at; attrs) {
-            mixin("alias theFunc = " ~ at ~ ";");
-            writef!"%s is running %s"(name, at);
-            theFunc();
+            {
+                mixin("alias theFunc = " ~ at ~ ";");
+                writef!"%s is running %s"(name, at);
+                theFunc();
+            }
         }  
         
     }
