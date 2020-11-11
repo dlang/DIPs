@@ -9,7 +9,7 @@
 | Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
 
 ## Abstract
-D's user-defined attributes are already great, this DIP simple change to make them better: Let the UDA see sideways, that is, let it see what it is attached to. Letting them do this let's them eliminate many tasks the preprocessor can do that D cannot. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_ATTRIBUTE\_\_" to the grammar. When used as a default initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
+D's user-defined attributes are already great, this DIP simple change to make them better: Let the UDA see sideways, that is, let it see what it is attached to. Letting them do this lets them eliminate many tasks the preprocessor can do that D cannot. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_ATTRIBUTE\_\_" to the grammar. When used as a default initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
 
 Note that the exact name (i.e. "ATTRIBUTE") is easily changed.
 ## Contents
@@ -66,7 +66,7 @@ Since most of these declarations are at or near module scope, we can simply iter
 This pattern is fine for `unittest`s: When used, there are usually many of them, and when there are not many the potential for a performance hit is mitigated by the compiler providing a list of `unittest`s within a given scope.
 
 ### The behaviour to be enabled by this DIP.
-There are, however, situations where this pattern is less than ideal. Some UDAs may be used to declare things which are both sparse and not `unittest`s. 
+There are, however, scenarios where this pattern is less than ideal. Some UDAs maybe highly expressive and yet both sparse and not applied to `unittest`s, but the cost of using them may add up in a large D program.
 
 If we setup a mechanism to get these UDA-ed symbols - assuming we know where they are i.e. a recursive search is currently not possible but scopes containing UDAs can be declared using a different UDA - we still have to iterate over *every* declaration in a given scope looking for those with our desired set of attributes. For a sparse declaration - that is, if we are looking for a few declarations out of a several thousand line file - this is not an efficient way of doing things.
 
@@ -92,7 +92,7 @@ This DIP proposes a simple solution to this problem: Let the UDA see sideways, t
     //^A mixin per symbol is ugly
     
     mixin HandleTheUDA!home;
-    //^A searching mixin has the potential to be very slowwe don't want to search the entire module just for one UDA
+    //^A searching mixin has the potential to be very slow; we don't want to search the entire module just for one UDA
 ```
 i.e. This DIP enables the library writer to create a UDA that can manage the per-symbol `mixin` itself. In translating our example to this new idiom *MyUDA* would go from being an `enum` to a template as the code contained within *HandleTheUDA* is now done at the UDA instead. When the library is consumed, however, the API would be the same due to the use of default parameters (other than the lack of `mixin`s).
 
