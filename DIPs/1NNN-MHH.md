@@ -1,4 +1,4 @@
-# Introduce `__ATTRIBUTE__`
+# Introduce `__UDA_ATTACHED_TO_DECLS__`
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -6,12 +6,12 @@
 | Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | Max Haughton mh2410@[universityofbathdomain]                    |
 | Implementation: | github.com/maxhaton/dmd  (too buggy for a PR as of writing)                          |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft  |
 
 ## Abstract
-D's user-defined attributes are already great, this DIP simple change to make them better: Let the UDA see sideways, that is, let it see what it is attached to. Letting them do this lets them eliminate many tasks the preprocessor can do that D cannot. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_ATTRIBUTE\_\_" to the grammar. When used as a default initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
+D's user-defined attributes are already great, this DIP simple change to make them better: Let the UDA see sideways, that is, let it see what it is attached to. Letting them do this lets them eliminate many tasks the preprocessor can do that D cannot. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_UDA_ATTACHED_TO_DECLS\_\_" to the grammar. When used as a default initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
 
-Note that the exact name (i.e. "ATTRIBUTE") is easily changed.
+Note that the exact name (i.e. "UDA_ATTACHED_TO_DECLS") is easily changed.
 ## Contents
 - [Let UDAs see what they are attached to](#)
   - [Abstract](#abstract)
@@ -135,7 +135,7 @@ class AGameActor : public AActor
 ```
 The game then inserts hijacks the compile to read the (in our terms) user-defined attributes from the header file, however this not only hurts compilation times but is also fairly antithetical to the "D way" of doing things.
 ## Description
-This DIP simply proposes adding to the language a new *SpecialKeyword* `__ATTRIBUTE__` to the grammar. 
+This DIP simply proposes adding to the language a new *SpecialKeyword* `__UDA_ATTACHED_TO_DECLS__` to the grammar. 
 ```diff
 SpecialKeyword:
     __FILE__
@@ -144,23 +144,23 @@ SpecialKeyword:
     __LINE__
     __FUNCTION__
     __PRETTY_FUNCTION__
-+   __ATTRIBUTE__
++   __UDA_ATTACHED_TO_DECLS__
 ```
 It will always resolve to a string array literal - A user-defined attribute may be attached to one *or more* declarations, necessitating the use of `string[]` rather than `string` (See examples below).
 ```D
 void main(string[] args)
 {
-    const attr = __ATTRIBUTE__;
+    const attr = __UDA_ATTACHED_TO_DECLS__;
     pragma(msg, typeof(attr), attr); //"const(string[]) and []"
 }
 ```
-This literal shall be empty unless `__ATTRIBUTE__` is used as a default initializer, in which case it shall be resolved to either to be either empty or an array literal of the fully qualified names of all declarations a UDA is attached to, if and only if (subject to existing default initializer resolution behaviour) it is resolved to an expression within said *UserDefinedAttribute*
+This literal shall be empty unless `__UDA_ATTACHED_TO_DECLS__` is used as a default initializer, in which case it shall be resolved to either to be either empty or an array literal of the fully qualified names of all declarations a UDA is attached to, if and only if (subject to existing default initializer resolution behaviour) it is resolved to an expression within said *UserDefinedAttribute*
 
 ### Some specific examples:
 A templated struct
 ```D
 module testmodule;
-struct Test(string name, string[] attr = __ATTRIBUTE__)
+struct Test(string name, string[] attr = __UDA_ATTACHED_TO_DECLS__)
 {
     pragma(msg, name, " says: ", attr);
     this(int l) {/*Do work*/}  
@@ -175,7 +175,7 @@ int echo(int x)
 A simple function
 ```D
 module testmodule;
-auto just(string[] at = __ATTRIBUTE__)
+auto just(string[] at = __UDA_ATTACHED_TO_DECLS__)
 {
     return at;
 }
@@ -190,7 +190,7 @@ A class
 ```D
 class wow {
     string[] cont;
-    this(string[] attr = __ATTRIBUTE__)
+    this(string[] attr = __UDA_ATTACHED_TO_DECLS__)
     {
         cont = attr;
     }
@@ -202,7 +202,7 @@ pragma(msg, __traits(getAttributes, cheese)[0]);
 ```
 Finally, eliminating a `mixin`.
 ```D
-template runThisFunction(string name, string[] attrs = __ATTRIBUTE__)
+template runThisFunction(string name, string[] attrs = __UDA_ATTACHED_TO_DECLS__)
 {
     pragma(msg, "DRT", attrs);
     enum runThisFunction;
