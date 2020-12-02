@@ -143,6 +143,9 @@ and forums; see the [Reference](#reference) section below for details.
 
 ## Description
 
+`@nodiscard` is a compiler-recognized user-defined attribute declared in the D
+runtime module `core.attribute`. It takes no arguments.
+
 An expression is considered to be discarded if and only if either of the
 following is true:
 
@@ -215,30 +218,9 @@ ones described above. In particular:
 * `@nodiscard` has no semantic effect on declarations other than aggregate and
   function declarations.
 
-### Grammar Changes
-
-```diff
-AtAttribute:
-    @ disable
-    @ nogc
-    @ live
-+   @ nodiscard
-    Property
-    @ safe
-    @ system
-    @ trusted
-    UserDefinedAttribute
-```
-
 ## Breaking Changes and Deprecations
 
-Existing code that uses `@nodiscard` as a user-defined attribute may fail to
-compile, or may compile but have its meaning silently changed. Therefore,
-acceptance of this DIP should be followed by a deprecation period, during which
-the use of `nodiscard` as a UDA name is flagged as deprecated by the compiler.
-During the deprecation period, the command-line option `-preview=nodiscard`
-will enable the new behavior; afterward, the command-line option
-`-revert=nodiscard` will disable it.
+No breaking changes or deprecations are anticipated.
 
 ## Reference
 
