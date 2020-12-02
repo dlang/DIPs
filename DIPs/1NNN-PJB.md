@@ -212,9 +212,9 @@ ones described above. In particular:
 
 * `@nodiscard` is not part of the type of any symbol it is applied to, and does
   not participate in name mangling.
-* `@nodiscard` does not apply to declarations inside the body of a `@nodiscard`
-  aggregate or function declaration (that is, it does not "flow through" from
-  outer scopes to inner ones).
+* A `@nodiscard` annotation on a function or aggregate declaration does not
+  apply to declarations inside that function or aggregate's body (that is,
+  `@nodiscard` does not implicitly propagate from outer scopes to inner ones).
 * `@nodiscard` has no semantic effect on declarations other than aggregate and
   function declarations.
 
