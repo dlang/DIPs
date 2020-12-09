@@ -29,19 +29,19 @@ that report errors via their return values.
 
 ### Error handling without exceptions
 
-Currently, in D, if a function wants to send a signal to its caller that the
-caller cannot ignore, the only way to do so in general is to throw an
-exception. For a variety of reasons, however, the use of exceptions is not
-always possible or desirable. Examples of code that may want or need to avoid
-exceptions include:
+Currently in D, the only generally-applicable way for a function to send a
+signal to its caller that the caller cannot ignore is to throw an exception.
+For a variety of reasons, however, the use of exceptions is not always possible
+or desirable. Examples of code that may want or need to avoid exceptions
+include:
 
-* Code that is written in a language other than D (for example, C or C++).
-* Code written in D that may be called from another language.
-* Code that does not want to depend on the D runtime.
-* Code that cannot afford the runtime performance overhead of exceptions.
+* code that is written in a language other than D (for example, C or C++)
+* code written in D that may be called from another language
+* code that does not want to depend on the D runtime
+* code that cannot afford the runtime performance overhead of exceptions
 
-These use-cases represent a minority of code, but not a negligible one. Of the
-1868 packages on [code.dlang.org][Dub] at the time of writing:
+These use-cases represent a non-negligible minority of code. Of the 1868
+packages on [code.dlang.org][Dub] at the time of writing:
 
 * 273 (14%) are categorized as "D language bindings" (that is, code written in other
 languages).
@@ -50,10 +50,12 @@ languages).
 * 54 (3%) are categorized as "suitable for `@nogc` use," the closest category
   available to "usable without the D runtime" or "`-betterC` compatible."
 
-The total number of packages in these categories, filtered for duplicates, is
+Filtered for duplicates, the total number of packages in these categories is
 384, or 20% of registered packages. This suggests that roughly one in five D
 projects have at least one reason to be interested in an error-handling
 mechanism that does not use exceptions.
+
+[Dub]: https://code.dlang.org/
 
 #### Alternatives
 
@@ -62,23 +64,23 @@ Panteleev][SuccessType], is for a function to return an error code wrapped in a
 `struct` that `assert`s (or `throw`s) in its destructor at runtime if it has
 not been used (where "using" means calling a particular method). While this
 addresses some of the use-cases above, it has several shortcomings compared to
-`@nodiscard`.
+`@nodiscard`:
 
 * It reports ignored errors at runtime rather than compile time.
 * It cannot be used directly with functions written in other languages.
 * It requires additional syntax in both the callee and its callers to wrap
-   and unwrap the error code.
+  and unwrap the error code.
 
 By contrast, `@nodiscard` can be used without caveats to provide compile-time
 protection against ignored errors in all of the use-cases listed above.
 
-Another alternative is for a function to return error information via
-an `out` parameter. Since a call to the function will not compile with a
-missing argument, the calling code is forced, at compile time, to visibly
-acknowledge the possibility of an error.
+Another alternative is for a function to return error information via an `out`
+parameter. Since a call to the function will not compile with a missing
+argument, the calling code is forced at compile time to visibly acknowledge the
+possibility of an error.
 
 Unfortunately, using `out` parameters for error handling is not a
-general-purpose solution, because the programmer is not always free to change a
+general-purpose solution because the programmer is not always free to change a
 function's signature to include an `out` parameter. Reasons for this include:
 
 * The function's signature is part of an established public API, and changing
@@ -87,20 +89,18 @@ function's signature to include an `out` parameter. Reasons for this include:
   have a specific signature.
 * The function is an operator overload.
 
-By contrast, `@nodiscard` can be used with any function, because all functions
+By contrast, `@nodiscard` can be used with any function because all functions
 have a return type.
-
-[Dub]: https://code.dlang.org/
 
 ### Functions without specified side effects
 
-Some functions have side effects, but are nevertheless unlikely to be called
-for those side effects alone. Examples of such functions include:
+Some functions have side effects but are nevertheless unlikely to be called for
+those side effects alone. Examples of such functions include:
 
-* Functions that acquire resources, such as `malloc` and `mmap`.
-* Functions that generate random numbers, such as `rand` and `uniform`.
-* Generic functions that may or may not cause side effects depending on their
-  arguments, such as `filter` and `map`.
+* functions that acquire resources, such as `malloc` and `mmap`
+* functions that generate random numbers, such as `rand` and `uniform`
+* generic functions that may or may not cause side effects depending on their
+  arguments, such as `filter` and `map`
 
 What these functions have in common is that their side effects, if any, are
 considered implementation details, rather than being part of their documented
@@ -108,12 +108,12 @@ behavior. As a result, calling code cannot rely on them to cause any *specific*
 side effects without risking breakage if and when those implementation details
 change.
 
-While ignoring the return values of these functions is unlikely to result in
-disaster, it is still a probable programming mistake, which `@nodiscard` could
+Though ignoring the return values of these functions is unlikely to result in
+disaster, it is still a probable programming mistake which `@nodiscard` could
 help guard against.
 
 This DIP does not recommend adding `@nodiscard` to any existing functions in
-Phobos or the D runtime, since doing so would constitute a breaking API change.
+Phobos or the D runtime since doing so would constitute a breaking API change.
 However, authors of new code would still benefit from having `@nodiscard` in
 the language, and existing projects (including Phobos and the D runtime) could
 adopt `@nodiscard` on a case-by-case basis if the benefit were judged to be
@@ -149,23 +149,23 @@ runtime module `core.attribute`. It takes no arguments.
 An expression is considered to be discarded if and only if either of the
 following is true:
 
-* It is the top-level *Expression* in an *ExpressionStatement*, or
-* It is the *AssignExpression* on the left-hand side of the comma in a
+* it is the top-level *Expression* in an *ExpressionStatement*, or
+* it is the *AssignExpression* on the left-hand side of the comma in a
   *CommaExpression*.
 
 It is a compile-time error to discard an expression if either of the following
 is true:
 
-* It is a call to a function whose declaration is annotated with
+* it is a call to a function whose declaration is annotated with
   `@nodiscard`, or
-* It is not an assignment expression, and its type is an aggregate (a `struct`,
+* it is not an assignment expression, and its type is an aggregate (a `struct`,
   `union`, `class`, or `interface`) whose declaration is annotated with
   `@nodiscard`.
 
 Note that the former is a syntax-level check, while the latter is a type-level
 check. This means that the *value* returned from a `@nodiscard` function may in
-fact be discarded, as long as the function call itself is enclosed in some
-other expression. For example:
+fact be discarded as long as the function call itself is enclosed in some other
+expression. For example:
 
 ```d
 // un-annotated type
@@ -204,11 +204,11 @@ void main()
 
 In all cases, an error resulting from `@nodiscard` can be suppressed by
 prepending `cast(void)` to the offending expression, since a *CastExpression*
-is not a function call, and `void` is not an aggregate type annotated with
+is not a function call and `void` is not an aggregate type annotated with
 `@nodiscard`.
 
-Using `@nodiscard` has no effects on the semantics of a program other than the
-ones described above. In particular:
+Using `@nodiscard` has no effects on the semantics of a program other than
+those described above. In particular:
 
 * `@nodiscard` is not part of the type of any symbol it is applied to, and does
   not participate in name mangling.
