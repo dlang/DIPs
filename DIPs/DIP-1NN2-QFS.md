@@ -28,6 +28,7 @@ Notably, it enables using idiomatic pseudo-code found in the D Language Specific
 * [Rationale](#rationale)
 * [Prior Work / Alternatives](#prior-work--alternatives)
 * [Description](#description)
+* [Examples](#examples)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Reference](#reference)
 * [Copyright & License](#copyright--license)
@@ -90,19 +91,27 @@ Currently, the `mixin` keyword can be followd by an opening parenthesis, constit
 depending on the context the keyword occurs in;
 or it can be followed by an identifier, constituting a mixin template instantiation.
 
-The DIP suggests adding another case, the token-based mixin:
-When the `mixin` keyword is followed by an opening (square) bracket, it constitutes a token-based mixin declaration or statement,
-depending on the context the keyword occurs in.
-Between brackets, a comma-separated list of possibly assigned identifiers follows.
-Between braces, any tokens can be entered with special treatment of brace tokens that nest the same way they nest in `q{}` literals.
-If no opening brace follows, any tokens can be entered with special treatment of brace tokens that nest the same way they nest in `q{}` literals,
-but tokens are considered up to the next semicolon not nested in braces.
-This is so that token-based mixins can be used to define lambda expressions with the brace syntax.
+The DIP suggests adding another form, the token-based mixin:
+When the `mixin` keyword is followed by an opening (square) bracket, it introduces a token-based mixin declaration or statement,
+depending on the context the keyword occurs in:
+1. Between brackets, a comma-separated list of possibly assigned identifiers follows.
+2. Between braces, any tokens can be entered with special treatment of opening and closing brace tokens that nest the same way they nest in `q{}` literals.
+3. If no opening brace directly follows, any tokens up to the first unnested semicolon token are part of the token-based mixin.
 
-Every token and all white space between the braces is being replaced by a string literal containing the token or white space,
-except for identifier tokens that coincide with one of the identifiers listed between the braces;
+Here, a semicolon token is considered _nested_ when unclosed opening parenthesis, bracket or brace tokens are between the mixin keyword and that semicolon.
+(Since semicolons, braces and others can be part of comments or string literals which are tokens by themselves,
+formally, the semicolons and such obviously meant are unambiguously referred to as respective _tokens._)
+
+Every token and all white space up to the end of the mixin is being replaced by a string literal containing the token or white space,
+except for identifier tokens that coincide with one of the identifiers listed between the brackets;
 in that case, the idientifer token remains unchanged.
 These string literal and identifer expressions are being concatenated and the result of the concatenation mixed in.
+
+The _nested semicolon clause_ is necessary so that token-based mixins can be used to construct definitions and statements that naturally contain them:
+* Examples for statements with semicolons between pranetheses are `for` and `foreach` statements.
+* An example for an expression with semicolons between braces are non-shorthand lambda expressions.
+
+## Examples
 
 As an easy to follow example, consider
 ```D
@@ -171,19 +180,41 @@ unittest
 (Notice that `X = T` is not a feature.
 Leaving it out and replacing `X` by `T` lead to compiler errors at the time of the writing of this DIP.)
 
-The _semicolons in unbalanced braces rule_ is necessary to handle otherwise surprising cases correctly.
+The _nested semicolon clause_ is necessary to handle otherwise surprising cases correctly.
 ```D
 auto opBinary(string op)(...)
 {
-    enum value = mixin[op] (ref v) { return v op 1; } (10 op 2);
-    //                     ––––––––––––––––––––––––––––––––––––
+    mixin[op] enum value = (ref v) { return v op 1; } (10 op 2);
+    //       ––––––––––––––––––––––––––––––––––––––––––––––––––
 
     // Equivalent to:
-    enum value = mixin("(ref v) { return v ", op, " 1; } (10 ", op, " 2);");
+    mixin(" enum value = (ref v) { return v ", op, " 1; } (10 ", op, " 2);");
 }
 ```
 The tokens that are part of the mixin expressions are the ones above dashes.
 The semicolon after `1` does not end the mixin expression, since the opening brace before `return` is not closed yet.
+
+Using semicolon-terminated token-based mixins on control structures and definitions with braces is legal
+becasue making them illegal is unnecessarily complicated and programmers will probably abstain from writing such code anyways
+as it looks unfamiliar:
+```D
+{
+    mixin[x]
+        while (condition)
+        {
+            statements;
+        };
+    after_loop;
+}
+```
+The semicolon after the `while` loop's block is necessary to end the mixin.
+Forgetting it, the compiler will consider `after_loop` as part of the mixin
+which is unproblematic, if `x` does not appear in it.
+If no statement like `after_loop;` is present, the code cannot compile because of an unmathced closing brace.
+
+No such problems exist when the whole `while` loop is enclosed in braces
+which is the natural thing to do.
+Also, for a loop with a unbraced single-statment, no such problems exist.
 
 ### About Mixin Statements, Declarations, and Expressions
 
