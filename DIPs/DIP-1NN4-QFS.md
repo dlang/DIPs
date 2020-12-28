@@ -10,10 +10,10 @@
 
 ## Abstract
 
-Functions that have function pointers or delegates as parameters are a breakpoint in `pure`, `nothrow`, `@safe`, and `@nogc` code.
-This DIP proposes to change what the attributes `pure`, `nothrow`, `@safe`, and `@nogc` formally mean.
-It will only affect aforementioned functions.
-The goal is to make the compiler accept more code that behaves in accordance to the attributes.
+Functions that have function pointers or delegates as parameters are a road-bump in `pure`, `nothrow`, `@safe`, and `@nogc` code.
+This DIP proposes to relax the constraints that the attributes `pure`, `nothrow`, `@safe`, and `@nogc` impose.
+Practically, it will only affect aforementioned functions with function pointers or delegates as parameters.
+The goal is to make the compiler formally accept more code that factually behaves in accordance to the attributes.
 
 ### Reference
 
@@ -37,13 +37,36 @@ The goal is to make the compiler accept more code that behaves in accordance to 
 
 The attributes `pure`, `nothrow`, `@safe`, and `@nogc` will be called *warrant attributes* in this DIP.
 In (pseudo) code, `@attribute` means any subset of `pure`, `nothrow`, `@safe`, and `@nogc`.
-Notably absent are `@system` and `@trusted` as they do not warrant anything.
+Notably absent are `@system` and `@trusted` as they do not warrant any compiler-side checks.
 
-A *higher-order function*, or *functional* for short, is a function (in the concrete case of the D programming language: anything that can be called, including functions, function pointers, delegates, and `opCall`) that takes takes one or more functions (in the concrete case of the D programming language: function pointers or delegates) as arguments.
+A *higher-order function*, or *functional* for short, is anything that can be called
+(including any kind of functions, function pointers, delegates, and `opCall`)
+that takes one or more function pointers or delegates as arguments.
 
-In the context of a higher-order function, that function may also be referenced as *the functional*.
-Its parameters, which happen to be function pointers or delegates, are called *parameter functions*, or *callbacks* for short.
-When the functional is called, the arguments on parameter functions are called *argument functions*.
+When a higher-order function is called, there are three notable entities to commonly refer to:
+* The *context function,* or *context* for short, is the function that contains the call expresion.
+* The *functional* is the higher-order function that is called.
+* The *parameter functions* are the variables declared by the functional's parameter list.
+* The *argument functions* or *callbacks* are the values plugged-in in the call expression.
+
+Although not an entity in the above sense, the functional's *parameter types* will be commonly referred to as such.
+
+An illustration of these are given in this code snippet:
+```D
+alias ParameterType = void function();
+void functional(ParameterType parameterFunction)
+{
+    parameterFunction();
+}
+
+void context()
+{
+    alias callback = { };
+    functional(callback);
+}
+```
+
+When referred to one of these entities as having a warrant attribute, this means that attribute is attatched to their declaration or their type.
 
 ## Rationale
 
@@ -55,105 +78,62 @@ chances of the DIP being understood and carefully evaluated.
 
 ----
 
-Non-template higher-order functions are a blocker in a warrant attribute context, especially in libraries.
-A program provably satisfying the conditions of a warrant attribute may be rejected by the compiler
-because the notions of the warrant attributes are too strictly enforced.
+Higher-order functions are a blocker in a warrant attribute context, especially in libraries.
+A execution of a context function may provably satisfy the (intuitive) conditions of a warrant attribute, but does not compile
+because the formal conditions of the warrant attributes are too narrow and not met.
 
-### Illustration
+Warrant attributes on a function(al) and on a functional's parameter mean very differnt things:
+* On a function, they give rise to a *guarantee* the function makes, like a `@nogc` function will not allocate GC memory.
+(When a function returns a delegate or function pointer, warrant attributes on such a return type are a guarantee of that function, too.)
+* Only on a functional's parameter type, warrant attributes give rise to a *requirement* that the functional *needs* to work properly.
+As an example, consider a functional requiring a `pure` parameter.
+That might be to make use of memoization or the fact that its results are [unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions).
+In the case of memoization, failing the requirement will not result in a compile error, but unexpected behavior.
+In most cases, however, the requirement is merely to match the functionals guarantee.
 
-The following code ([this file](DIP-1NNN-QS_example_lazy.d)) using `lazy` compiles.
-Note that the calls `fst()` and `snd()` are not necessarily `pure` as seemingly required by the signature of `secondTry`:
+In the current state of the language,
+a funcional cannot have strong guarantees and weak requirements at the same time.
+Most programmers opt against warrant attributes, i.e. for weak requirements
+and therefore needlessly weaken the guarantees.
 
-```d
-module test;
+The proposed changes lift this restriction.
+Attributes on parameter types would only be needed when the requrements are needed
+for the implementation of the functional to work as intended.
+The case for the merely satisfy the guarantee stated by its own attributes will be handled by the type system.
 
-int secondTry(lazy int fst, lazy int snd) pure
-{
-    if (auto result = fst()) return result;
-    return snd();
-}
+In the author's estimation, the most well-known functional probaly is [`opApply`](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes).
+While some iteration can be done using the range interface (`empty`, `front`, `popFront`),
+using `opApply` is far more general in its applications.
+(An example where `opApply` cannot be replaced by the range interface is [`std.range.lockstep`](https://dlang.org/phobos/std_range.html#lockstep).)
+While some issues of `opApply` are specific to it
+(like that templated `opApply` cannot be used in `foreach` loops),
+the part concerning attributes is not.
 
-int pureExample() pure
-{
-    return secondTry(1 - 1, 2);
-}
+In the current state of the language,
+a warrant attribute on a functional guarantees that *all* calls of the functional will result in an execution complying to the warrant attribute.
+As an example, a call to a `@nogc` annotated `opApply` will not allocate GC memory.
+To make that work, the type of the parameter of `opApply` must be a `@nogc` delegate (at least when the parameter is called which it almost always is).
+This limits the usage of that `opApply` drastically.
+In a context where GC allocation is allowed (i.e. it is not `@nogc`), it cannot allocate in the `foreach` body
+even if that would be intuitively unproblematic since the context allowes GC allocation.
+The only easy solution is to remove the `@nogc` attribute from `opApply` and its parameter.
 
-int impureExample()
-{
-    int readInt()
-    {
-        import std.stdio : write, readf;
-        write("value: ");
-        int result;
-        if (readf!" %s"(result)) return result;
-        assert(0);
-    }
-    return secondTry(readInt(), readInt());
-}
-```
+Using `lockstep` the indended way prevents any context from carrying any warrant attributes,
+i.e. `lockstep` is a blocker when it comes to warrant attributes
+due to the conditions of the warrant attributes being too narrow.
+The delegate created by the lowering of the `foreach` loop may have any
+warrant attributes inferred by the compiler, but `opApply` ignores those in its parameter's type.
+Because the parameter function is called, its lack of any warrant attributes necessitates that
+the functional (i.e. `opApply` itself) must lack the attributes, too.
 
-This is because
-* All operations in the definiton of `secondTry` comply with the conditions of `pure`,
-* *under the assumption* that evaluations of `lazy` parameters comply with the conditions of `pure`.
+The proposed change is similar to the relaxation of `pure` allowing `pure` functions to modify
+anything reachable through given parameters.
+Those are called *weakly pure* functions.
+The way weak purity allowed for more *strongly pure* functions,
+the changes proposed by this DIP allow more functions carrying any warrant attribute.
 
-Marking `impureExample` with `pure` will cause an error.
-However, the error is issued in `impureExample`, and not in `secondTry`.
-The compiler pretends the calls of `readInt` to be happening at `return secondTry(readInt(), readInt());` while they actually do not.
-This is exactly the interpretation this DIP proposes for parameter functions.
-The `lazy` parameters are just a special case of delegates with syntactic sugar.
-
-The equivalent code shown below ([this file](DIP-1NNN-QS_example_dels.d)) using a variadic array of delegates does not compile.
-Note that lazy variadic functions use an array of delegates.
-While the calling of the variadic functional has syntactic sugar,
-inside the functional, the callbacks are not treated any different from regular delegates
-(see [this file](DIP-1NNN-QS_example_dels.d)).
-
-```d
-module test;
-
-int secondTry(int delegate()[] tries...) pure
-{
-    foreach (tr; tries)
-        if (auto result = tr())
-            return result;
-    return 0;
-}
-
-int pureExample() pure
-{
-    return secondTry(1 - 1, 2);
-}
-
-int impureExample()
-{
-    int readInt()
-    {
-        import std.stdio : write, readf;
-        write("value: ");
-        int result;
-        if (readf!" %s"(result)) return result;
-        assert(0);
-    }
-    return secondTry(readInt(), readInt());
-}
-```
-There is no way to apply `pure` to `secondTry` and its parameter functions that makes the example compile:
-
-* With `pure` absent from the signature of `secondTry` ([this file](DIP-1NNN-QS_example_impure.d)), the compiler states:
-```
-Error: pure function test.pureExample cannot call impure function test.secondTry
-```
-* With `pure` attached to `secondTry` but absent from its callbacks ([this file](DIP-1NNN-QS_example_pure1.d)), the compilation fails, too:
-```
-Error: pure function test.secondTry cannot call impure delegate fst
-Error: pure function test.secondTry cannot call impure delegate snd
-```
-* With `pure` attached to `secondTry` and its callbacks ([this file](DIP-1NNN-QS_example_pure2.d)), the error is
-```
-Error: function test.secondTry(int delegate() pure fst, int delegate() pure snd) is not callable \
-           using argument types (int delegate() @system, int delegate() @system)
-       cannot pass argument &readInt of type int delegate() @system to parameter int delegate() pure fst
-```
+At the point where the call expression is, the compiler has all the necessary information via the type system
+to determine if the execution of it will comply with the warrant attributes of the context.
 
 ## Description
 
