@@ -24,6 +24,7 @@ The goal is to make the compiler formally accept more code that factually behave
 1. [Discussion: `opApply` with Type Inference and Templates?](https://forum.dlang.org/post/zkovjshfktznepertjay@forum.dlang.org)
 1. [Discussion: Parameterized delegate attributes](https://forum.dlang.org/post/ovitindvwuxkmbxufzvi@forum.dlang.org)
 1. [Discussion: `@nogc` with `opApply`](https://forum.dlang.org/thread/erznqknpyxzxqivawnix@forum.dlang.org)
+1. [Issue: `opApply` and nothrow don't play along](https://issues.dlang.org/show_bug.cgi?id=14196)
 
 ## Contents
 
@@ -78,17 +79,17 @@ chances of the DIP being understood and carefully evaluated.
 
 ----
 
-Higher-order functions are a blocker in a warrant attribute context, especially in libraries.
-A execution of a context function may provably satisfy the (intuitive) conditions of a warrant attribute, but does not compile
-because the formal conditions of the warrant attributes are too narrow and not met.
+Higher-order functions are a disruption in a warrant attribute context.
+The execution of a context function may provably satisfy the conditions of a warrant attribute,
+but is considered illegal because the formal conditions of the warrant attribute not met.
 
-Warrant attributes on a function(al) and on a functional's parameter mean very differnt things:
-* On a function, they give rise to a *guarantee* the function makes, like a `@nogc` function will not allocate GC memory.
-(When a function returns a delegate or function pointer, warrant attributes on such a return type are a guarantee of that function, too.)
+Warrant attributes on a functional (or, in fact, on any function) and on a functional's parameter mean very differnt things:
+* On a function, they give rise to a *guarantee* the function makes. E.g. a `@nogc` function will not allocate GC memory.
+(When a function returns a delegate or function pointer, warrant attributes on its return type are a guarantee of that function, too.)
 * Only on a functional's parameter type, warrant attributes give rise to a *requirement* that the functional *needs* to work properly.
-As an example, consider a functional requiring a `pure` parameter.
-That might be to make use of memoization or the fact that its results are [unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions).
-In the case of memoization, failing the requirement will not result in a compile error, but unexpected behavior.
+As an example, consider a functional taking a `pure` delegate parameter.
+The functional might be to make use of memoization or the fact that its parameter's results are [unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions).
+In the case of memoization, omitting the requirement will not result in a compile error, but unexpected behavior.
 In most cases, however, the requirement is merely to match the functionals guarantee.
 
 In the current state of the language,
@@ -99,12 +100,13 @@ and therefore needlessly weaken the guarantees.
 The proposed changes lift this restriction.
 Attributes on parameter types would only be needed when the requrements are needed
 for the implementation of the functional to work as intended.
-The case for the merely satisfy the guarantee stated by its own attributes will be handled by the type system.
+The case for merely satisfying the guarantee stated by its own attributes will be handled by the type system.
 
+<!--
 In the author's estimation, the most well-known functional probaly is [`opApply`](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes).
 While some iteration can be done using the range interface (`empty`, `front`, `popFront`),
 using `opApply` is far more general in its applications.
-(An example where `opApply` cannot be replaced by the range interface is [`std.range.lockstep`](https://dlang.org/phobos/std_range.html#lockstep).)
+(An example, where `opApply` cannot be replaced by the range interface, is [`std.range.lockstep`](https://dlang.org/phobos/std_range.html#lockstep).)
 While some issues of `opApply` are specific to it
 (like that templated `opApply` cannot be used in `foreach` loops),
 the part concerning attributes is not.
@@ -125,15 +127,22 @@ The delegate created by the lowering of the `foreach` loop may have any
 warrant attributes inferred by the compiler, but `opApply` ignores those in its parameter's type.
 Because the parameter function is called, its lack of any warrant attributes necessitates that
 the functional (i.e. `opApply` itself) must lack the attributes, too.
-
-The proposed change is similar to the relaxation of `pure` allowing `pure` functions to modify
-anything reachable through given parameters.
-Those are called *weakly pure* functions.
-The way weak purity allowed for more *strongly pure* functions,
-the changes proposed by this DIP allow more functions carrying any warrant attribute.
+-->
 
 At the point where the call expression is, the compiler has all the necessary information via the type system
 to determine if the execution of it will comply with the warrant attributes of the context.
+
+## Prior Work
+
+There is no prior work in other languages known to the autor.
+
+The proposed changes are very specific to the D programming language.
+Yet they bear some similarity to the relaxation of `pure` allowing `pure` functions to modify
+any mutable value reachable through its parameters.
+Those `pure` functions are called *weakly pure* in contrast to *strongly pure* ones
+that cannot possibly modify values outside of them through their parameters.
+The same way letting weakly pure functions be annotated `pure` allowed for more *strongly pure* functions,
+the changes proposed by this DIP allow more functions carrying a warrant attribute.
 
 ## Description
 
@@ -146,110 +155,91 @@ strengthen the proposal and should be considered mandatory.
 
 ----
 
-It takes into account that it is *known at compile-time* whether the functional is being called with argument callbacks which comply with `@attribute`.
-By this proposal, the definition of an `@attribute` functional must *conserve* `@attribute`
-rather than *bluntly comply* with `@attribute`:
+### Attribute Checking inside Functionals
 
-For `@attribute` *argument* functions, calling the functional complies with `@attribute`;
-for non-`@attribute` *arguments*, the call might not complies with `@attribute`,
-even though `@attribute` is attached to the declaration of the functional.
+When the a function is annotated with a warrant attribute, each statement must satisfy certain conditions.
+Among those conditions is, for any warrant attribute, that the function may only call functions
+(*function* referring to anything callable here)
+that are annotated with the same attribute.
+Exceptions to this are `debug` blocks and that `@safe` functions may call `@trusted` functions, too.
+(Note that from a calling perspective, i.e. from a rquirement perspective, `@trusted` and `@safe` are the same.
+For that reason, `@trusted` makes no sense on a parameter delegate or function pointer type.)
 
-----
+This DIP proposes that calls to delegate or function pointer parameter are not to be checked,
+i.e. considered to be `pure`, `@safe`, `nothrow`, and `@nogc` regardless of the attributes attatched to the delegate or function pointer type.
+(Note that the check omission only applies to parameters to the function; any other delegates and function pointers will be checked as is currently the case.)
 
-For any funcion, a warrant attribute should require:
+### Attribute Inference for Functional Templates
 
-* All operations in the definiton comply with the conditions of the warrant attribute,
-* *under the assumption* that calls to any parameter functions comply with the conditions of the warrant attribute.
+When inferring attributes for function templates,
+calls to delegate or function pointer type parameters are considered to be `pure`, `@safe`, `nothrow`, and `@nogc`.
+(Note that this only applies to parameters; calling of any other delegates and function pointers will be checked as is currently the case.)
 
-In fact, `lazy` parameters behave already like that;
-under the hood, `lazy` parameters are delegates.
+### Attribute Checking inside Contexts
 
-The assumption is worthless for functions that are not functionals.
+When calling a functional, the type of the delegate and/or function pointer arguments are known.
+In the context of a warrant attribute, a call to a functional is legal if, and only if, the functional is annotated with that warrant attibute and all argument types are.
+(As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute, i.e. stating a requirement,
+and the supplied argumant fails to have this warrant attribute, it is a type mismatch.)
 
-REVISE
+## Examples
 
-Similar to unique construction: a pure function can be strongly or weakly pure.
+Iterating multiple ranges in lockstep with `ref` access cannot be achived (not easily, at least) using the usual range interface (`empty`, `front`, `popFront`);
+it requires `opApply`.
+Here we will observe how the naïve approach fairs with respect to warrant attributes and how to make `opApply` admit warrant attributes properly.
 
-Functionality of `opApply`, which the range constructs (`empty`, `front`, `popFront`) cannot replace, are e.g.:
-* Varying number of variables (like one with index and one without);
-[`std.range : enumerate`](https://dlang.org/library/std/range/enumerate.html) cannot help every time and
-it is clumbersome to use compared to arrays and slices.
-* Recursive `opApply`s.
-
-We will stick to `opApply` as an example, because for indexed iteration, there is currently no alternative to `opApply`.
-Consider a construct using `opApply` like this:
-```d
-struct Example(T)
+The naïve approach (less interesting parts hidden):
+```D
+struct SimpleLockstep(Ranges...)
 {
-    void opApply(scope int delegate(size_t, T) callback)
+    struct SimpleLockstep(Ranges...)
+{
+    Ranges ranges;
+
+    ...
+    alias ElementTypes = ...;
+
+    int opApply(const scope int delegate(ref ElementTypes) foreachBody)
     {
-        size_t index;
-        T value;
-        // implemenation
-        if (auto result = callback(index, value)) return result;
-        // implemenation
+        import std.range.primitives : front; // needed for slices to work as ranges
+        for (; !anyEmpty; popFronts)
+        {
+            if (auto result = mixin("foreachBody(", frontCalls, ")"))
+                return result;
+        }
         return 0;
     }
-}
-```
-Note that while the surrounding `struct` is a template, `opApply` is not.
-The `callback` is implicitely declared `@system` and with no other attributes,
-and because `opApply` calls it, it will itself be `@system` and with no other attributes.
 
-Currently, attaching `@attribute` to `opApply` requires to also attach `@attribute` on the callback (or more) to compile.
-
-In a closed context, this may be an option.
-As soon as `opApply` is being called from different `@attribute` contexts,
-one currently has no solution to that but to overload `opApply`
-with the same implementation only differing in attributes on `opApply` and the `callback`; or
-to make `opApply` a template, which disables type inference of the iteration variables declared in `foreach`.
-
-### Proposed solution
-
-For code generation and optimizations of the functional, the compiler can only rely on the attributes in the `@attribute`s in the intersection of the functional and the `callback`s. (For functions without function parameters, the intersection is exactly the `@attribute`s of the function.)
-
-### Examples
-
-### General Case
-
-In almost all cases, a part of a program cannot be marked with `@attribute` when a functional is part of the program.
-The cases excluded from the aforementioned are those where:
-* the parameter function *must* have the desired attributes anyway, or
-* the parameter function is not being called by the functional.
-
-Those cases are rare. Usually, the functional includes calles of its parameter functions.
-
-In case of a library, espacially including Phobos, it is necessary to support any `@attribute` when reasonably possible.
-
-### Callbacks with attributes
-
-There are still cases, where callbacks with attributes would be used. E.g. a functional may special case (i.e. require in the concrete overload) an `@attribute` callback.
-
-```d
-void functional(void delegate() callback, ref string[] log) pure nothrow
-{
-    // still necessary, callback need not be pure or nothrow
-    log ~= "call functional";
-    try
-    {
-        callback();
-    }
-    catch (Exception e)
-    {
-      log ~= "Exception: " ~ e.msg;
-      throw e;
-    }
-}
-
-// optimized: no try overhead; actually is nothrow in any case
-void functional(void delegate() callback nothrow, ref string[] log) pure nothrow
-{
-    log ~= "call functional";
-    callback();
+    bool anyEmpty() { ... }
+    static string frontCalls() in (__ctfe) { ... }
+    void popFronts() { ... }
 }
 ```
 
-### Workarounds
+In principle, being member of an aggregate template, `opApply` has its warrant attributes inferred.
+Using `anyEmpty` and `popFronts` is unproblematic as they have their warrant attributes inferred, too.
+But `opApply` calling its parameter `foreachBody` having a delegate type that is not annotated with any warrant attribute,
+attribute inference will yield no warrant attribute for `opApply`, too.
+
+This means that in a context annotated with any warrant attribute,
+`SimpleLockstep` cannot be used.
+(It can be constructed, but `foreach` through its lowering to `opApply` cannot be called.)
+For exaple, a `@safe` context
+plugging in ranges with `@safe` (or `@trusted`) interfaces
+cannot make use of `SimpleLockstep` because `opApply` is not annotated / inferred `@safe`,
+even though all operations being performed are `@safe`.
+
+With this DIP, `opApply` has warrant attributes inferred based on what the range interfaces of the supplied ranges can guarantee.
+(This is the best it can theoretically do.)
+In the aforementioned case, `opApply` will be inferred `@safe`.
+The question whether a call to `opApply` is legal in a `@safe` context is determined by the particular argument.
+If a `@safe` context plugs in a `@system` argument, that call
+
+## Alternatives
+
+a
+
+----
 
 Let `R` be a type and `Types` be a sequence of types; consider
 ```d
