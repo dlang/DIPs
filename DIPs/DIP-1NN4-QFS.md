@@ -37,7 +37,6 @@ The goal is to make the compiler formally accept more code that factually behave
 ## Terms and Definitions
 
 The attributes `pure`, `nothrow`, `@safe`, and `@nogc` will be called *warrant attributes* in this DIP.
-In (pseudo) code, `@attribute` means any subset of `pure`, `nothrow`, `@safe`, and `@nogc`.
 Notably absent are `@system` and `@trusted` as they do not warrant any compiler-side checks.
 
 A *higher-order function*, or *functional* for short, is anything that can be called
@@ -101,33 +100,6 @@ The proposed changes lift this restriction.
 Attributes on parameter types would only be needed when the requrements are needed
 for the implementation of the functional to work as intended.
 The case for merely satisfying the guarantee stated by its own attributes will be handled by the type system.
-
-<!--
-In the author's estimation, the most well-known functional probaly is [`opApply`](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes).
-While some iteration can be done using the range interface (`empty`, `front`, `popFront`),
-using `opApply` is far more general in its applications.
-(An example, where `opApply` cannot be replaced by the range interface, is [`std.range.lockstep`](https://dlang.org/phobos/std_range.html#lockstep).)
-While some issues of `opApply` are specific to it
-(like that templated `opApply` cannot be used in `foreach` loops),
-the part concerning attributes is not.
-
-In the current state of the language,
-a warrant attribute on a functional guarantees that *all* calls of the functional will result in an execution complying to the warrant attribute.
-As an example, a call to a `@nogc` annotated `opApply` will not allocate GC memory.
-To make that work, the type of the parameter of `opApply` must be a `@nogc` delegate (at least when the parameter is called which it almost always is).
-This limits the usage of that `opApply` drastically.
-In a context where GC allocation is allowed (i.e. it is not `@nogc`), it cannot allocate in the `foreach` body
-even if that would be intuitively unproblematic since the context allowes GC allocation.
-The only easy solution is to remove the `@nogc` attribute from `opApply` and its parameter.
-
-Using `lockstep` the indended way prevents any context from carrying any warrant attributes,
-i.e. `lockstep` is a blocker when it comes to warrant attributes
-due to the conditions of the warrant attributes being too narrow.
-The delegate created by the lowering of the `foreach` loop may have any
-warrant attributes inferred by the compiler, but `opApply` ignores those in its parameter's type.
-Because the parameter function is called, its lack of any warrant attributes necessitates that
-the functional (i.e. `opApply` itself) must lack the attributes, too.
--->
 
 At the point where the call expression is, the compiler has all the necessary information via the type system
 to determine if the execution of it will comply with the warrant attributes of the context.
@@ -238,53 +210,6 @@ If a `@safe` context plugs in a `@system` argument, that call
 ## Alternatives
 
 a
-
-----
-
-Let `R` be a type and `Types` be a sequence of types; consider
-```d
-auto functional(R delegate(Types) paramFunction);
-```
-for the following examples of workarounds.
-
-#### Not use attributes at all
-
-While obvious, this is being mentioned because many projects actually choose this option.
-One goal of this DIP is to make attributes more applicable and increase the advantages of using them.
-
-#### Overloads
-
-There are currently up to 16 overloads to make.
-While `mixin` is an option for avoiding repetition,
-changes in the code, which make some `@attribute` invalid,
-have to be accompanied with removal of the overloads.
-Changes in the code that make some `@attribute` valid,
-must be accompanied by addition of suitable overloads.
-Such code has low maintainablilty.
-
-One could generate the overloads based on the `@attribute`s of the `mixin` code
-under the initially stated assumption.
-That creates even more obfuscation.
-
-#### Templates
-
-As templates have attributes inferred, functional-templates are not considered by this DIP.
-
-A possible workaround for is
-```d
-auto functional(DelegateType : R delegate(Types))(DelegateType paramFunction);
-```
-The `DelegateType` template parameter will bind any `R delegate(Types) @attribute`.
-
-Templates are no panacea; they have drawbacks that on varios occasions cannot be taken.
-The autor considers it beyond this DIP to describe the general drawbacks of templates.
-Note especially that one may decide not to write templates in a project at all.
-
-One particular drawback is that type inference of `foreach` variables is only possible
-when `opApply` is not a template.
-
-While conveniance may step behind, template-code that uses `foreach` without explicit types
-and Voldemort types rise the need for type inference.
 
 ## Breaking Changes and Deprecations
 
