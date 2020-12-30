@@ -147,7 +147,7 @@ GC allocating may at worst slow down a program unexpectedly due to the GC issuin
 However, the attributes `pure` and `nothrow` are of interest, even in an impure context or a context where throwing exceptions is allowed.
 * The return value of a `pure` operation can be unique, allowing for implicit casts that are not possible otherwise.
 In this case, if the call to the functional is impure due to calling it with an impure callback, the code is illegal.
-The context mey expects a `pure` execution for memoization.
+The context may expect a `pure` execution for memoization.
 * A `nothrow` operation cannot fail recoverably.
 It either fails irrecoverably or succeeds; in either case, no rollback operation is necessary.
 This fact may be used by the context.
@@ -155,8 +155,9 @@ This fact may be used by the context.
 Since outside of templates, the context must be annotated manually; this is unproblematic:
 The call becomes illegal and a compiler error is presented to the programmer.
 
-In templated contexts, except uniqueness, it is necessary to manually ensure the execution is `pure` or `nothrow`.
-Usually, this can be done by properly annotating the callback where it is defined:
+With the changes proposed by this DIP, in templated contexts, except uniqueness,
+it is necessary to manually ensure the execution is `pure` or `nothrow`.
+Usually, this can be achieved by properly annotating the callback where it is defined:
 Instead of `x => x + 1` one has to write `(x) pure nothrow => x + 1`.
 This ensures that even when the type of the object plugged in for `x` depends on factors outside the control of the context,
 if `typeof(x)` happens to have an impure or possibly throwing `opBinary!"+"(int)` that will lead to a compilation error.
@@ -221,7 +222,6 @@ The first bullet point can be split into:
 
 ### Attribute Checking inside Functionals
 
-By the proposal of thid DIP:
 When the a function is annotated with a warrant attribute, each statement must satisfy certain conditions.
 Among those conditions is, for any warrant attribute, that the function may only call functions
 (*function* again referring to anything callable here)
@@ -230,28 +230,43 @@ Exceptions to this are `debug` blocks and that `@safe` functions may also call `
 (Note that from a calling perspective, i.e. from a rquirement perspective, `@trusted` and `@safe` are the same.
 For that reason, `@trusted` makes no sense on a parameter delegate or function pointer type.)
 
-This DIP proposes that essential calls to eFP/D parameters are not to be subjected to this condition,
+This DIP proposes that in essential calls to eFP/D parameters are not to be subjected to this condition,
 i.e. type-checked as if parameters were annotated `pure`, `@safe`, `nothrow`, and `@nogc`,
 whether or not these attributes are attatched to the FP/D type underlying the eFP/D type.
-(Note that this only applies to parameters to the functional; any other essential calls to eFP/Ds will be checked as is currently the case.)
-(Note especially that if the eFP/D parameter not only takes plain values but eFP/D types themselves,
+
+Note that this only applies to parameters to the functional; any other essential calls to eFP/Ds will be checked as is currently the case.
+
+Note especially that if the eFP/D parameter not only takes plain values but eFP/D types themselves,
 calls might not end up satisfying the attributes' conditions.
-You may want to take a look at [the respective example](#Third-order-and-Even-Higher-Order-Functionals).)
+You may want to take a look at [the respective example](#Third-order-and-Even-Higher-Order-Functionals).
+
+Also note that type-checking parameters as if they were annotated `pure`, `@safe`, `nothrow`, and `@nogc`
+only affects the legality of the call expression.
+For example, uniqueness is unaffected:
+If the parameter is not annotated `pure`, the call will be considered `pure` when it comes to checking whether
+or not the functional is `pure`, but the parameters return value is not considered unique.
+For that, an explicit `pure` annotation to the parameter's underlying FP/D type is required.
+The same goes for other guarantees warrant attributes make.
 
 ### Attribute Inference for Functional Templates
 
-By the proposal of thid DIP:
-When inferring attributes for functional templates (function templates that have eFP/D type parameters),
-essential calls to eFP/D parameters are considered to be `pure`, `@safe`, `nothrow`, and `@nogc`.
-(Note that this only applies to parameters; essentially calling of any other FP/Ds will be checked as is currently the case.)
+By the proposal of thid DIP,
+when inferring attributes for function templates that have runtime parameters of eFP/D type,
+these eFP/D parameters are type-checked as if parameters were annotated `pure`, `@safe`, `nothrow`, and `@nogc`,
+whether or not these attributes are attatched to the FP/D type underlying the eFP/D type
+
+Note that this only applies to parameters; essentially calling of any other FP/Ds will be checked as is currently the case.
+
+Attribute inferrence takes the way regular functions are checked for satisfying the conditions into account.
 
 ### Attribute Checking inside Contexts
 
-When calling a functional, the type of the eFP/D arguments are known.
-By the proposal of thid DIP:
-In a warrant attribute context, a call to a functional is legal if, and only if, the functional is annotated with that warrant attibute and all argument types are.
+When calling a functional, the types of the eFP/D arguments are known.
+
+By the proposal of thid DIP,
+in a warrant attribute context, a call to a functional is legal if, and only if, the functional is annotated with that warrant attibute and all argument types are.
 (As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute, i.e. stating a requirement,
-and the supplied argumant fails to have this warrant attribute, it is a type mismatch.)
+and the supplied argumant fails to have this warrant attribute, it is a type mismatch; akin to supplying a const typed pointer as an argument to a mutable parameter.)
 
 ## Examples
 
@@ -476,7 +491,7 @@ In meta-programming, one tends to not to think about attributes, since they are 
 unless of course the details of one or the other become part of the function's logic.
 
 If the functional in question is part of an interface or otherwise part of an inheritance hirarchy,
-templates cannot (easily) be customized by overriding them.
+templates cannot (easily) be customized, e.g. by overriding them.
 
 ### New Attributes
 
@@ -487,7 +502,7 @@ Any of these solutions would increase it.
 
 Breakage could be avoided by introducing weak clones of the current warrant attributes with the described meaning of conserving.
 They would mean the same as the current (strong) warrant attributes for non-higher-order functions.
-The DIP autor considers this option to be less desirable because the weak attributes
+The DIP author considers this option to be less desirable because the weak attributes
 * need new syntax,
 * have a very limited scope, therfore
 * fear to have almost no adoption by developers.
@@ -548,7 +563,7 @@ To make use of it, it must bubble up to a point where a `@system` delegate can l
 
 ## Copyright & License
 
-Copyright (c) 2018 by the D Language Foundation
+Copyright © 2020 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
