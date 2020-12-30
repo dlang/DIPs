@@ -7,7 +7,6 @@
 |[1036](./DIP1036.md)|                Formatted String Tuple Literals|  Post-Community 1|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1038](./DIP1038.md)|                                     @nodiscard|  Post-Community 1|
-|[1033](./DIP1033.md)|Implicit Conversion of Expressions to Delegates|        Post-Final|
 |[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|        Post-Final|
 
 ## Accepted DIPs
@@ -43,6 +42,7 @@
 |[1008](./other/DIP1008.md)   |                  Exceptions and @nogc|
 |[1022](./other/DIP1022.md)   |                      foreach auto ref|
 |[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
+|[1033](./other/DIP1033.md)   |Implicit Conversion of Expressions to Delegates|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
