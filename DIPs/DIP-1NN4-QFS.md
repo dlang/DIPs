@@ -28,8 +28,14 @@ The goal is to make the compiler formally accept more code that factually behave
 
 ## Contents
 
+* [Terms and Definitions](#terms-and-definitions)
 * [Rationale](#rationale)
+* [Prior Work](#prior-work)
 * [Description](#description)
+  * [Attribute Checking inside Functionals](#Attribute-Checking-inside-Functionals)
+  * [Attribute Inference for Functional Templates](#Attribute-Inference-for-Functional-Templates)
+  * [Attribute Checking inside Contexts](#Attribute-Checking-inside-Contexts)
+* [Examples](#examples)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
