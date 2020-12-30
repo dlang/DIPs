@@ -563,7 +563,7 @@ To make use of it, it must bubble up to a point where a `@system` delegate can l
 
 ## Copyright & License
 
-Copyright © 2020 by the D Language Foundation
+Copyright © 2020 by Quirin F. Schroll and the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
