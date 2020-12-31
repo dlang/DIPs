@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Quirin F. Schroll (@Bolpat) qDOTschrollATgmailDOTcom            |
+| Author:         | Quirin F. Schroll (@Bolpat)                                     |
 | Implementation: | *none*                                                          |
 | Status:         | Draft                                                           |
 
