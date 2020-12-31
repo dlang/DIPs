@@ -93,11 +93,6 @@ void context()
 ```
 
 ## Rationale
-<!--
-A short motivation about the importance and benefits of the proposed change.
-An existing, well-known issue or a use case for an existing projects can greatly increase the
-chances of the DIP being understood and carefully evaluated.
--->
 
 Higher-order functions are a disruption in a warrant attribute context.
 The execution of a context function may provably satisfy the conditions of a warrant attribute,
@@ -204,13 +199,6 @@ The same way letting weakly pure functions be annotated `pure` allowed for more 
 the changes proposed by this DIP allow more functions carrying a warrant attribute.
 
 ## Description
-
-<!--
-Detailed technical description of the new semantics. Language grammar changes
-(per https://dlang.org/spec/grammar.html) needed to support the new syntax
-(or change) must be mentioned. Examples demonstrating the new semantics will
-strengthen the proposal and should be considered mandatory.
--->
 
 The changes proposed by this DIP affect
 * when warrant attributes are satisfied by functions annotated with them,
