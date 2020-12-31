@@ -149,8 +149,8 @@ GC allocating may at worst slow down a program unexpectedly due to the GC issuin
 However, the attributes `pure` and `nothrow` are of interest, even in an impure context,
 or a context where throwing exceptions is allowed.
 * The return value of a `pure` operation can be unique, allowing for implicit casts that are not possible otherwise.
-In this case, if the call to the functional is impure due to calling it with an impure callback, the code is illegal.
-The context may expect a `pure` execution for memoization.
+  In this case, if the call to the functional is impure due to calling it with an impure callback, the code is illegal.
+  The context may expect a `pure` execution for memoization.
 * A `nothrow` operation cannot fail recoverably.
 It either fails irrecoverably or succeeds; in either case, no rollback operation is necessary.
 This fact may be used by the context.
@@ -286,6 +286,23 @@ if, and only if, the functional is annotated with that warrant attribute and all
 (As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute,
 i.e. stating a requirement, and the supplied argument fails to have this warrant attribute, it is a type mismatch;
 akin to supplying a const typed pointer as an argument to a mutable parameter.)
+
+### Error Messages
+
+When a functional essentially calls a mutable parameter
+and that parameter's type lacks warrant attributes that the functional has,
+the compile error message will hint that making the parameter `const` (or `immutable`) will solve this problem.
+
+When a call to a functional in a warrant attribute context violates that attribute
+because a eFP/D argument is passed to it,
+but the functional itself is annotated or inferred compliant to that attribute,
+a specific compile error message should be issued.
+The author suggests a message akin to:
+> `@safe` function `context` cannot call `@safe` function `functional`
+> because the argument `&callback` is `@system`.
+
+Only stating that the call is a violation of the attribute might confuse the programmer into thinking
+that the annotation of the functional is defective or attribute inference did not lead to the expected attributes.
 
 ## Examples
 
