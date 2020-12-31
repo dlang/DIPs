@@ -226,18 +226,13 @@ The first bullet point can be split into:
 When a function is annotated with a warrant attribute, each statement must satisfy certain conditions.
 Among those conditions is, for any warrant attribute, that the function may only call functions
 (*function* again referring to anything callable here)
-that are annotated with the same attribute.
+that are annotated with the same attribute or have it inferred.
 Exceptions to this are statements in `debug` blocks and that `@safe` functions may also call `@trusted` functions.
-(Note that from a calling perspective, i.e. from a requirement perspective, `@trusted` and `@safe` are the same.
-For that reason, `@trusted` makes no sense on an FP/D type parameter.)
 
 This DIP proposes that essential calls to `const` or `immutable` eFP/D parameters
 are not to be subjected to this condition.
 
-i.e. type-checked as if the parameters were annotated `pure`, `@safe`, `nothrow`, and `@nogc`,
-whether or not these attributes are attached to the FP/D type underlying the eFP/D type.
-
-Note that it is necessary that the full parameter's type is `const`, or `immutable`.
+Note that it is necessary that the full parameter's type is `const` or `immutable`.
 If the uppermost level is mutable, the parameter can be reassigned in the functionals body before being called,
 invalidating the assumption
 that the context has full control over and complete knowledge of the eFP/D object and its type.
@@ -266,27 +261,26 @@ any other essential calls to eFP/Ds will be checked as is currently the case.
 
 Note especially that if the eFP/D parameter not only takes plain values but eFP/D types themselves,
 calls might not end up satisfying the attributes' conditions.
-You may want to take a look at [the respective example](#Third-order-and-Even-Higher-Order-Functionals).
+You may want to take a look at [the respective example](#third-order-and-even-higher-order-functionals).
 
 Also note that type-checking parameters as if they were annotated `pure`, `@safe`, `nothrow`, and `@nogc`
 only affects the legality of the call expression itself.
 For example, uniqueness is unaffected:
 If the parameter is not annotated `pure`, the call will be considered `pure` when it comes to checking whether
-or not the functional is `pure`, but the parameters return value is not considered unique.
+the functional is `pure`, but the parameters return value is not considered unique.
 For that, an explicit `pure` annotation to the parameter's underlying FP/D type is required.
 The same goes for other guarantees warrant attributes make.
 
 ### Attribute Inference for Functional Templates
 
 By the proposal of this DIP,
-when inferring attributes for function templates that have runtime parameters of eFP/D type,
-these eFP/D parameters are type-checked as if parameters were annotated `pure`, `@safe`, `nothrow`, and `@nogc`,
-whether or not these attributes are attached to the FP/D type underlying the eFP/D type
+when inferring attributes for function, templates that have runtime parameters of eFP/D type,
+essential calls are considered to not invalidate any warrant attribute.
 
 Note that this only applies to parameters;
 calling of any other FP/Ds will be checked as is currently the case.
 
-Attribute inference takes the way regular functions are checked for satisfying the conditions into account.
+That way, attribute inference takes the way regular functions are checked for satisfying the conditions into account.
 
 ### Attribute Checking inside Contexts
 
@@ -375,7 +369,7 @@ using the current state of the language, see the [Alternatives](#alternatives) s
 ### String Representations
 
 Many objects have an at least somewhat human-readable `string` representation.
-In quick-and-dirty programs, a function returning GC allocated `string` representation suffices.
+In quick-and-dirty programs, a function returning GC allocated `string` representations suffices.
 In libraries, however, one strives for more generality.
 The usual way to give the context first-class control over how the `string` representation is handled
 is replacing the return value by a sink.
@@ -442,7 +436,7 @@ The class author may intentionally not annotate any method with a warrant attrib
 to allow overriding with an implementation that violates that attribute.
 The fact that guarantees given by a base class cannot be reduced by a derived class are part of the
 Liskov substitution principle and cannot be addressed by this DIP.
-Whether or not any method (not only functionals) should carry warrant attribute,
+Whether a method (not only a functional) should carry warrant attribute,
 is a discretionary decision to be made by the class author.
 
 ### Functions with Typesafe Variadic Lazy Parameters
