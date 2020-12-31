@@ -243,6 +243,18 @@ invalidating the assumption
 that the context has full control over and complete knowledge of the eFP/D object and its type.
 You may want to take a look at [the respective example](#mutable-parameters).
 
+Only requiring `const` as a qualifier in fact does suffice.
+One could conjecture that [aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing)
+could lead to problems, but it does not.
+You may want to take a look at [the respective example](#const-and-aliasing).
+
+However, this document does not contain a proof (or a proof sketch) that aliasing really is impossible.
+If the Language Maintainers find it too dangerous to risk,
+the author suggests going forth with `immutable` alone instead of `const` or `immutable`.
+Because pointer, slice, and array types with more than one level of indirection are hard to use with `immutable`,
+applicability of them is greatly reduced.
+On the other hand, wide usage of them otherwise would probably not have happened either.
+
 In the case of checking `@safe` for a functional,
 if the parameter's underlying FP/D type is explicitly annotated `@system`,
 an essential call to the eFP/D object is considered illegal.
@@ -480,6 +492,69 @@ Changes to the outermost layer of indirection of a parameter are invisible to th
 and thus the above code could be rewritten so that `paramDGs` is not appended
 allowing for it to be `const` on the outermost layer, too.
 
+### Const and Aliasing
+
+Here, we will look at an example why requiring `const` does guarantee
+that the context has control over the type of parameters in the functional.
+
+First, we will have a look at regular pointer aliasing;
+```D
+void proneToAliasing(ref int x, const(int)* p)
+{
+    assert(*p == 0);
+    x = 1;
+    assert(*p == 1);
+}
+void resistsAliasing(ref int x, immutable(int)* p) { ... }
+void context()
+{
+    int x = 0;
+    proneToAliasing(x, &x); // okay
+    resistsAliasing(x, &x); // error
+}
+```
+Aliasing can happen in the first function because a `int*` can be assigned to a `const(int)*`.
+It cannot happen in the second because `int*` cannot be assigned to an `immutable(int)*`.
+
+For trying to trick the type-system into considering a call to a `@system` function a `@safe` operation,
+aliases of function pointers will be used the same way as above with `int`s.
+This is our setup:
+```D
+alias sysFunc = function int() @system
+    { int* p; int x; p = &x; return *p; };
+
+alias SysFP = int function();
+int aliasingProneFunctional(ref SysFP fp, const(int function()/*@safe*/)* fpp) @safe
+{
+    fp = sysFunc; // assign a @system function ptr to a @system fp variable, okay
+    return (*fpp)(); // essentially call a parameter
+}
+```
+Next, we look at a `@safe` context that tries feeding `aliasingProneFunctional` with mutable function pointers.
+```D
+void context() @safe
+{
+    int function() @safe mutableSafeFP = () => 1; 
+    aliasingProneFunctional(mutableSafeFP, &mutableSafeFP);
+}
+```
+The last call does not compile.
+If you comment-in the `/*@safe*/` above and run the D compiler available as of the writing of this DIP (v2.095.0),
+it neither will compile, since the second argument is not the problem.
+In fact, it is the first one:
+The `ref` parameter `fp` of a function pointer to `@system` type
+cannot be made referring a function pointer to `@safe` type.
+Assigning a `@safe` FP/D to a `@system` variable uses an implicit conversion that returns an r-value,
+and r-values cannot be used for a `ref` parameter.
+
+For completeness, if `mutableSafeFP` were to be replaced by a `@system` function pointer like this
+```D
+int function() @system mutableSysFP = () => 1;
+aliasingProneFunctional(mutableSysFP, &mutableSysFP);
+```
+by the proposal of this DIP, the assignments would work fine.
+But since the `@safe` functional's const parameter is not filled by a `@safe` function pointer,
+the call to `aliasingProneFunctional` is not considered `@safe`, leading to a compiler error in the `@safe` context.
 
 ### Third-order and Even-Higher-Order Functionals
 
