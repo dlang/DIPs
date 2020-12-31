@@ -227,15 +227,30 @@ When a function is annotated with a warrant attribute, each statement must satis
 Among those conditions is, for any warrant attribute, that the function may only call functions
 (*function* again referring to anything callable here)
 that are annotated with the same attribute.
-Exceptions to this are `debug` blocks and that `@safe` functions may also call `@trusted` functions.
-(Note that from a calling perspective, i.e. from a rquirement perspective, `@trusted` and `@safe` are the same.
-For that reason, `@trusted` makes no sense on a parameter delegate or function pointer type.)
+Exceptions to this are statements in `debug` blocks and that `@safe` functions may also call `@trusted` functions.
+(Note that from a calling perspective, i.e. from a requirement perspective, `@trusted` and `@safe` are the same.
+For that reason, `@trusted` makes no sense on an FP/D type parameter.)
 
-This DIP proposes that in essential calls to eFP/D parameters are not to be subjected to this condition,
-i.e. type-checked as if parameters were annotated `pure`, `@safe`, `nothrow`, and `@nogc`,
-whether or not these attributes are attatched to the FP/D type underlying the eFP/D type.
+This DIP proposes that essential calls to `const` or `immutable` eFP/D parameters
+are not to be subjected to this condition.
 
-Note that this only applies to parameters to the functional; any other essential calls to eFP/Ds will be checked as is currently the case.
+i.e. type-checked as if the parameters were annotated `pure`, `@safe`, `nothrow`, and `@nogc`,
+whether or not these attributes are attached to the FP/D type underlying the eFP/D type.
+
+Note that it is necessary that the full parameter's type is `const`, or `immutable`.
+If the uppermost level is mutable, the parameter can be reassigned in the functionals body before being called,
+invalidating the assumption
+that the context has full control over and complete knowledge of the eFP/D object and its type.
+You may want to take a look at [the respective example](#mutable-parameters).
+
+In the case of checking `@safe` for a functional,
+if the parameter's underlying FP/D type is explicitly annotated `@system`,
+an essential call to the eFP/D object is considered illegal.
+This is to avoid confusion.
+Removing the unnecessary `@system` annotation fixes this error.
+
+Note that this only applies to parameters to the functional;
+any other essential calls to eFP/Ds will be checked as is currently the case.
 
 Note especially that if the eFP/D parameter not only takes plain values but eFP/D types themselves,
 calls might not end up satisfying the attributes' conditions.
@@ -287,8 +302,6 @@ The naïve approach (less interesting parts hidden):
 struct SimpleLockstep(Ranges...)
 {
     Ranges ranges;
-
-    ...
     alias ElementTypes = ...;
 
     int opApply(const scope int delegate(ref ElementTypes) foreachBody)
@@ -325,10 +338,83 @@ With this DIP, `opApply` has warrant attributes inferred
 based on what the range interfaces of the supplied ranges can guarantee.
 (This is the best it can theoretically do.)
 In the aforementioned case, `opApply` will be inferred `@safe`.
-The question whether a call to `opApply` is legal in a `@safe` context is determined by the particular argument.
+Whether a call to `opApply` is legal in a `@safe` context is determined by the particular argument.
 
-For how to implement `SimpleLockstep` in a way that properly takes attributes into account using the current state of the language,
-see the [Alternatives](#alternatives) section.
+For how to implement `SimpleLockstep` in a way that properly takes attributes into account
+using the current state of the language, see the [Alternatives](#alternatives) section.
+
+### String Representations
+
+Many objects have an at least somewhat human-readable `string` representation.
+In quick-and-dirty programs, a function returning GC allocated `string` representation suffices.
+In libraries, however, one strives for more generality.
+The usual way to give the context first-class control over how the `string` representation is handled
+is replacing the return value by a sink.
+A sink is an [output range](https://dlang.org/library/std/range/primitives/is_output_range.html)
+that the individual characters are fed into.
+The context controls the sink.
+
+A typical `toString` as part of an aggregate type uses a templated `toString`
+taking the sink type as a template type parameter akin to this:
+```D
+void toString(Sink)(const scope Sink sink) const { ... }
+```
+This solves the attribute inference problem perfectly.
+
+However, the author of a class or interface usually wants the `toString` member function to be virtual,
+but then, it cannot be a template anymore; the sink type usually becomes a delegate.
+
+```D
+// For quick and easy usage:
+string toString() const @safe pure /*maybe*/nothrow { ... }
+
+// For elaborate uses:
+private final void toStringImpl(Char)(const scope void delegate(Char) sink) { ... }
+static foreach (Char; aliasSeq!(char, wchar, dchar))
+    void toString(const scope void delegate(Char) sink) const { toStringImpl!Char(sink); }
+```
+
+In the current state of the language, those `toString`s cannot be used in warrant attribute contexts.
+Authors who want to support warrant attribute contexts have to implement up to 16 overloads like this:
+```D
+private final void toStringImpl(DG)(const scope DG sink) { ... } // inferres attributes
+static foreach (Char; aliasSeq!(char, wchar, dchar))
+{
+    void toString(const scope void delegate(Char)       sink) const       { toStringImpl(sink); }
+    void toString(const scope void delegate(Char) @safe sink) const @safe { toStringImpl(sink); }
+    ... // 13 more
+    void toString(const scope void delegate(Char) pure nothrow @safe @nogc sink) const pure nothrow @safe @nogc
+    { toStringImpl(sink); }
+}
+```
+All instantiations of `toStringImpl` are different, so there are 3&nbsp;×&nbsp;16&nbsp;=&nbsp;48 template instances
+and virtual `toString` functions per class.
+If the class is templated, there are 48 per instantiation.
+
+Worse than the template and virtual-table bloat is that users of the class
+who naïvely override the `toString` method in a derived class will only override the version without attributes.
+```D
+override void toString(const scope void delegate(Char) sink) const { ... }
+```
+They get a hint that there were other overloads to override available:
+An error message pointing out that the derived class' `toString` hides base class `toString` functions.
+The suggestion by the compiler to "introduce base class overload set" is wrong.
+It makes the code compile, but for any sink that has any warrant attribute, it calls the base class `toString`.
+
+Nonetheless, correctly overriding `toString` means implementing the 48 overloads again.
+
+All in all, a library author who publishes a class that uses warrant attributes with maximized flexibility
+makes it unnecessarily hard to override functional methods correctly and unnecessarily tedious to do so correctly.
+
+With the changes proposed by this DIP, only one `toString` method is needed per character type.
+(This is the best one can theoretically do.)
+Which attributes the `toString` can be given has to evaluated once by the class author.
+The class author may intentionally not annotate any method with a warrant attribute
+to allow overriding with an implementation that violates that attribute.
+The fact that guarantees given by a base class cannot be reduced by a derived class are part of the
+Liskov substitution principle and cannot be addressed by this DIP.
+Whether or not any method (not only functionals) should carry warrant attribute,
+is a discretionary decision to be made by the class author.
 
 ### Functions with Typesafe Variadic Lazy Parameters
 
@@ -354,7 +440,29 @@ this function might need to be rewritten so that the essential call `paramDGs[i]
 Basic tracking akin to inferring `scope` as in DIP&nbsp;1000
 that provides insights whether a local essential FP/D type variable has the value of a parameter
 would solve this problem completely.
-This is, however, not proposed by this DIP, as it could unnecessrily complicate the implementation.
+This is, however, not proposed by this DIP, as it could unnecessarily complicate the implementation.
+
+### Mutable Parameters
+
+Mutable parameters are not subject to the reduced conditions.
+Consider `coalesce` from the example above, but with a differently typed parameter:
+```D
+T coalesce(T)(scope const(T delegate())[] paramDGs...);
+```
+In contrast to the above implementation, the outermost layer of `paramDGs` type is mutable.
+Since the context has no control over what `coalesce` does internally,
+`coalesce` could append the slice and call the appended delegate object:
+```D
+paramDGs ~= () => returns!T();
+paramDGs[$ - 1]();
+```
+In this case, `coalesce` will not have any warrant attribute inferred,
+because the parameter `paramDGs` does not get any special treatment.
+
+Changes to the outermost layer of indirection of a parameter are invisible to the caller,
+and thus the above code could be rewritten so that `paramDGs` is not appended
+allowing for it to be `const` on the outermost layer, too.
+
 
 ### Third-order and Even-Higher-Order Functionals
 
@@ -364,9 +472,9 @@ i.e. the FP/D types in functionals' parameter lists themselves took no eFP/Ds as
 The easiest example of a non-trivial third-order functional is this:
 ```D
 void doNothing() /*pure*/ { }
-void justCall(void function() f) pure { f(); }
+void justCall(const void function() f) pure { f(); }
 
-void thirdOrderFunctional(void function(void function()) secondOrderParameter) pure/*?*/
+void thirdOrderFunctional(const void function(void function()) secondOrderParameter) pure/*?*/
 {
     // Here, secondOrderParameter is assumed to be pure by the rules of this DIP.
     // This does not mean that the following call expression is immediately legal in a pure function.
@@ -395,7 +503,7 @@ We finish this example with a fourth-order functional.
 ```D
 ...
 
-void fourthOrderFunctional(void function(void function(void function())) thirdOrderParameter) pure
+void fourthOrderFunctional(const void function(void function(void function())) thirdOrderParameter) pure
 {
     // Due to the rules of this DIP, thirdOrderParameter is assumed to be pure.
     // Because justCall is annotated pure, the call really is pure and the constraints are satisfied.
@@ -454,7 +562,7 @@ SimpleLockstep(Ranges...)
     ...
     alias ElementTypes = ...;
 
-    private int opApplyImpl(DG : const int delegate(ref ElementTypes))(scope DG foreachBody) { ... }
+    private int opApplyImpl(DG : const int delegate(ref ElementTypes))(const scope DG foreachBody) { ... }
 
     alias opApply = opApplyImpl!(int delegate(ref ElementTypes) pure nothrow @safe @nogc);
     alias opApply = opApplyImpl!(int delegate(ref ElementTypes)      nothrow @safe @nogc);
@@ -545,21 +653,13 @@ Forgetting leads to compile errors that, depending on the error message, might b
 
 ## Breaking Changes and Deprecations
 
-<!--
-This section is not required if no breaking changes or deprecations are anticipated.
+Functionals that don't essentially call one of their `const` or `immutable` qualified eFP/D parameters
+may suffer from breakage.
 
-Provide a detailed analysis on how the proposed changes may affect existing
-user code and a step-by-step explanation of the deprecation process which is
-supposed to handle breakage in a non-intrusive manner. Changes that may break
-user code and have no well-defined deprecation process have a minimal chance of
-being approved.
--->
-
-Functionals that don't essentially call one of their eFP/D parameters may suffer from breakage.
-
-An example of an affected functional could be this:
+An example of an affected functional could be the following.
+(Note that, depending on the state of the language, `in` means `const` or `const scope`.)
 ```D
-int delegate() toDelegate(int function() func) nothrow pure @safe
+int delegate() toDelegate(in int function() func) nothrow pure @safe
 {
     alias toDG(alias f) = delegate() { return f(); };
     return toDG!func;
@@ -567,10 +667,15 @@ int delegate() toDelegate(int function() func) nothrow pure @safe
 ```
 A `@safe` context can call `toDelegate` with a `@system` argument.
 
-With the changes proposed by this DIP, that call will become illegal.
-However, one must wonder, what the `@safe` context would do with that `@system` return value.
-It cannot call it.
-To make use of it, it must bubble up to a point where a `@system` delegate can legally be called.
+With the changes proposed by this DIP, the call in the context will become illegal.
+However, one must wonder what the `@safe` context would do with that `@system` return value,
+since it cannot call it directly.
+To make use of it, it must find its way to a point where a `@system` delegate can legally be called.
+However, this could be in a `@trusted` pseudo-block (a lambda immediately called) in the context. 
+
+Because the proposed change only affects parameters qualified on the highest level of indirection,
+this problem can be solved by pushing down the `const` qualifier one level of indirection.
+In the example above, `in` has to be removed or replaced by `scope`.
 
 ## Copyright & License
 
