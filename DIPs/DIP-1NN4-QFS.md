@@ -10,11 +10,11 @@
 
 ## Abstract
 
-Functions that have function pointers or delegates as parameters are a road-bump in
+Functions that have function pointers or delegates as parameters cannot be integrated well in
 `pure`, `nothrow`, `@safe`, and `@nogc` code.
-This DIP proposes to relax the constraints that the attributes `pure`, `nothrow`, `@safe`, and `@nogc` impose.
-Practically, it will only affect aforementioned functions with function pointers or delegates as parameters.
-The goal is to make the compiler formally accept more code that factually behaves in accordance to the attributes.
+This DIP proposes to relax the constraints that the mentioned attributes impose.
+It will only affect aforementioned functions with function pointers or delegates as `const` or `immutable` parameters.
+The goal is to recognize more code as valid that factually behaves in accordance to the attributes.
 
 ### Reference
 
@@ -46,25 +46,29 @@ The goal is to make the compiler formally accept more code that factually behave
 The attributes `pure`, `nothrow`, `@safe`, and `@nogc` will be called *warrant attributes* in this DIP.
 Notably absent are `@system` and `@trusted` as they do not warrant any compiler-side checks.
 
-A type is called *essentially `T`* if it is
-* a possibly qualified version of `T` — or
-* a possibly qualified pointer to essentially `T` — or
-* a possibly qualified slice of essentially `T` — or
-* a possibly qualified static array of essentially `T` — or
-* a possibly qualified associative array with value type an essentially `T`.
-
 In this document, *FP/D (type)* will be an abbreviation for *function pointer (type) or delegate (type)*.
-Also, *eFP/D (type)* will be used for *essentially an FP/D (type)*.
+A type is *essentially an FP/D type* if it is
+* a possibly qualified version of an FP/D type — or
+* a possibly qualified pointer to essentially FP/D type — or
+* a possibly qualified slice of essentially FP/D type — or
+* a possibly qualified static array of essentially FP/D type — or
+* a possibly qualified associative array with value type an essentially FP/D type.
+
+> **Example**<br/>The type `const(immutable(void function(int) pure)*)[]` is essentially an FP/D type.
 
 An *essential call* of an eFP/D means an expression that is: In case of the eFP/D being
 * a possibly qualified FP/D: A call (in the regular sense) to that object.
 * a pointer `p` to an eFP/D: An essential call to `*p`.
 * a slice or a static or associative array `arr` to an eFP/D: An essential call to `arr[i]` for a suitable index `i`.
 
-This document makes use of the terms *(function) parameter* and *(function) argument* in a very precise manner.
-As a reminder for the reader, a parameter is a variable declared at a specific place,
-namely the function signature;
-an argument is an expression on the uppermost level in a function call.
+> **Example**<br/>An essential call to an object `fpps` the essential FP/D type in the previous example
+> is `(*(fpps[i]))(x)`
+> (where `i` is of type `size_t` and `x` is an `int`).
+
+This document makes use of the terms *parameter* and *argument* in a very precise manner
+as the [D Language Specification](https://dlang.org/spec/function.html#param-storage) points out:
+> When talking about function *parameters*, the parameter is what the function prototype defines,
+> and the *argument* is the value that will *bind* to it. 
 
 A *higher-order function*, or *functional* for short, is anything that can be called
 (including any kind of functions, function pointers, delegates, and `opCall`)
@@ -72,46 +76,44 @@ that takes one or more eFP/D types as arguments.
 
 When a higher-order function is called, there are three notable entities to commonly refer to:
 * The *context function,* or *context* for short, is the function that contains the call expresion.
+  When the document refers to e.g. a `@safe` context, it is meant that the context function is annotated `@safe`.
 * The *functional* is the higher-order function that is called.
 * The *parameter functions* are the variables declared by the functional's parameter list.
 * The *argument functions* or *callbacks* are the values plugged-in in the call expression.
 
 Although not an entity in the above sense, the functional's *parameter types* will be commonly referred to as such.
 
-An illustration of the last terms given in this code snippet using telling identifiers:
-```D
-alias ParameterType = void function();
-void functional(ParameterType parameterFunction)
-{
-    parameterFunction();
-}
-
-void context()
-{
-    alias callback = { };
-    functional(callback);
-}
-```
+> **Example**<br/>An illustration of the last terms given in this code snippet using telling identifiers.
+> ```D
+> alias ParameterType = void function();
+> void functional(ParameterType parameterFunction)
+> {
+>     parameterFunction();
+> }
+> 
+> void context()
+> {
+>     alias callback = { };
+>     functional(callback);
+> }
+> ```
 
 ## Rationale
 
 Higher-order functions are a disruption in a warrant attribute context.
 The execution of a context function may provably satisfy the conditions of a warrant attribute,
-but is considered illegal because the formal conditions of the warrant attribute not met.
+but is considered invalid because the formal conditions of the warrant attribute not met.
 
 Warrant attributes on a functional (or, in fact, on any function) and on a functional's parameter
 mean very different things:
 * On a function, they give rise to a *guarantee* the function makes.
-  E.g. a `@nogc` function will not allocate GC memory.
-  (When a function returns a delegate or function pointer,
-  warrant attributes on its return type are a guarantee of that function, too.)
 * Only on a functional's parameter type, warrant attributes give rise to a *requirement*
   that the functional *needs* to work properly.
 
 As an example, consider a functional taking a `pure` delegate parameter.
 The functional might make use of memoization, or the fact that the parameter's return values are
 [unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions) in its internal logic.
-In the case of uniqueness, omitting the requirement will result in illegal code,
+In the case of uniqueness, omitting the requirement will result in invalid code,
 since return values of impure functions generally cannot be assumed unique.
 In the case of memoization, omitting the requirement will not result in a compile error,
 but unexpected behavior, when used improperly.
@@ -135,28 +137,27 @@ This is, however, less of a problem than it seems at first glance:
 The context does not expect an execution satisfying the formal `@safe` constraints, therefore
 the fact that *the call* to the `@safe` annotated function is not formally considered `@safe` can be mostly ignored.
 * Consider a `@safe` context calling a `@safe` functional with a `@system` argument.
-This is illegal, since a `@safe` functional makes guarantees for its internal logic.
+This is invalid, since a `@safe` functional makes guarantees for its internal logic.
 What the `@system` callback does, is among the concerns of the context,
-and in a `@safe` context, calling a  `@system` function is illegal.
+and in a `@safe` context, calling a  `@system` function is invalid.
 
 Especially in meta-programming, it might not be clear at all whether a callback's type has a warrant attribute or not.
 For `@safe` and `@nogc`, this is unproblematic, since these are only interesting from a safety or resource perspective,
 but no program's logic depends on the guarantees these attributes make: A memory unsafe program is broken in itself and
 GC allocating may at worst slow down a program unexpectedly due to the GC issuing a collection cycle.
-(Note that `@nogc` alone does not guarantee that no dynamic allocation using other ways take place.)
 [Author's note: I'm not completely sure. Please have a think whether these claims are really true.]
 
 However, the attributes `pure` and `nothrow` are of interest, even in an impure context,
 or a context where throwing exceptions is allowed.
 * The return value of a `pure` operation can be unique, allowing for implicit casts that are not possible otherwise.
-  In this case, if the call to the functional is impure due to calling it with an impure callback, the code is illegal.
+  In this case, if the call to the functional is impure due to calling it with an impure callback, the code is invalid.
   The context may expect a `pure` execution for memoization.
 * A `nothrow` operation cannot fail recoverably.
 It either fails irrecoverably or succeeds; in either case, no rollback operation is necessary.
 This fact may be used by the context.
 
 Since outside of templates, the context must be annotated manually; this is unproblematic:
-The call becomes illegal, and a compiler error is presented to the programmer.
+The call becomes invalid, and a compiler error is presented to the programmer.
 
 With the changes proposed by this DIP, in templated contexts, except uniqueness,
 it is necessary to manually ensure the execution is `pure` or `nothrow`.
@@ -252,7 +253,7 @@ On the other hand, wide usage of them otherwise would probably not have happened
 
 In the case of checking `@safe` for a functional,
 if the parameter's underlying FP/D type is explicitly annotated `@system`,
-an essential call to the eFP/D object is considered illegal.
+an essential call to the eFP/D object is considered invalid.
 This is to avoid confusion.
 Removing the unnecessary `@system` annotation fixes this error.
 
@@ -264,7 +265,7 @@ calls might not end up satisfying the attributes' conditions.
 You may want to take a look at [the respective example](#third-order-and-even-higher-order-functionals).
 
 Also note that type-checking parameters as if they were annotated `pure`, `@safe`, `nothrow`, and `@nogc`
-only affects the legality of the call expression itself.
+only affects the validity of the call expression itself.
 For example, uniqueness is unaffected:
 If the parameter is not annotated `pure`, the call will be considered `pure` when it comes to checking whether
 the functional is `pure`, but the parameters return value is not considered unique.
@@ -287,7 +288,7 @@ That way, attribute inference takes the way regular functions are checked for sa
 When calling a functional, the types of the eFP/D arguments are known.
 
 By the proposal of this DIP,
-in a warrant attribute context, a call to a functional is legal
+in a warrant attribute context, a call to a functional is valid
 if, and only if, the functional is annotated with that warrant attribute and all argument types are.
 (As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute,
 i.e. stating a requirement, and the supplied argument fails to have this warrant attribute, it is a type mismatch;
@@ -361,7 +362,7 @@ With this DIP, `opApply` has warrant attributes inferred
 based on what the range interfaces of the supplied ranges can guarantee.
 (This is the best it can theoretically do.)
 In the aforementioned case, `opApply` will be inferred `@safe`.
-Whether a call to `opApply` is legal in a `@safe` context is determined by the particular argument.
+Whether a call to `opApply` is valid in a `@safe` context is determined by the particular argument.
 
 For how to implement `SimpleLockstep` in a way that properly takes attributes into account
 using the current state of the language, see the [Alternatives](#alternatives) section.
@@ -563,8 +564,8 @@ void justCall(const void function() f) pure { f(); }
 void thirdOrderFunctional(const void function(void function()) secondOrderParameter) pure/*?*/
 {
     // Here, secondOrderParameter is assumed to be pure by the rules of this DIP.
-    // This does not mean that the following call expression is immediately legal in a pure function.
-    // Being a functional, secondOrderParameter type-checks pure iff its argument is typed pure.
+    // This does not mean that the following call expression is immediately valid in a pure function.
+    // Being a functional, calling secondOrderParameter is pure iff its argument is typed pure.
     secondOrderParameter(&doNothing);
 }
 
@@ -753,10 +754,10 @@ int delegate() toDelegate(in int function() func) nothrow pure @safe
 ```
 A `@safe` context can call `toDelegate` with a `@system` argument.
 
-With the changes proposed by this DIP, the call in the context will become illegal.
+With the changes proposed by this DIP, the call in the context will become invalid.
 However, one must wonder what the `@safe` context would do with that `@system` return value,
 since it cannot call it directly.
-To make use of it, it must find its way to a point where a `@system` delegate can legally be called.
+To make use of it, it must find its way to a point where calling a `@system` delegate is valid.
 However, this could be in a `@trusted` pseudo-block (a lambda immediately called) in the context. 
 
 Because the proposed change only affects parameters qualified on the highest level of indirection,
