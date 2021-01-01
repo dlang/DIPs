@@ -12,9 +12,41 @@
 
 Functions that have function pointers or delegates as parameters cannot be integrated well in
 `pure`, `nothrow`, `@safe`, and `@nogc` code.
-This DIP proposes to relax the constraints that the mentioned attributes impose.
+This DIP proposes to adjust the constraints that the mentioned attributes impose.
 It will only affect aforementioned functions with function pointers or delegates as `const` or `immutable` parameters.
+
 The goal is to recognize more code as valid that factually behaves in accordance to the attributes.
+<br/>
+An example is this:
+```D
+struct Aggregate
+{
+    void toString(const void delegate(char) sink) @safe
+    { ... }
+
+    string toString() @safe
+    {
+        string result;
+        void append(char c) { result ~= c; }
+        toString(&append); // append is inferred @safe
+        return result;
+    }
+}
+```
+Notice how `sink` is not annotated `@safe`, but it is declared `const`.
+The key observations of this DIP are
+that because it is `const`, any call like `sink('c')` can only execute the delegate passed to it
+(`sink` cannot e.g. be reassigned),
+and thus, the `toString()` function has full knowledge about whether the argument `&append`
+that binds to `sink` is `@safe`.
+
+This DIP proposes that
+* the first `toString` function can legally call `sink` even if not annotated `@safe` — and
+* that the call `toString(&append)` is only `@safe` when *both*
+  the called function `toString` and the argument `&append` are `@safe`. 
+
+Calling `toString` with a `@system` sink is also legal, but the call will be considered `@system`
+since the condition that the argument be `@safe` is violated.
 
 ### Reference
 
