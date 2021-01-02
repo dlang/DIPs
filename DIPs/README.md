@@ -38,7 +38,6 @@
 ## Postponed DIPs
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
-|[1005](./other/DIP1005.md)   |      Dependency-Carrying Declarations|
 |[1008](./other/DIP1008.md)   |                  Exceptions and @nogc|
 |[1022](./other/DIP1022.md)   |                      foreach auto ref|
 |[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
@@ -62,6 +61,7 @@
 ## Withdrawn DIPS
 |                           ID|                                 Title|
 |-----------------------------|--------------------------------------|
+|[1005](./other/DIP1005.md)   |      Dependency-Carrying Declarations|
 |[1025](./other/DIP1025.md)   |Dynamic Arrays Only Shrink, Never Grow|
 |[1026](./other/DIP1026.md)   |Deprecate Context-Sensitive String Literals|
 |[1031](./other/DIP1031.md)   |Deprecate Brace-Style Struct Initializers|
