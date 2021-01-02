@@ -136,15 +136,15 @@ that is annotated with one or more of the warrant attributes defined above.
 
 ## Rationale
 
-Higher-order functions are a disruption in a warrant attribute context.
+Higher-order functions are cumbersome to use in a warrant attribute context.
 The execution of a context function may provably satisfy the conditions of a warrant attribute,
 but is considered invalid because the formal conditions of the warrant attribute not met.
 
 Warrant attributes on a functional (or, in fact, on any function) and on a functional's parameter
 mean very different things:
-* On a function, they give rise to a *guarantee* the function makes.
+* On a function, they give rise to a *guarantee* the function makes that callers may rely upon.
 * Only on a functional's parameter type, warrant attributes give rise to a *requirement*
-  that the functional *needs* to work properly.
+  that the functional potentially *needs* to work properly.
 
 As an example, consider a functional taking a `pure` delegate parameter.
 The functional might make use of memoization, or the fact that the parameter's return values are
@@ -153,32 +153,38 @@ In the case of uniqueness, omitting the requirement will result in invalid code,
 since return values of impure functions generally cannot be assumed unique.
 In the case of memoization, omitting the requirement will not result in a compile error,
 but unexpected behavior, when used improperly.
-In most cases, however, the requirement is merely to match the functionals guarantee.
+In most cases, however, the requirement is merely there to match the functionals own guarantees.
 
 In the current state of the language,
 a functional cannot have strong guarantees and weak requirements at the same time.
+Having strong guarantees means
+that the functional provably behaves in accordance to warrant attributes,
+meaning it can be annotated with them.
+Having weak requirements means
+that the functional does not need the guarantees of a warrant attribute on a parameter function
+for its internal logic to be sound.
 Most programmers opt against warrant attributes, i.e. for weak requirements
 and therefore needlessly weaken the guarantees.
 
-The DIP helps this situation by giving calls to parameters a free pass
+The DIP solves this problem by always allowing calls to `const` and `immutable` parameters
 when checking a functional for satisfying the conditions of a warrant attribute.
 
-At the point where the functional is called, the type system has all the necessary information available
+In a context where a functional is called, the type system has all the necessary information available
 to determine if the execution of it will comply with the warrant attributes of the context.
 
 This entails that not all calls to a functional annotated with a warrant attribute will result in call expressions
 that is considered in compliance with that warrant attribute.
 This is, however, less of a problem than it seems at first glance:
 * Consider a `@system` or `@trusted` context calling a `@safe` functional with a `@system` argument.
-The context does not expect an execution satisfying the formal `@safe` constraints, therefore
-the fact that *the call* to the `@safe` annotated function is not formally considered `@safe` can be mostly ignored.
+  The context does not expect an execution satisfying the formal `@safe` constraints, therefore
+  the fact that *the call* to the `@safe` annotated function is not formally considered `@safe` can be mostly ignored.
 * Consider a `@safe` context calling a `@safe` functional with a `@system` argument.
-This is invalid, since a `@safe` functional makes guarantees for its internal logic.
-What the `@system` callback does, is among the concerns of the context,
-and in a `@safe` context, calling a  `@system` function is invalid.
+  This is invalid, since a `@safe` functional makes guarantees for its internal logic.
+  What the `@system` callback does, is among the responsibility of the context,
+  and in a `@safe` context, calling a  `@system` function is invalid.
 
 Especially in meta-programming, it might not be clear at all whether a callback's type has a warrant attribute or not.
-For `@safe` and `@nogc`, this is unproblematic, since these are only interesting from a safety or resource perspective,
+For `@safe` and `@nogc`, this is mostly unproblematic, since these are only interesting from a safety or resource perspective,
 but no program's logic depends on the guarantees these attributes make: A memory unsafe program is broken in itself and
 GC allocating may at worst slow down a program unexpectedly due to the GC issuing a collection cycle.
 [Author's note: I'm not completely sure. Please have a think whether these claims are really true.]
@@ -189,8 +195,8 @@ or a context where throwing exceptions is allowed.
   In this case, if the call to the functional is impure due to calling it with an impure callback, the code is invalid.
   The context may expect a `pure` execution for memoization.
 * A `nothrow` operation cannot fail recoverably.
-It either fails irrecoverably or succeeds; in either case, no rollback operation is necessary.
-This fact may be used by the context.
+  It fails irrecoverably or succeeds; in either case, no rollback operation is necessary.
+  This fact may be used by the context.
 
 Since outside of templates, the context must be annotated manually; this is unproblematic:
 The call becomes invalid, and a compiler error is presented to the programmer.
@@ -217,17 +223,18 @@ Without this change, a suitable unannotated `void functional(void function() f)`
 * `void functional(void function()       f) @safe` — or
 * `void functional(void function() @safe f) @safe`.
 
-(Here, *suitable* means that `functional` contains `@safe` operations only apart from the call to `f`.)
+(Here, *suitable* means that `functional` contains `@safe` operations only apart from the call to `f`.
+One way to test that is annotating the parameter and the functional.)
 
-The first option can be excluded immediately, because when `functional` calls its parameter `f`,
-it will no longer compile.
+The first option can be excluded immediately:
+When `functional` calls its parameter `f`, it will no longer compile.
 This breaking change is obvious and would affect almost all unannotated functionals.
 
 So it must be the second option, which entails that
 most `@system` annotated contexts can no longer make use of `functional`
-because its signature requires any argument be `@safe`.
+because its signature *requires* any argument be `@safe`.
 That is overly restrictive from the viewpoint of a `@system` context:
-There is no reason why `functional` should not be used by a `@system` context.
+There is probably no reason why `functional` should not be used by a `@system` context.
 
 With this change, however, the first option is the way to go:
 A `@safe` context must supply a `@safe` argument for the call to `functional` to be considered `@safe`.
@@ -292,6 +299,10 @@ the author suggests going forth with `immutable` alone instead of `const` or `im
 Because pointer, slice, and array types with more than one level of indirection are hard to use with `immutable`,
 applicability of them is greatly reduced.
 On the other hand, wide usage of them otherwise would probably not have happened either.
+
+This change entails that a parameter's `const` and `immutable` on the first level of indirection
+must be distinguished from a qualifier on the second level of indirection.
+This is relevant for [overriding methods](#overloading-mangling-and-overriding).
 
 In the case of checking `@safe` for a functional,
 if the parameter's underlying FP/D type is explicitly annotated `@system`,
@@ -528,25 +539,22 @@ A function taking a variable number of lazy parameters has, as its last paramete
 whose underlying type is a possibly qualified delegate type taking no parameters.
 
 The reason behind *essential* FP/D objects, types and calls is mainly this use-case, generalized accordingly.
-
+A standard application of taking a variable number of lazy parameters is `coalesce`,
+a function that returns the first value that is not `null` or `null` if none is.
 ```D
 T coalesce(T)(const scope T delegate()[] paramDGs...)
 {
     foreach (paramDG; paramDGs)
     {
+        static assert(is(typeof(paramDG) == const));
         if (auto result = paramDG()) return result;
     }
     return cast(T) null;
 }
 ```
 
-Here, `paramDG()` is merely `paramDGs[i]()` with an appropriate index `i`.
-Depending on how strictly or loosely the Language Maintainers decide to interpret *essential call to a parameter*,
-this function might need to be rewritten so that the essential call `paramDGs[i]()` appears in the code literally.
-Basic tracking akin to inferring `scope` as in DIP&nbsp;1000
-that provides insights whether a local essential FP/D type variable has the value of a parameter
-would solve this problem completely.
-This is, however, not proposed by this DIP, as it could unnecessarily complicate the implementation.
+Here, `paramDG` is a `const` qualified local variable initialized from `paramDGs`.
+Because of the second clause 
 
 ### Mutable Parameters
 
@@ -571,7 +579,7 @@ allowing for it to be `const` on the outermost layer, too.
 
 ### Const and Aliasing
 
-Here, we will look at an example why requiring `const` does guarantee
+Here, we will look at an example why requiring `const` does in fact guarantee
 that the context has control over the type of parameters in the functional.
 
 First, we will have a look at regular pointer aliasing;
@@ -607,7 +615,7 @@ int aliasingProneFunctional(ref SysFP fp, const(int function()/*@safe*/)* fpp) @
     return (*fpp)(); // essentially call a parameter
 }
 ```
-Next, we look at a `@safe` context that tries feeding `aliasingProneFunctional` with mutable function pointers.
+Next, we look at a `@safe` context that tries calling `aliasingProneFunctional` with mutable function pointers.
 ```D
 void context() @safe
 {
@@ -616,21 +624,21 @@ void context() @safe
 }
 ```
 The last call does not compile.
-If you comment-in the `/*@safe*/` above and run the D compiler available as of the writing of this DIP (v2.095.0),
-it neither will compile, since the second argument is not the problem.
-In fact, it is the first one:
-The `ref` parameter `fp` of a function pointer to `@system` type
-cannot be made referring a function pointer to `@safe` type.
-Assigning a `@safe` FP/D to a `@system` variable uses an implicit conversion that returns an r-value,
-and r-values cannot be used for a `ref` parameter.
+Regardless of commenting-in the `/*@safe*/` above, that code will not compile,
+since the second argument is not the problem. It is the first one:
+A `@safe` function pointer cannot be bound to a `ref` function pointer parameter (implicitly) annotated `@system`. 
+Assigning a `@safe` FP/D to a `@system` variable uses an implicit conversion that is not allowed for binding to `ref`.
+It's `ref` that needs an exact match for mutable types.
+Because `fpp` is a pointer to a `const`, some implicit conversions may take place,
+and dropping warrant attributes is among them. 
 
 For completeness, if `mutableSafeFP` were to be replaced by a `@system` function pointer like this
 ```D
 int function() @system mutableSysFP = () => 1;
 aliasingProneFunctional(mutableSysFP, &mutableSysFP);
 ```
-by the proposal of this DIP, the assignments would work fine.
-But since the `@safe` functional's const parameter is not filled by a `@safe` function pointer,
+by the proposal of this DIP, the bindings work fine.
+Since the `@safe` functional's `const` parameter is not bound by a `@safe` function pointer,
 the call to `aliasingProneFunctional` is not considered `@safe`, leading to a compiler error in the `@safe` context.
 
 ### Overriding Methods
@@ -829,7 +837,7 @@ This solution has some drawbacks:
 * DRY violation.
 * Unnecessary template bloat.
 * The 16 combinations of attributes have to spelled out; avoiding spelling them out requires string mixins which,
-from a maintainability standpoint, is clearly worse than this.
+  from a maintainability standpoint, is clearly worse than this.
 
 If one of the `Ranges` happens to have a primitive that fails some attributes,
 the corresponding `opApply`s will be identical.
@@ -861,23 +869,27 @@ with the described meaning of conserving.
 They would mean the same as the current (strong) warrant attributes for non-higher-order functions.
 The DIP author considers this option to be less desirable because the weak attributes
 * need new syntax,
-* have a very limited scope, therefore
+* have an overly specific use-case, therefore
 * fear to have almost no adoption by developers.
 
 One should mention that `pure`, when it meant strongly pure,
 did not get a weak counterpart for weak purity,
 but was redefined because strong and weak purity can be distinguished by the type system.
 
+The DIP (at the time of this writing) called *Argument-dependent Attributes* follows this approach.
+
 #### Indicate not Calling a Parameter
 
-Another possibility is breaking code, but at least giving programmers the ability to state
-that a parameter is not essentially called, probably using an attribute like `@nocall`.
-Feeding a functional an argument that it (by its signature) cannot possibly call, will not water down its guarantees.
-The new attribute would be inferred for function templates.
+Another possibility is breaking code, but at least giving programmers the ability to state explicitly
+that a parameter is not (essentially) called, probably using an attribute like `@nocall`.
+The call of a functional with an argument binds to a parameter annotated `@nocall`, will not water down its guarantees.
+The new attribute would be inferred for parameters of function templates.
 
 This solution is undesirable because a functional not calling its parameter is incredibly rare.
-Even rarer is the case where attributes of the functional, its argument and the context do not line up,
-i.e. where the argument has weaker guarantees than the context.
+Even rarer is the case where attributes of the argument passed to the functional and the attributes of the context
+are incompatible in the sense that the argument has strictly weaker guarantees than the context.
+Even then, this situation can be handled with the changes proposed by this DIP:
+When one makes the first layer of indirection mutable, it is handled the way it is in the current state of the language.
 
 #### Indicate Calling a Parameter
 
@@ -888,6 +900,8 @@ The new attribute would be inferred for function templates.
 
 This solution is undesirable because the attribute would be on almost every functional.
 Forgetting leads to compile errors that, depending on the error message, might be confusing.
+
+The same way as the alternative above, it could be handled by making the parameter const.
 
 ## Breaking Changes and Deprecations
 
