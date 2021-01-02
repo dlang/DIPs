@@ -48,17 +48,6 @@ This DIP proposes that
 Calling `toString` with a `@system` sink is also valid, but the call will be considered `@system`
 since the condition that the argument be `@safe` is violated.
 
-### Reference
-
-1. [Wikipedia: Higher-order function](https://en.wikipedia.org/wiki/Higher-order_function)
-1. [D Language Specification: `opApply`](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes)
-1. [D Language Specification: Lazy Parameters](https://dlang.org/spec/function.html#lazy-params)
-1. [D Language Specification: Lazy Variadic Functions](https://dlang.org/spec/function.html#lazy_variadic_functions)
-1. [Discussion: `opApply` with Type Inference and Templates?](https://forum.dlang.org/post/zkovjshfktznepertjay@forum.dlang.org)
-1. [Discussion: Parameterized delegate attributes](https://forum.dlang.org/post/ovitindvwuxkmbxufzvi@forum.dlang.org)
-1. [Discussion: `@nogc` with `opApply`](https://forum.dlang.org/thread/erznqknpyxzxqivawnix@forum.dlang.org)
-1. [Issue: `opApply` and nothrow don't play along](https://issues.dlang.org/show_bug.cgi?id=14196)
-
 ## Contents
 
 * [Terms and Definitions](#terms-and-definitions)
@@ -928,6 +917,17 @@ However, this could be in a `@trusted` pseudo-block (a lambda immediately called
 Because the proposed change only affects parameters qualified on the highest level of indirection,
 this problem can be solved by pushing down the `const` qualifier one level of indirection.
 In the example above, `in` has to be removed or replaced by `scope`.
+
+### Reference
+
+1. [Wikipedia: Higher-order function](https://en.wikipedia.org/wiki/Higher-order_function)
+1. [D Language Specification: `opApply`](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes)
+1. [D Language Specification: Lazy Parameters](https://dlang.org/spec/function.html#lazy-params)
+1. [D Language Specification: Lazy Variadic Functions](https://dlang.org/spec/function.html#lazy_variadic_functions)
+1. [Discussion: `opApply` with Type Inference and Templates?](https://forum.dlang.org/post/zkovjshfktznepertjay@forum.dlang.org)
+1. [Discussion: Parameterized delegate attributes](https://forum.dlang.org/post/ovitindvwuxkmbxufzvi@forum.dlang.org)
+1. [Discussion: `@nogc` with `opApply`](https://forum.dlang.org/thread/erznqknpyxzxqivawnix@forum.dlang.org)
+1. [Issue: `opApply` and nothrow don't play along](https://issues.dlang.org/show_bug.cgi?id=14196)
 
 ## Copyright & License
 
