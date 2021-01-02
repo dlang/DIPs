@@ -86,16 +86,17 @@ A type is *essentially an FP/D type* if it is
 * a possibly qualified static array of essentially FP/D type — or
 * a possibly qualified associative array with value type an essentially FP/D type.
 
-> **Example**<br/>The type `const(immutable(void function(int) pure)*)[]` is essentially an FP/D type.
+> **Example**<br/>The type `void function(int) pure` is an FP/D type, and<br/>
+> thus, `const(immutable(void function(int) pure)*)[]` is essentially an FP/D type.
 
 An *essential call* of an eFP/D means an expression that is: In case of the eFP/D being
 * a possibly qualified FP/D: A call (in the regular sense) to that object.
 * a pointer `p` to an eFP/D: An essential call to `*p`.
 * a slice or a static or associative array `arr` to an eFP/D: An essential call to `arr[i]` for a suitable index `i`.
 
-> **Example**<br/>An essential call to an object `fpps` the essential FP/D type in the previous example
-> is `(*(fpps[i]))(x)`
-> (where `i` is of type `size_t` and `x` is an `int`).
+> **Example**<br/>Let `fpps` be of the essential FP/D type in the previous example.
+> An essential call to `fpps` is `(*(fpps[i]))(arg)`,
+> where `i` is a `size_t` and `arg` an `int`.
 
 This document makes use of the terms *parameter* and *argument* in a very precise manner
 as the [D Language Specification](https://dlang.org/spec/function.html#param-storage) points out:
@@ -103,7 +104,6 @@ as the [D Language Specification](https://dlang.org/spec/function.html#param-sto
 > and the *argument* is the value that will *bind* to it. 
 
 A *higher-order function*, or *functional* for short, is anything that can be called
-(including any kind of functions, function pointers, delegates, and `opCall`)
 that takes one or more eFP/D types as arguments.
 
 When a higher-order function is called, there are three notable entities to commonly refer to:
@@ -129,6 +129,9 @@ Although not an entity in the above sense, the functional's *parameter types* wi
 >     functional(callback);
 > }
 > ```
+
+A *warrant attribute context* is a context function
+that is annotated with one or more of the warrant attributes defined above.
 
 ## Rationale
 
