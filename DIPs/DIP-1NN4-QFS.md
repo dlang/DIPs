@@ -43,7 +43,7 @@ that binds to `sink` is `@safe`.
 This DIP proposes that
 * the first `toString` function is allowed to call `sink` even if not annotated `@safe` — and
 * that the call `toString(&append)` is only `@safe` when *both*
-  the called function `toString` and the argument `&append` are `@safe`. 
+  the called function `toString` and the argument `&append` are `@safe`.
 
 Calling `toString` with a `@system` sink is also valid, but the call will be considered `@system`
 since the condition that the argument be `@safe` is violated.
@@ -91,7 +91,7 @@ An *essential call* of an eFP/D means an expression that is: In case of the eFP/
 This document makes use of the terms *parameter* and *argument* in a very precise manner
 as the [D Language Specification](https://dlang.org/spec/function.html#param-storage) points out:
 > When talking about function *parameters*, the parameter is what the function prototype defines,
-> and the *argument* is the value that will *bind* to it. 
+> and the *argument* is the value that will *bind* to it.
 
 A *higher-order function*, or *functional* for short, is anything that can be called
 that takes one or more eFP/D types as arguments.
@@ -112,7 +112,7 @@ Although not an entity in the above sense, the functional's *parameter types* wi
 > {
 >     parameterFunction();
 > }
-> 
+>
 > void context()
 > {
 >     alias callback = { };
@@ -136,8 +136,8 @@ mean very different things:
   that the functional potentially *needs* to work properly.
 
 As an example, consider a functional taking a `pure` delegate parameter.
-The functional might make use of memoization, or the fact that the parameter's return values are
-[unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions) in its internal logic.
+In its internal logic, the functional might make use of memoization, or the fact that the parameter's return values are
+[unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions).
 In the case of uniqueness, omitting the requirement will result in invalid code,
 since return values of impure functions generally cannot be assumed unique.
 In the case of memoization, omitting the requirement will not result in a compile error,
@@ -152,7 +152,7 @@ meaning it can be annotated with them.
 Having weak requirements means
 that the functional does not need the guarantees of a warrant attribute on a parameter function
 for its internal logic to be sound.
-Most programmers opt against warrant attributes, i.e. for weak requirements
+Most programmers opt against warrant attributes, i.e. for weak requirements,
 and therefore needlessly weaken the guarantees.
 
 The DIP solves this problem by always allowing calls to `const` and `immutable` parameters
@@ -231,7 +231,9 @@ A `@system` context may supply a `@system` argument, rendering the call to `func
 which is not a problem, since this is exactly what was happening before making `@safe` the default.
 
 One could argue that changing defaults is inherently a breaking change.
-Still, breakage should be minimized.
+Still, breakage should be minimized and have a transition path.
+
+With this DIP, the transition path is the first option together with qualifying the parameter `const` or `immutable`.
 
 ## Prior Work
 
@@ -243,6 +245,9 @@ Those `pure` functions are called *weakly pure* in contrast to *strongly pure* o
 that cannot possibly modify values except their local variables.
 The same way letting weakly pure functions be annotated `pure` allowed for more *strongly pure* functions,
 the changes proposed by this DIP allow more functions carrying a warrant attribute.
+
+The example in the [Abstract](#abstract) shows how the second `toString` overload is truly `@safe`
+because the first overload is `@safe` depending on its argument.
 
 ## Description
 
@@ -265,7 +270,13 @@ Exceptions to this are statements in `debug` blocks and that `@safe` functions m
 This DIP proposes that
 1. essential calls to `const` or `immutable` eFP/D type parameters are not to be subjected to this condition, as well as
 2. essential calls to local `const` or `immutable` eFP/D type variables declared in the functional,
-that are initialized by dereferencing and/or indexing a parameter without conversion, become valid, too.
+   that are initialized by dereferencing and/or indexing a parameter without conversion, become valid, too.
+
+In the case of checking `@safe` for a functional,
+if the parameter's underlying FP/D type is explicitly annotated `@system`,
+an essential call to the eFP/D object is considered invalid.
+This is to avoid confusion.
+Removing the unnecessary `@system` annotation fixes this error.
 
 The second clause concerning local variables allows for iterating over eFP/D type parameters
 that are slices or static or associative arrays
@@ -293,12 +304,6 @@ This change entails that a parameter's `const` and `immutable` on the first leve
 must be distinguished from a qualifier on the second level of indirection.
 This is relevant for [overriding methods](#overloading-mangling-and-overriding).
 
-In the case of checking `@safe` for a functional,
-if the parameter's underlying FP/D type is explicitly annotated `@system`,
-an essential call to the eFP/D object is considered invalid.
-This is to avoid confusion.
-Removing the unnecessary `@system` annotation fixes this error.
-
 Note that this only applies to parameters to the functional;
 any other essential calls to eFP/Ds will be checked as is currently the case.
 
@@ -317,24 +322,24 @@ The same goes for other guarantees warrant attributes make.
 ### Attribute Inference for Functional Templates
 
 By the proposal of this DIP,
-when inferring attributes for function, templates that have runtime parameters of eFP/D type,
+when inferring attributes for function templates that have runtime parameters of a `const` or `immutable` eFP/D type,
 essential calls are considered to not invalidate any warrant attribute.
 
-Note that this only applies to parameters;
-calling of any other FP/Ds will be checked as is currently the case.
-
-That way, attribute inference takes the way regular functions are checked for satisfying the conditions into account.
+That way, attribute inference follows the rules non-template functions are checked.
 
 ### Attribute Checking inside Contexts
 
 When calling a functional, the types of the eFP/D arguments are known.
 
 By the proposal of this DIP,
-in a warrant attribute context, a call to a functional is valid
-if, and only if, the functional is annotated with that warrant attribute and all argument types are.
+in a warrant attribute context, a call to a functional is valid with respect to the warrant attribute
+if, and only if,
+1. the functional is annotated with that warrant attribute — and
+2. all arguments that bind to `const` or `immutable` type parameters are annotated with that warrant attribute.
+
 (As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute,
 i.e. stating a requirement, and the supplied argument fails to have this warrant attribute, it is a type mismatch;
-akin to supplying a const typed pointer as an argument to a mutable parameter.)
+akin to supplying a `const` typed pointer as an argument to a mutable parameter.)
 
 ### Overloading, Mangling and Overriding
 
@@ -363,7 +368,7 @@ interface I
 
 class C : I
 {
-    void f(const int x); // invalid: did you mean to override I.f(int x)?  
+    void f(const int x); // invalid: did you mean to override I.f(int x)?
     void g(int x); // invalid, did you mean to override void I.g(const(int) x)?
     void h(const(int)* x); // valid
     void j(const int* x); // valid
@@ -543,7 +548,7 @@ T coalesce(T)(const scope T delegate()[] paramDGs...)
 ```
 
 Here, `paramDG` is a `const` qualified local variable initialized from `paramDGs`.
-Because of the second clause 
+Because of the second clause
 
 ### Mutable Parameters
 
@@ -608,18 +613,18 @@ Next, we look at a `@safe` context that tries calling `aliasingProneFunctional` 
 ```D
 void context() @safe
 {
-    int function() @safe mutableSafeFP = () => 1; 
+    int function() @safe mutableSafeFP = () => 1;
     aliasingProneFunctional(mutableSafeFP, &mutableSafeFP);
 }
 ```
 The last call does not compile.
 Regardless of commenting-in the `/*@safe*/` above, that code will not compile,
 since the second argument is not the problem. It is the first one:
-A `@safe` function pointer cannot be bound to a `ref` function pointer parameter (implicitly) annotated `@system`. 
+A `@safe` function pointer cannot be bound to a `ref` function pointer parameter (implicitly) annotated `@system`.
 Assigning a `@safe` FP/D to a `@system` variable uses an implicit conversion that is not allowed for binding to `ref`.
 It's `ref` that needs an exact match for mutable types.
 Because `fpp` is a pointer to a `const`, some implicit conversions may take place,
-and dropping warrant attributes is among them. 
+and dropping warrant attributes is among them.
 
 For completeness, if `mutableSafeFP` were to be replaced by a `@system` function pointer like this
 ```D
@@ -632,7 +637,7 @@ the call to `aliasingProneFunctional` is not considered `@safe`, leading to a co
 
 ### Overriding Methods
 
-This example demonstrates what changes when base class or interface methods are overridden. 
+This example demonstrates what changes when base class or interface methods are overridden.
 ```D
 class Base
 {
@@ -662,20 +667,20 @@ class Derived : Base, Interface
     { foreach (fp; paramFunctions) fp(); } // stays invalid: cannot call @system fp
     override void gunctional(void function(int) paramFunction) @safe
     { paramFunction(1); } // stays invalid: cannot call @system paramFunction
-    
-    // Dropping attributes on a const parameter type makes sense with this DIP: 
+
+    // Dropping attributes on a const parameter type makes sense with this DIP:
     override void hunctional(const int function(int) pure fp) pure @safe
     { return paramFunction(1); } // becomes valid
-    
+
     // Dropping const is fine, as long as the functional's attributes are carried over:
     override int junctional(int function(int) pure @safe paramFunction) @safe
     { return paramFunction(1); } // stays valid
     // (Keeping the pure requriement, a further derived implementation's logic can make use of it.)
-    
-    // Dropping const on a parameter with lower attributes weakens the override: 
+
+    // Dropping const on a parameter with lower attributes weakens the override:
     override int kunctional(int function(int) pure paramFunction) pure @safe;
     { return paramFunction(1); } // stays invalid: cannot call @system paramFunction
-    
+
     // Adding const and dropping attributes on a parameter is okay.
     override int lunctional(const int function(int) pure paramFunction) pure @safe
     { return paramFunction(1); } // becomes valid
@@ -912,7 +917,7 @@ With the changes proposed by this DIP, the call in the context will become inval
 However, one must wonder what the `@safe` context would do with that `@system` return value,
 since it cannot call it directly.
 To make use of it, it must find its way to a point where calling a `@system` delegate is valid.
-However, this could be in a `@trusted` pseudo-block (a lambda immediately called) in the context. 
+However, this could be in a `@trusted` pseudo-block (a lambda immediately called) in the context.
 
 Because the proposed change only affects parameters qualified on the highest level of indirection,
 this problem can be solved by pushing down the `const` qualifier one level of indirection.
