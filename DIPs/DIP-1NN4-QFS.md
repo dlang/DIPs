@@ -41,11 +41,11 @@ and thus, the `toString()` function has full knowledge about whether the argumen
 that binds to `sink` is `@safe`.
 
 This DIP proposes that
-* the first `toString` function can legally call `sink` even if not annotated `@safe` — and
+* the first `toString` function is allowed to call `sink` even if not annotated `@safe` — and
 * that the call `toString(&append)` is only `@safe` when *both*
   the called function `toString` and the argument `&append` are `@safe`. 
 
-Calling `toString` with a `@system` sink is also legal, but the call will be considered `@system`
+Calling `toString` with a `@system` sink is also valid, but the call will be considered `@system`
 since the condition that the argument be `@safe` is violated.
 
 ### Reference
@@ -262,13 +262,19 @@ Among those conditions is, for any warrant attribute, that the function may only
 that are annotated with the same attribute or have it inferred.
 Exceptions to this are statements in `debug` blocks and that `@safe` functions may also call `@trusted` functions.
 
-This DIP proposes that essential calls to `const` or `immutable` eFP/D parameters
-are not to be subjected to this condition.
+This DIP proposes that
+1. essential calls to `const` or `immutable` eFP/D type parameters are not to be subjected to this condition, as well as
+2. essential calls to local `const` or `immutable` eFP/D type variables declared in the functional,
+that are initialized by dereferencing and/or indexing a parameter without conversion, become valid, too.
+
+The second clause concerning local variables allows for iterating over eFP/D type parameters
+that are slices or static or associative arrays
+using a `foreach` loop.
 
 Note that it is necessary that the full parameter's type is `const` or `immutable`.
 If the uppermost level is mutable, the parameter can be reassigned in the functionals body before being called,
 invalidating the assumption
-that the context has full control over and complete knowledge of the eFP/D object and its type.
+that the context has full control over the eFP/D object and its type.
 You may want to take a look at [the respective example](#mutable-parameters).
 
 Only requiring `const` as a qualifier in fact does suffice.
