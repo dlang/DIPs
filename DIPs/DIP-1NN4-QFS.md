@@ -68,6 +68,7 @@ since the condition that the argument be `@safe` is violated.
   * [Attribute Checking inside Functionals](#Attribute-Checking-inside-Functionals)
   * [Attribute Inference for Functional Templates](#Attribute-Inference-for-Functional-Templates)
   * [Attribute Checking inside Contexts](#Attribute-Checking-inside-Contexts)
+  * [Overloading, Mangling and Overriding](#overloading-mangling-and-overriding)
 * [Examples](#examples)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Copyright & License](#copyright--license)
@@ -335,6 +336,46 @@ if, and only if, the functional is annotated with that warrant attribute and all
 i.e. stating a requirement, and the supplied argument fails to have this warrant attribute, it is a type mismatch;
 akin to supplying a const typed pointer as an argument to a mutable parameter.)
 
+### Overloading, Mangling and Overriding
+
+The difference between  `const` and `immutable` on first and second layer of indirection that this DIP introduces
+if the parameter's type is an eFP/D type,
+seem to affect overloading (and overload resolution), mangling, and overriding.
+
+Overloading is taken care of by proposing that no change is made.
+In the current state of the language,
+overload resolution considers by-copy binding of a value a conversion
+if first layer qualifiers of the argument type and the parameter type disagree.
+Still, these functions are considered different in type and mangling.
+
+However, when a class overrides a method defined in a base class or an interface,
+by the current rules of the language,
+`const` and `immutable` qualifiers can be dropped from the first layer of indirection of a parameter's type
+if a second layer is present:
+```D
+interface I
+{
+    void f(int x);
+    void g(const int x);
+    void h(const int* x);
+    void j(const(int)* x);
+}
+
+class C : I
+{
+    void f(const int x); // invalid: did you mean to override I.f(int x)?  
+    void g(int x); // invalid, did you mean to override void I.g(const(int) x)?
+    void h(const(int)* x); // valid
+    void j(const int* x); // valid
+}
+```
+For some reason, a function pointer or delegate type is not akin to `int` but `int*`,
+allowing one to add and remove `const` and attributes while still qualifying as override.
+
+There are no changes proposed concerning overriding specifically,
+but you may want to have a look at the [respective example](#overriding-methods)
+demonstrating the consequences of this DIP.
+
 ### Error Messages
 
 When a functional essentially calls a mutable parameter
@@ -591,6 +632,75 @@ aliasingProneFunctional(mutableSysFP, &mutableSysFP);
 by the proposal of this DIP, the assignments would work fine.
 But since the `@safe` functional's const parameter is not filled by a `@safe` function pointer,
 the call to `aliasingProneFunctional` is not considered `@safe`, leading to a compiler error in the `@safe` context.
+
+### Overriding Methods
+
+This example demonstrates what changes when base class or interface methods are overridden. 
+```D
+class Base
+{
+    void functional(const void function()[] paramFunctions) @safe
+    { foreach (fp; paramFunctions) fp(); } // becomes valid
+    abstract void gunctional(const void function(int) paramFunction) @safe
+    { paramFunction(1); } // becomes valid
+    abstract void hunctional(int function(int) pure @safe paramFunction) pure @safe;
+}
+
+interface Interface
+{
+    int junctional(const int function(int) pure @safe paramFunction) @safe;
+    int kunctional(const int function(int) pure paramFunction) pure @safe;
+    int lunctional(int function(int) pure @safe paramFunction) pure @safe;
+}
+```
+Both implementations of the methods in `Base` become valid by the changes this DIP proposes.
+
+*Weakening the overload* means that the implementation may not do things the base class implementation could do.
+Primarily this means (essentially) calling a parameter.
+```
+class Derived : Base, Interface
+{
+    // Dropping const on the first layer of indirection weakens the override:
+    override void functional(const(void function())[] paramFunctions) @safe
+    { foreach (fp; paramFunctions) fp(); } // stays invalid: cannot call @system fp
+    override void gunctional(void function(int) paramFunction) @safe
+    { paramFunction(1); } // stays invalid: cannot call @system paramFunction
+    
+    // Dropping attributes on a const parameter type makes sense with this DIP: 
+    override void hunctional(const int function(int) pure fp) pure @safe
+    { return paramFunction(1); } // becomes valid
+    
+    // Dropping const is fine, as long as the functional's attributes are carried over:
+    override int junctional(int function(int) pure @safe paramFunction) @safe
+    { return paramFunction(1); } // stays valid
+    // (Keeping the pure requriement, a further derived implementation's logic can make use of it.)
+    
+    // Dropping const on a parameter with lower attributes weakens the override: 
+    override int kunctional(int function(int) pure paramFunction) pure @safe;
+    { return paramFunction(1); } // stays invalid: cannot call @system paramFunction
+    
+    // Adding const and dropping attributes on a parameter is okay.
+    override int lunctional(const int function(int) pure paramFunction) pure @safe
+    { return paramFunction(1); } // becomes valid
+}
+```
+The overrides of `Base` methods become invalid by the proposed changes of this DIP,
+but can easily be made valid again by declaring the parameters `const` on the first layer of indirection.
+
+The override of `hunctional` dropping `pure` on its parameter's type is valid
+and stays valid by the proposed changes of this DIP.
+However, by the current state of the language, `Derived.hunctional` cannot call its parameter,
+but by the proposed changes of this DIP, it can.
+Calls to `Interface.hunctional` with a `pure` argument stay well-behaved.
+(With an impure argument, they stay invalid.)
+Calls to `Derived.hunctional` with an impure argument become meaningful although impure themselves.
+
+The example of `junctional` shows that
+if the parameter's type has the same or more warrant attributes as the functional,
+`const` is not necessary on `Interface.junctional` and can be dropped.
+However, dropping `const` on a parameter with a type that has lower attributes than the functional
+like `kunctional` does, has consequences.
+On the other hand, adding `const` allows the functional to make use of its parameter with lower attributes.
 
 ### Third-order and Even-Higher-Order Functionals
 
