@@ -21,30 +21,34 @@ An example is this:
 ```D
 struct Aggregate
 {
-    void toString(const void delegate(char) sink) @safe
+    /// Executes sink(c) for every char c of the string representation in sequence.
+    void toString(const void delegate(char) sink) @safe @nogc
     { ... }
 
+    /// Returns the string representation in a GC allocated string.
     string toString() @safe
     {
         string result;
         void append(char c) { result ~= c; }
-        toString(&append); // append is inferred @safe
+        toString(&append); // append is (inferred) @safe, but not @nogc
         return result;
     }
 }
 ```
-Notice how `sink` is not annotated `@safe`, but it is declared `const`.
+Notice how `sink` is not annotated `@safe` or `@nogc`, but it is declared `const`.
 The key observations of this DIP are
 that because it is `const`, any call like `sink('c')` can only execute the delegate passed to it
 (`sink` cannot e.g. be reassigned),
 and thus, the `toString()` function has full knowledge about whether the argument `&append`
-that binds to `sink` is `@safe`.
+that binds to `sink` is `@safe` and/or `@nogc`.
 
 This DIP proposes that
-* the first `toString` function is allowed to call `sink` even if not annotated `@safe` — and
-* that the call `toString(&append)` is only `@safe` when *both*
-  the called function `toString` and the argument `&append` are `@safe`.
+* the first `toString` function is allowed to call `sink` even if not annotated `@safe` and/or `@nogc` — and
+* that the call `toString(&append)` is only `@safe` and/or `@nogc` when *both*
+  the called function `toString` and the argument `&append` are `@safe` and/or `@nogc`, respectively.
 
+Calling `toString` with a function that may allocate is valid, but not a `@nogc` operation,
+so `toString()` cannot be annotated `@nogc`. 
 Calling `toString` with a `@system` sink is also valid, but the call will be considered `@system`
 since the condition that the argument be `@safe` is violated.
 
