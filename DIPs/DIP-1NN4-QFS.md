@@ -422,7 +422,7 @@ that the annotation of the functional is defective or attribute inference did no
 
 With the changes proposed by this DIP, `lazy` can become a shortcut similar to the storage class `in`.
 ([Since version 2.094.0](https://dlang.org/changelog/2.094.0.html#preview-in),
-`in` as a storage class that means `const scope` and maybe `ref` that binds r-values.)
+`in` as a storage class means `const scope` and maybe `ref` that binds r-values.)
 Similarly, `lazy T` could mean `in T delegate()` that also binds `T` arguments by lambda abstraction.
 The second clause makes DIP&nbsp;1033 mostly redundant.
 
