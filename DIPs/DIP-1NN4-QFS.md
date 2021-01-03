@@ -71,6 +71,7 @@ since the condition that the argument be `@safe` is violated.
 
 The attributes `pure`, `nothrow`, `@safe`, and `@nogc` will be called *warrant attributes* in this DIP.
 Notably absent are `@system` and `@trusted` as they do not warrant any compiler-side checks.
+Also absent is `@live` because `@live` functions may call non-`@live` functions.
 
 In this document, *FP/D (type)* will be an abbreviation for *function pointer (type) or delegate (type)*.
 A type is *essentially an FP/D type* if it is
