@@ -132,7 +132,7 @@ that is annotated with one or more of the warrant attributes defined above.
 
 Higher-order functions are cumbersome to use in a warrant attribute context.
 The execution of a context function may provably satisfy the conditions of a warrant attribute,
-but is considered invalid because the formal conditions of the warrant attribute not met.
+but is considered invalid because the formal conditions of the warrant attribute are not met.
 
 Warrant attributes on a functional (or, in fact, on any function) and on a functional's parameter
 mean very different things:
@@ -581,7 +581,7 @@ allowing for it to be `const` on the outermost layer, too.
 Here, we will look at an example why requiring `const` does in fact guarantee
 that the context has control over the type of parameters in the functional.
 
-First, we will have a look at regular pointer aliasing;
+First, we will have a look at regular pointer aliasing:
 ```D
 void proneToAliasing(ref int x, const(int)* p)
 {
@@ -664,7 +664,7 @@ Both implementations of the methods in `Base` become valid by the changes this D
 
 *Weakening the overload* means that the implementation may not do things the base class implementation could do.
 Primarily this means (essentially) calling a parameter.
-```
+```D
 class Derived : Base, Interface
 {
     // Dropping const on the first layer of indirection weakens the override:
