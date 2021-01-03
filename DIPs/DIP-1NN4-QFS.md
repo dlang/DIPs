@@ -405,6 +405,46 @@ that the annotation of the functional is defective or attribute inference did no
 
 ## Examples
 
+### Lazy as a Lowering
+
+With the changes proposed by this DIP, `lazy` can become a shortcut similar to the storage class `in`.
+([Since version 2.094.0](https://dlang.org/changelog/2.094.0.html#preview-in),
+`in` as a storage class that means `const scope` and maybe `ref` that binds r-values.)
+Similarly, `lazy T` could mean `in T delegate()` that also binds `T` arguments by lambda abstraction.
+The second clause makes DIP&nbsp;1033 mostly redundant.
+
+As an example:
+```D
+T orDefaultLazy(T)(T* ptr, lazy T alternative)
+{
+    if (ptr != null) return *ptr;
+    else return alternative();
+}
+
+void context() @safe
+{
+    int* p = returns!(int*)();
+    int v = p.orDefaultLazy(returns!int() + 1);
+}
+```
+The internal logic can equivalently be implemented like this:
+```D
+T orDefaultDG(T)(T* ptr, const scope T delegate() alternative)
+{
+    if (ptr != null) return *ptr;
+    else return alternative();
+}
+```
+
+The only difference would be
+that a context could call `orDefaultLazy` using an expression of type `T` in the second parameter,
+but for `orDefaultDG`, the delegate must be explicit using `() => expression` or `{ return expression; }`.
+
+In both cases, attributes are inferred depending on the attributes of `T`'s copy constructor.
+For `T` being `int`, all warrant attributes are inferred.
+An impure context can bind an impure expresion to the delegate, resulting in an impure operation.
+A `pure` context can bind a `pure` expression to the delegate, resulting in a pure operation.
+
 ### Lockstep Iteration
 
 Iterating multiple ranges in lockstep with `ref` access cannot be achieved (not easily, at least)
