@@ -36,10 +36,10 @@ struct Aggregate
 }
 ```
 Notice how `sink` is not annotated `@safe` or `@nogc`, but it is declared `const`.
-The key observations of this DIP are
+The key observation of this DIP is
 that because it is `const`, any call like `sink('c')` can only execute the delegate passed to it
 (`sink` cannot e.g. be reassigned),
-and thus, the `toString()` function has full knowledge about whether the argument `&append`
+and thus, the parameterless `toString` function has full control about whether the argument `&append`
 that binds to `sink` is `@safe` and/or `@nogc`.
 
 This DIP proposes that
