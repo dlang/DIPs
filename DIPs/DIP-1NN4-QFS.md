@@ -980,15 +980,40 @@ Because the proposed change only affects parameters qualified on the highest lev
 this problem can be solved by pushing down the `const` qualifier one level of indirection.
 In the example above, `in` has to be removed or replaced by `scope`.
 
-### Reference
+## References
 
-1. [Wikipedia: Higher-order function](https://en.wikipedia.org/wiki/Higher-order_function)
-1. [D Language Specification: `opApply`](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes)
-1. [D Language Specification: Lazy Parameters](https://dlang.org/spec/function.html#lazy-params)
-1. [D Language Specification: Lazy Variadic Functions](https://dlang.org/spec/function.html#lazy_variadic_functions)
-1. [Discussion: `opApply` with Type Inference and Templates?](https://forum.dlang.org/post/zkovjshfktznepertjay@forum.dlang.org)
-1. [Discussion: Parameterized delegate attributes](https://forum.dlang.org/post/ovitindvwuxkmbxufzvi@forum.dlang.org)
-1. [Discussion: `@nogc` with `opApply`](https://forum.dlang.org/thread/erznqknpyxzxqivawnix@forum.dlang.org)
+### Terms
+
+1. [Wikipedia: Higher-order function](https://en.wikipedia.org/wiki/Higher-order_function):
+   > In mathematics and computer science, a higher-order function is a function that does at least one of the following:
+   > * takes one or more functions as arguments (i.e. procedural parameters),
+   > * returns a function as its result.
+
+   This document only refers to higher-order functions the ones in the first bullet point
+   since this proposal is not concerned about return values.
+1. [Wikipedia: Functional](https://en.wikipedia.org/wiki/Functional_(mathematics)):
+   > In computer science, [the term *functional*] is synonymous with higher-order functions,
+   > i.e. functions that take functions as arguments or return them.
+
+### D Language Specification
+
+1. [Foreach over aggregates](https://dlang.org/spec/statement.html#foreach_over_struct_and_classes)
+1. [Lazy Parameters](https://dlang.org/spec/function.html#lazy-params)
+1. [Lazy Variadic Functions](https://dlang.org/spec/function.html#lazy_variadic_functions)
+
+### General D Forum Discussions
+
+1. [`opApply` with Type Inference and Templates?](https://forum.dlang.org/post/zkovjshfktznepertjay@forum.dlang.org)
+1. [Parameterized delegate attributes](https://forum.dlang.org/post/ovitindvwuxkmbxufzvi@forum.dlang.org)
+1. [`@nogc` with `opApply`](https://forum.dlang.org/thread/erznqknpyxzxqivawnix@forum.dlang.org)
+
+### Discussion Thread of DIP&nbsp;1032
+
+1. [H. S. Teoh's comment](https://forum.dlang.org/post/mailman.2553.1586000429.31109.digitalmars-d@puremagic.com)
+2. [Walter Bright's answer](https://forum.dlang.org/post/rfq8sc$t6r$1@digitalmars.com)
+
+### Related Issues in the Issue Tracker
+
 1. [Issue: `opApply` and nothrow don't play along](https://issues.dlang.org/show_bug.cgi?id=14196)
 
 ## Copyright & License
