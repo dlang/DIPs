@@ -178,18 +178,19 @@ In a context where a functional is called, the type system has all the necessary
 to determine if the execution of it will comply with the warrant attributes of the context.
 
 This entails that not all calls to a functional annotated with a warrant attribute will result in call expressions
-that is considered in compliance with that warrant attribute.
+that are considered in compliance with that warrant attribute.
 This is, however, less of a problem than it seems at first glance:
 * Consider a `@system` or `@trusted` context calling a `@safe` functional with a `@system` argument.
   The context does not expect an execution satisfying the formal `@safe` constraints, therefore
-  the fact that *the call* to the `@safe` annotated function is not formally considered `@safe` can be mostly ignored.
+  the fact that *the call* to the `@safe` annotated function is not `@safe` can be mostly ignored.
 * Consider a `@safe` context calling a `@safe` functional with a `@system` argument.
-  This is invalid, since a `@safe` functional makes guarantees for its internal logic.
+  This becomes invalid, since a `@safe` functional makes guarantees for its internal logic.
   What the `@system` callback does, is among the responsibility of the context,
   and in a `@safe` context, calling a  `@system` function is invalid.
 
 Especially in meta-programming, it might not be clear at all whether a callback's type has a warrant attribute or not.
-For `@safe` and `@nogc`, this is mostly unproblematic, since these are only interesting from a safety or resource perspective,
+For `@safe` and `@nogc`,
+this is mostly unproblematic, since these are only interesting from a safety or resource perspective,
 but no program's logic depends on the guarantees these attributes make: A memory unsafe program is broken in itself and
 GC allocating may at worst slow down a program unexpectedly due to the GC issuing a collection cycle.
 [Author's note: I'm not completely sure. Please have a think whether these claims are really true.]
@@ -198,10 +199,10 @@ However, the attributes `pure` and `nothrow` are of interest, even in an impure 
 or a context where throwing exceptions is allowed.
 * The return value of a `pure` operation can be unique, allowing for implicit casts that are not possible otherwise.
   In this case, if the call to the functional is impure due to calling it with an impure callback, the code is invalid.
-  The context may expect a `pure` execution for memoization.
+  An impure context may expect a `pure` execution for memoization or thread-safety, too.
 * A `nothrow` operation cannot fail recoverably.
   It fails irrecoverably or succeeds; in either case, no rollback operation is necessary.
-  This fact may be used by the context.
+  This fact may be used by the context even if it may throw itself.
 
 Since outside of templates, the context must be annotated manually; this is unproblematic:
 The call becomes invalid, and a compiler error is presented to the programmer.
@@ -210,10 +211,9 @@ With the changes proposed by this DIP, in templated contexts, except uniqueness,
 it is necessary to manually ensure the execution is `pure` or `nothrow`.
 Usually, this can be achieved by properly annotating the callback where it is defined:
 Instead of `x => x + 1` one has to write `(x) pure nothrow => x + 1`.
-This ensures that
-even when the type of the object plugged in for `x` depends on factors outside the control of the context,
-if `typeof(x)` happens to have an impure or possibly throwing `opBinary!"+"(int)`
-that will lead to a compilation error.
+When the type of the object bound to `x` depends on factors outside the control of the context,
+e.g. if `typeof(x)` happens to have an impure or possibly throwing `opBinary!"+"(int)`
+that will lead to a compilation error where the lambda is formulated.
 
 In the opinion of the author,
 a context should not rely on the annotations of the functional to check its requirements implicitly,
@@ -603,12 +603,13 @@ T coalesce(T)(const scope T delegate()[] paramDGs...)
 }
 ```
 
-Here, `paramDG` is a `const` qualified local variable initialized from `paramDGs`.
-Because of the second clause
+Here, `paramDG` is a `const` qualified local variable initialized from the `const` parameter `paramDGs`.
+By the second clause, calling `paramDG` does not invalidate any warrant attribute when attribute inference is performed. 
 
 ### Mutable Parameters
 
-Mutable parameters are not subject to the reduced conditions.
+Calls to mutable parameters are not subject to the reduced conditions.
+This example demonstrates why.
 Consider `coalesce` from the example above, but with a differently typed parameter:
 ```D
 T coalesce(T)(scope const(T delegate())[] paramDGs...);
