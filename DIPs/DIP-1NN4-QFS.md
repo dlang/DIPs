@@ -62,8 +62,8 @@ since the condition that the argument be `@safe` is violated.
    * [Attribute Inference for Functional Templates](#attribute-inference-for-functional-templates)
    * [Attribute Checking inside Contexts](#attribute-checking-inside-contexts)
    * [Overloading, Mangling and Overriding](#overloading-mangling-and-overriding)
-5. [Examples](#examples)
    * [Lazy as a Lowering](#lazy-as-a-lowering)
+5. [Examples](#examples)
    * [Lockstep Iteration](#lockstep-iteration)
    * [String Representations](#string-representations)
    * [Functions with Typesafe Variadic Lazy Parameters](#functions-with-typesafe-variadic-lazy-parameters)
@@ -254,7 +254,16 @@ With this DIP, the transition path is the first option together with qualifying 
 ## Prior Work
 
 There is no prior work in other languages known to the author.
+
 The proposed changes are very specific to the D programming language.
+
+An example where conformity with warrant attributes is checked already in the context and not the functional
+is the case of the delegate parameter implicitly defined in `lazy` parameters
+and delegates created when binding to them.
+
+Among the rationale of DIP&nbsp;1032 was to make `lazy` less of a special case in the language.
+With this proposal, `lazy` becomes a lowering to a delegate.
+
 Yet they bear some similarity to the relaxation of `pure` allowing `pure` functions to modify
 any mutable value reachable through its parameters.
 Those `pure` functions are called *weakly pure* in contrast to *strongly pure* ones
@@ -397,6 +406,42 @@ There are no changes proposed concerning overriding specifically,
 but you may want to have a look at the [respective example](#overriding-methods)
 demonstrating the consequences of this DIP.
 
+### Lazy as a Lowering
+
+Lazy parameters use a delegate internally, but cannot bind delegates with the return type stated.
+All argument expressions `expression` bound to `lazy` parameters are currently rewritten to `delegate() => expression`.
+This rewrite is not optional and occurs even if it leads to an error and omitting the rewrite would compile.
+
+This DIP proposes that `lazy typeSpec` become a shorthand for `in typeSpec delegate()`.
+([Since version 2.094.0](https://dlang.org/changelog/2.094.0.html#preview-in),
+`in` as a storage class means `const scope` and maybe `ref` that binds r-values.)
+Here, `typeSpec` includes the parameter's type,
+but includes the storage class `ref` and type constructors `const`, `immutable`, `inout`, and `shared`,
+in any combination.
+Those become part of the delegate return type.
+The `in` storage class makes all of them redundant, except `shared`.
+Because the implicitly generated delegate is never a `shared` object, `shared` is not needed on the delegate parameter.
+Also, there is no way to supply a `shared` delegate without circumventing the type system
+because the delegate is created always implicitly.
+
+When `lazy` is used with `ref`, the `ref` is considered part of the delegate type
+(meaning the delegate returns by reference).
+(Note that delegate types retuning by reference cannot be expressed directly in a function signature;
+see [issue 21521](https://issues.dlang.org/show_bug.cgi?id=21521).)
+When `lazy` is used with `auto ref` in a function template,
+`ref`-ness of the delegate type is inferred from the argument.
+
+When binding an l-value expression, `delegate ref() => expression` is tried first.
+If that does not succeed, `delegate() => expression` is used.
+That way, l-value expressions bind to a delegate returning `ref` when possible.
+
+On a `lazy` parameter, the [trait `isRef`](https://dlang.org/spec/traits.html#isRef)
+returns the `ref`-ness of the delegate return value.
+One can test for the `lazy` storage class using `__traits(isLazy, lazyParam)` specifically.
+
+A preview switch `-preview=lazy` will be added to the compiler for the transition.
+It implies `-preview=in`.
+
 ### Error Messages
 
 When a functional essentially calls a mutable parameter
@@ -415,46 +460,6 @@ Only stating that the call is a violation of the attribute might confuse the pro
 that the annotation of the functional is defective or attribute inference did not lead to the expected attributes.
 
 ## Examples
-
-### Lazy as a Lowering
-
-With the changes proposed by this DIP, `lazy` can become a shortcut similar to the storage class `in`.
-([Since version 2.094.0](https://dlang.org/changelog/2.094.0.html#preview-in),
-`in` as a storage class means `const scope` and maybe `ref` that binds r-values.)
-Similarly, `lazy T` could mean `in T delegate()` that also binds `T` arguments by lambda abstraction.
-The second clause makes DIP&nbsp;1033 mostly redundant.
-
-As an example:
-```D
-T orDefaultLazy(T)(T* ptr, lazy T alternative)
-{
-    if (ptr != null) return *ptr;
-    else return alternative();
-}
-
-void context() @safe
-{
-    int* p = returns!(int*)();
-    int v = p.orDefaultLazy(returns!int() + 1);
-}
-```
-The internal logic can equivalently be implemented like this:
-```D
-T orDefaultDG(T)(T* ptr, const scope T delegate() alternative)
-{
-    if (ptr != null) return *ptr;
-    else return alternative();
-}
-```
-
-The only difference would be
-that a context could call `orDefaultLazy` using an expression of type `T` in the second parameter,
-but for `orDefaultDG`, the delegate must be explicit using `() => expression` or `{ return expression; }`.
-
-In both cases, attributes are inferred depending on the attributes of `T`'s copy constructor.
-For `T` being `int`, all warrant attributes are inferred.
-An impure context can bind an impure expresion to the delegate, resulting in an impure operation.
-A `pure` context can bind a `pure` expression to the delegate, resulting in a pure operation.
 
 ### Lockstep Iteration
 
