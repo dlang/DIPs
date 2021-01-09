@@ -73,6 +73,7 @@ since the condition that the argument be `@safe` is violated.
 6. [Alternatives](#alternatives)
    * [The Current State](#the-current-state)
    * [New Attributes](#new-attributes)
+7. [Limitations](#limitations)
 7. [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 8. [References](#references)
 9. [Copyright & License](#copyright--license)
@@ -1059,6 +1060,22 @@ This solution is undesirable because the attribute would be on almost every func
 Forgetting leads to compile errors that, depending on the error message, might be confusing.
 
 The same way as the alternative above, it could be handled by making the parameter const.
+
+## Limitations
+
+The proposal tries to be very universal.
+It not only deals with FP/D type parameters alone, but also types built on top of them (eFP/D types).
+One might wish to be even more universal.
+
+As an example, aggregate types that have fields with eFP/D type could become part of this DIP, too.
+Unfortunately, while accessing the fields directly can be controlled by the context,
+indirect access (that is necessary when the fields are encapsulated) cannot be controlled by the context.
+Even a member function as simple as a getter of an FP/D can have its implementation hidden,
+and even if that getter of an FP/D filed is `pure` and `@nogc`, it can still access `immutable` global FP/D data
+to get its result from.
+
+Properly extending the approach of this DIP to accommodate aggregate types like
+[Phobos' Array](https://dlang.org/phobos/std_container_array.html) is not feasible without further effort.
 
 ## Breaking Changes and Deprecations
 
