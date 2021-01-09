@@ -591,7 +591,7 @@ static foreach (Char; aliasSeq!(char, wchar, dchar))
 In the current state of the language, those `toString`s cannot be used in warrant attribute contexts.
 Authors who want to support warrant attribute contexts have to implement up to 16 overloads like this:
 ```D
-private final void toStringImpl(DG)(const scope DG sink) { ... } // inferres attributes
+private final void toStringImpl(DG)(const scope DG sink) { ... } // inferes attributes
 static foreach (Char; aliasSeq!(char, wchar, dchar))
 {
     void toString(const scope void delegate(Char)       sink) const       { toStringImpl(sink); }
@@ -685,8 +685,8 @@ First, we will have a look at regular pointer aliasing:
 void proneToAliasing(ref int x, const(int)* p)
 {
     assert(*p == 0);
-    x = 1;
-    assert(*p == 1);
+    x = 1; // looks innocent, but ...
+    assert(*p == 1); // ... can make this pass.
 }
 void resistsAliasing(ref int x, immutable(int)* p) { ... }
 void context()
@@ -707,7 +707,7 @@ alias sysFunc = function int() @system
     { int* p; int x; p = &x; return *p; };
 
 alias SysFP = int function();
-int aliasingProneFunctional(ref SysFP fp, const(int function()/*@safe*/)* fpp) @safe
+int seeminglyAliasingProneFunctional(ref SysFP fp, const(int function()/*@safe*/)* fpp) @safe
 {
     fp = sysFunc; // assign a @system function ptr to a @system fp variable, okay
     return (*fpp)(); // essentially call a parameter
@@ -715,16 +715,17 @@ int aliasingProneFunctional(ref SysFP fp, const(int function()/*@safe*/)* fpp) @
 ```
 Next, we look at a `@safe` context that tries calling `aliasingProneFunctional` with mutable function pointers.
 ```D
-void context() @safe
+void context()
 {
     int function() @safe mutableSafeFP = () => 1;
-    aliasingProneFunctional(mutableSafeFP, &mutableSafeFP);
+    seeminglyAliasingProneFunctional(mutableSafeFP, &mutableSafeFP);
 }
 ```
-The last call does not compile.
-Regardless of commenting-in the `/*@safe*/` above, that code will not compile,
-since the second argument is not the problem. It is the first one:
-A `@safe` function pointer cannot be bound to a `ref` function pointer parameter (implicitly) annotated `@system`.
+The call to `seeminglyAliasingProneFunctional` does not compile.
+Regardless of commenting-in the `/*@safe*/` above and the implementation of this DIP, that code will not compile,
+since the second argument is not the problem.
+It is the first one:
+A `@safe` function pointer cannot be bound to a mutable `ref` function pointer parameter (implicitly) annotated `@system`.
 Assigning a `@safe` FP/D to a `@system` variable uses an implicit conversion that is not allowed for binding to `ref`.
 It's `ref` that needs an exact match for mutable types.
 Because `fpp` is a pointer to a `const`, some implicit conversions may take place,
@@ -1036,6 +1037,9 @@ Because the proposed change only affects parameters qualified on the highest lev
 this problem can be solved by pushing down the `const` qualifier one level of indirection.
 In the example above, `in` has to be removed or replaced by `scope`.
 
+The amount of breakage is probably very low.
+In the opinion of the author, the gains clearly outweigh the costs.  
+
 ## References
 
 ### Terms
@@ -1077,7 +1081,7 @@ In the example above, `in` has to be removed or replaced by `scope`.
 
 ## Copyright & License
 
-Copyright © 2020 by Quirin F. Schroll and the D Language Foundation
+Copyright © 2020–2021 by Quirin F. Schroll and the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
