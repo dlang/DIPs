@@ -1059,7 +1059,7 @@ The new attribute would be inferred for function templates.
 This solution is undesirable because the attribute would be on almost every functional.
 Forgetting leads to compile errors that, depending on the error message, might be confusing.
 
-The same way as the alternative above, it could be handled by making the parameter const.
+The same way as the alternative above, it could be handled by making the parameter `const`.
 
 ## Limitations
 
