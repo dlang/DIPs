@@ -274,6 +274,55 @@ the changes proposed by this DIP allow more functions carrying a warrant attribu
 The example in the [Abstract](#abstract) shows how the second `toString` overload is truly `@safe`
 because the first overload is `@safe` depending on its argument.
 
+This proposal is based on an idea explained by H.&nbsp;S.&nbsp;Teoh in great detail.
+In the discussion, Walter Bright, one of the Language Maintainers, raised strong opposition to this approach:
+> **Walter Bright's answer in the Discussion Thread of DIP&nbsp;1032**<br/>
+> But it still tricks the user into thinking the function is pure, since it says right there it is pure. Pure isn't just an attribute for the compiler, it's for the user as it offers a guarantee about what the interface to a function is.
+> 
+> Silently removing pure can also make the user think that a function is thread-safe when it is not.
+> Adding a feature that silently disables an explicitly placed "pure" attribute is going to become a hated misfeature.
+>
+> I strongly oppose it.
+
+The author agrees that there is a didactic challenge to this, since attributes currently are absolutes.
+However, from a didactic standpoint,
+attributes could be explained as describing the allowed and disallowed operations  of a function.
+A function call in and of itself is in accordance with any attribute.
+Regularly, the called function's operations are also the responsibility of the caller.
+In the case of eFP/D parameters,
+it is intuitively clear that the parameters' operations may not the responsibility of the functional,
+but of the context binding the arguments to the parameters.
+
+The example of a `pure` and therefore thread-safe functional called from an impure context
+is being addressed in the [Rationale](#rationale) section.
+It is true that when an impure callback binds to a parameter of a `pure` functional,
+the call will silently be considered impure.
+However, the error is not due to the functional, but the programmer using it incorrectly.
+When specific properties of a callback are expected, the programmer should state those expectations.
+One way is putting the required attributes next to the parameters of the lambda if the callback is a lambda.
+Another is assigning the callback to a `const` variable typed explicitly.
+A third is to `static assert` the required attributes using an `isPure` template or alike,
+similar to [Phobos' `std.traits.isSafe`](https://dlang.org/phobos/std_traits.html#isSafe).
+A fourth option is using a function template `pureCall` that forwards the call
+and also supplies the `pure` context to raise an error.
+
+Since in all cases where a general context needs the guarantees provided by a warrant attribute,
+the programmers have already attributes in their mind,
+the author deems it not far-fetched to ask them to state their requirements explicitly.
+
+If deemed necessary, appropriate additions to the standard library Phobos could be made,
+that help in those cases to state requirements with little efforts.
+
+The situation is no different in the current state of the language:
+When a functional is overloaded on the basis of the parameters' attributes
+(see the [current state alternative](#the-current-state) for an example),
+accidentally plugging in an impure callback to an overloaded functional
+will result in a surprising overload resolution result, but no compile error.
+Stating one's expectations about the callback, is the *only* way to solve the problem.
+
+Walter Bright is not opposed to contravariant parameters as he stated in a comment to
+[issue 3075](https://issues.dlang.org/show_bug.cgi?id=3075).
+
 ## Description
 
 The changes proposed by this DIP affect
