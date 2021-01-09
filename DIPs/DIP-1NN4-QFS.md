@@ -73,6 +73,7 @@ since the condition that the argument be `@safe` is violated.
 6. [Alternatives](#alternatives)
    * [The Current State](#the-current-state)
    * [New Attributes](#new-attributes)
+   * [Contravariant Overriding](#contravariant-overriding)
 7. [Limitations](#limitations)
 7. [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 8. [References](#references)
@@ -1060,6 +1061,27 @@ This solution is undesirable because the attribute would be on almost every func
 Forgetting leads to compile errors that, depending on the error message, might be confusing.
 
 The same way as the alternative above, it could be handled by making the parameter `const`.
+
+### Contravariant Overriding
+
+The Language Maintainers may find that
+contravariant parameter overriding resolution too unpredictable in practical use.
+
+**Option A:** The elaborate `override` specification can be required in all cases
+that are not an exact match or qualifier convertible,
+not only those where partial ordering finds no unambiguous best match.
+
+If, on the other had, an elaborate `override` is found to be too cumbersome for only dropping warrant attributes,
+a middle ground could be:<br/>
+**Option B:** Conversions dropping warrant attributes are considered
+qualifier conversions instead of implicit conversions,
+or <br/>
+**Option C:** that when overriding methods in particular,
+an exception is made and attribute droppings are treated the same as qualifier conversions. 
+
+In the opinion of the author, an exception like Option C an unnecessary complication and detail to carry around
+and Option A is too restrictive to be practical.
+Option B is generally a good idea and may be adopted even if this DIP is rejected.
 
 ## Limitations
 
