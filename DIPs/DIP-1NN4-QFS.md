@@ -377,34 +377,56 @@ In the current state of the language,
 overload resolution considers by-copy binding of a value a conversion
 if first layer qualifiers of the argument type and the parameter type disagree.
 Still, these functions are considered different in type and mangling.
+Therefore, no change in mangling symbols is needed.
 
-However, when a class overrides a method defined in a base class or an interface,
+This DIP proposes that to disambiguate ambiguous overrides,
+the override specifier may optionally take a function parameter list.
+
+When a class overrides a method defined in a base class or an interface,
 by the current rules of the language,
-`const` and `immutable` qualifiers can be dropped from the first layer of indirection of a parameter's type
-if a second layer is present:
+the qualifiers `const` and `immutable` can be added to or dropped from the parameter's type in some circumstances,
+but the parameter types cannot be changed otherwise.
+
+Overriding a method with one that has a more specific return type is valid in D,
+and is called covariant return type overriding.
+Overriding a method with one that has more general parameter types is
+called contravariant parameter overriding, and is invalid in D.
+This is due to the fact that it can be ambiguous which base class or interface method is to be overridden:
 ```D
 interface I
 {
-    void f(int x);
-    void g(const int x);
-    void h(const int* x);
-    void j(const(int)* x);
+    void f(Base, Derived);
+    void f(Derived, Base);
 }
-
 class C : I
 {
-    void f(const int x); // invalid: did you mean to override I.f(int x)?
-    void g(int x); // invalid, did you mean to override void I.g(const(int) x)?
-    void h(const(int)* x); // valid
-    void j(const int* x); // valid
+    void f(Base, Base) { } // which one?
 }
 ```
-For some reason, a function pointer or delegate type is not akin to `int` but `int*`,
-allowing one to add and remove `const` and attributes while still qualifying as override.
 
-There are no changes proposed concerning overriding specifically,
-but you may want to have a look at the [respective example](#overriding-methods)
-demonstrating the consequences of this DIP.
+To allow for dropping warrant attributes from eFP/D type parameters when overriding methods,
+contravariant parameter overriding is necessary in some form.
+
+Looking at how [function overloading](https://dlang.org/spec/function.html#function-overloading) is done,
+it seems to the author that contravariant parameter overloading is valid in D
+with the match level 3 (match with implicit conversions) or 4 (exact match).
+
+This DIP proposes to allow for contravariant parameter overriding on match level 2 (match with qualifier conversion).
+An override becomes valid when every possible set of arguments to the overridden method
+can bind to the parameters of the overriding method.
+
+Following function overloading, a [partial ordering](https://dlang.org/spec/function.html#partial-ordering)
+may be necessary to determine the best match or that none exists (ambiguity).
+
+To handle ambiguities, this DIP proposes that the `override` specification may optionally carry a parameter list
+like the parameter list of a function.
+This parameter list must exactly match the parameter list of a base class or interface method.
+The base class or interface method with that exact parameters is overridden or implemented, respectively.
+
+Adding a virtual overload to a virtual method might lead to ambiguity errors in derived classes.
+This is specifically one of the use-cases of the `@future` annotation.
+
+You may want to have a look at the [respective example](#overriding-methods).
 
 ### Lazy as a Lowering
 
@@ -458,6 +480,26 @@ The author suggests a message akin to:
 
 Only stating that the call is a violation of the attribute might confuse the programmer into thinking
 that the annotation of the functional is defective or attribute inference did not lead to the expected attributes.
+
+When contravariant parameter overriding of methods leads to an ambiguity,
+an appropriate message should point out that `override(..paramters..)` is a way to disambiguate. 
+
+### Grammar Changes
+
+For allowing disambiguation in overriding with contravariant parameter types,
+the grammar of `Attribute` and `StorageClass`, where the `override` keyword is present,
+must be amended allow for the inclusion of a parameter list for specific target overload.
+```diff
+    Attribute:
+        ...
+        override
++       override Parameters
+
+    StorageClass:
+        ...
+        override
++       override Parameters
+```
 
 ## Examples
 
@@ -719,8 +761,12 @@ interface Interface
 ```
 Both implementations of the methods in `Base` become valid by the changes this DIP proposes.
 
-*Weakening the overload* means that the implementation may not do things the base class implementation could do.
-Primarily this means (essentially) calling a parameter.
+In the following code comments,
+*weakening the overload* means that the implementation is barred from operations the base class implementation were not.
+Primarily, this means (essentially) calling a parameter.
+Overriding together with dropping attributes form a parameter's type
+becomes valid by the changes proposed by this DIP concerning contravariant parameter overriding;
+this is not explicitly mentioned in the following code comments.
 ```D
 class Derived : Base, Interface
 {
@@ -731,28 +777,28 @@ class Derived : Base, Interface
     { paramFunction(1); } // stays invalid: cannot call @system paramFunction
 
     // Dropping attributes on a const parameter type makes sense with this DIP:
-    override void hunctional(const int function(int) pure fp) pure @safe
-    { return paramFunction(1); } // becomes valid
+    override void hunctional(const void function(int) pure fp) pure @safe
+    { paramFunction(1); } // becomes valid
 
-    // Dropping const is fine, as long as the functional's attributes are carried over:
+    // Dropping const is fine, as long as the functional's attributes are also on the parameter:
     override int junctional(int function(int) pure @safe paramFunction) @safe
     { return paramFunction(1); } // stays valid
     // (Keeping the pure requriement, a further derived implementation's logic can make use of it.)
 
     // Dropping const on a parameter with lower attributes weakens the override:
-    override int kunctional(int function(int) pure paramFunction) pure @safe;
+    override int kunctional(int function(int) pure paramFunction) pure @safe
     { return paramFunction(1); } // stays invalid: cannot call @system paramFunction
 
-    // Adding const and dropping attributes on a parameter is okay.
+    // Dropping attributes while adding const on a parameter does not weakens the override:
     override int lunctional(const int function(int) pure paramFunction) pure @safe
     { return paramFunction(1); } // becomes valid
 }
 ```
-The overrides of `Base` methods become invalid by the proposed changes of this DIP,
-but can easily be made valid again by declaring the parameters `const` on the first layer of indirection.
+The implementation of the overrides of `Base`'s methods are invalid,
+but, by the proposed changes of this DIP,
+can be made valid by declaring the parameters `const` on the first layer of indirection.
 
-The override of `hunctional` dropping `pure` on its parameter's type is valid
-and stays valid by the proposed changes of this DIP.
+The override of `hunctional` dropping `pure` on its parameter's type becomes valid by the proposed changes of this DIP.
 However, by the current state of the language, `Derived.hunctional` cannot call its parameter,
 but by the proposed changes of this DIP, it can.
 Calls to `Interface.hunctional` with a `pure` argument stay well-behaved.
@@ -761,10 +807,15 @@ Calls to `Derived.hunctional` with an impure argument become meaningful although
 
 The example of `junctional` shows that
 if the parameter's type has the same or more warrant attributes as the functional,
-`const` is not necessary on `Interface.junctional` and can be dropped.
-However, dropping `const` on a parameter with a type that has lower attributes than the functional
-like `kunctional` does, has consequences.
-On the other hand, adding `const` allows the functional to make use of its parameter with lower attributes.
+`const` is not necessary on the parameter and can be added or dropped without a difference.
+However, dropping `const` on a parameter with a type that has fewer warrant attributes than the functional
+like `kunctional` has consequences.
+(Adding warrant attributes to parameters is not allowed when overriding.)
+On the other hand, adding `const` allows the functional to make use of its parameters with lower attributes,
+as `lunctional` demonstrates.
+
+(Note that as of the writing of this DIP, there is a difference between delegates and function pointers due to
+[issue 21537](https://issues.dlang.org/show_bug.cgi?id=21537).)
 
 ### Third-order and Even-Higher-Order Functionals
 
@@ -1017,9 +1068,12 @@ In the example above, `in` has to be removed or replaced by `scope`.
 1. [H. S. Teoh's comment](https://forum.dlang.org/post/mailman.2553.1586000429.31109.digitalmars-d@puremagic.com)
 2. [Walter Bright's answer](https://forum.dlang.org/post/rfq8sc$t6r$1@digitalmars.com)
 
-### Related Issues in the Issue Tracker
+### Mentioned and Related Issues in the Issue Tracker
 
-1. [Issue: `opApply` and nothrow don't play along](https://issues.dlang.org/show_bug.cgi?id=14196)
+1. [`opApply` and nothrow don't play along](https://issues.dlang.org/show_bug.cgi?id=14196)
+2. [Implement parameter contravariance](https://issues.dlang.org/show_bug.cgi?id=3075)
+3. [Cannot state ref return for delegates and function pointers](https://issues.dlang.org/show_bug.cgi?id=21521)
+4. [Function pointers' attributes not covariant when referencing](https://issues.dlang.org/show_bug.cgi?id=21537)
 
 ## Copyright & License
 
