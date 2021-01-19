@@ -16,17 +16,16 @@ This DIP proposes to adjust the constraints that the mentioned attributes impose
 It will only affect aforementioned functions with function pointers or delegates as `const` or `immutable` parameters.
 
 The goal is to recognize more code as valid that factually behaves in accordance to the attributes.
-<br/>
 An example is this:
 ```D
-struct Aggregate
+class Aggregate : NogcToString // provides void toString(sink)
 {
     /// Executes sink(c) for every char c of the string representation in sequence.
-    void toString(const void delegate(char) sink) @safe @nogc
+    override void toString(const void delegate(char) sink) @safe @nogc
     { ... }
 
     /// Returns the string representation in a GC allocated string.
-    string toString() @safe
+    final override string toString() @safe
     {
         string result;
         void append(char c) { result ~= c; }
