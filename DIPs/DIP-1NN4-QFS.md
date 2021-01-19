@@ -51,6 +51,18 @@ so `toString()` cannot be annotated `@nogc`.
 Calling `toString` with a `@system` sink is also valid, but the call will be considered `@system`
 since the condition that the argument be `@safe` is violated.
 
+These rules allow making `lazy` a lowering to a delegate type.
+Binding of arguments can still be done by implicitly embedding them in a delegate;
+a general implicit conversion from expressions to delegates is not necessary, but would work equally well.
+
+Furthermore, when making e.g. `@safe` the default,
+the changes proposed by this DIP allow for an especially smooth transition path for higher-order functions,
+that is not available otherwise.
+
+Delegates and function pointers with different attributes are compatible yet different types.
+For method overriding to behave as expected, overriding with contravariant parameters must be available to some degree.
+This DIP proposes a general solution that is not specific to function pointer and delegate types with attributes.
+
 ## Contents
 
 1. [Terms and Definitions](#terms-and-definitions)
