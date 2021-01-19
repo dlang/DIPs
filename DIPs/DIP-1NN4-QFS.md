@@ -46,7 +46,7 @@ This DIP proposes that
 * that the call `toString(&append)` is only `@safe` and/or `@nogc` when *both*
   the called function `toString` and the argument `&append` are `@safe` and/or `@nogc`, respectively.
 
-Calling `toString` with a function that may allocate is valid, but not a `@nogc` operation,
+Calling `toString` with a delegate that may allocate is valid, but that call is not a `@nogc` operation,
 so `toString()` cannot be annotated `@nogc`. 
 Calling `toString` with a `@system` sink is also valid, but the call will be considered `@system`
 since the condition that the argument be `@safe` is violated.
@@ -125,7 +125,7 @@ as the [D Language Specification](https://dlang.org/spec/function.html#param-sto
 A *higher-order function*, or *functional* for short, is anything that can be called
 that takes one or more eFP/D types as arguments.
 
-When a higher-order function is called, there are three notable entities to commonly refer to:
+When a higher-order function is called, there are four notable entities to commonly refer to:
 * The *context function,* or *context* for short, is the function that contains the call expresion.
   When the document refers to e.g. a `@safe` context, it is meant that the context function is annotated `@safe`.
 * The *functional* is the higher-order function that is called.
@@ -234,7 +234,8 @@ but instead make those requirements explicit in its statements.
 
 The benefits and drawbacks of making this or another warrant attribute the default,
 is discussed regularly on the forums.
-This change is necessary to alleviate breakage by any sane way such a default would be implemented.
+Changes akin to the ones proposed by this DIP are in fact *necessary*
+to alleviate breakage by any sane way such a default would be implemented.
 
 For example, consider making `@safe` the default.
 Without this change, a suitable unannotated `void functional(void function() f)` would either become
@@ -244,7 +245,7 @@ Without this change, a suitable unannotated `void functional(void function() f)`
 (Here, *suitable* means that `functional` contains `@safe` operations only apart from the call to `f`.
 One way to test that is annotating the parameter and the functional.)
 
-The first option can be excluded immediately:
+In the current state of the language, the first option can be excluded immediately:
 When `functional` calls its parameter `f`, it will no longer compile.
 This breaking change is obvious and would affect almost all unannotated functionals.
 
@@ -359,11 +360,13 @@ This DIP proposes that
 2. essential calls to local `const` or `immutable` eFP/D type variables declared in the functional,
    that are initialized by dereferencing and/or indexing a parameter without conversion, become valid, too.
 
-In the case of checking `@safe` for a functional,
+This DIP suggests that
+in the case of checking `@safe` for a functional,
 if the parameter's underlying FP/D type is explicitly annotated `@system`,
 an essential call to the eFP/D object is considered invalid.
 This is to avoid confusion.
 Removing the unnecessary `@system` annotation fixes this error.
+The same should be applied to any negation of a warrant attribute if one happens to be introduced to the language. 
 
 The second clause concerning local variables allows for iterating over eFP/D type parameters
 that are slices or static or associative arrays
@@ -689,7 +692,7 @@ The class author may intentionally not annotate any method with a warrant attrib
 to allow overriding with an implementation that violates that attribute.
 The fact that guarantees given by a base class cannot be reduced by a derived class are part of the
 Liskov substitution principle and cannot be addressed by this DIP.
-Whether a method (not only a functional) should carry warrant attribute,
+Whether a method (not only a functional) should carry a warrant attribute,
 is a discretionary decision to be made by the class author.
 
 ### Functions with Typesafe Variadic Lazy Parameters
@@ -1081,8 +1084,7 @@ contravariant parameter overriding resolution too unpredictable in practical use
 **Option A:** The elaborate `override` specification can be required in all cases
 that are not an exact match or qualifier convertible,
 not only those where partial ordering finds no unambiguous best match.
-
-If, on the other had, an elaborate `override` is found to be too cumbersome for only dropping warrant attributes,
+If, on the other hand, an elaborate `override` is found to be too cumbersome for only dropping warrant attributes,
 a middle ground could be:<br/>
 **Option B:** Conversions dropping warrant attributes are considered
 qualifier conversions instead of implicit conversions,
@@ -1098,21 +1100,21 @@ Option B is generally a good idea and may be adopted even if this DIP is rejecte
 
 The proposal tries to be very universal.
 It not only deals with FP/D type parameters alone, but also types built on top of them (eFP/D types).
-One might wish to be even more universal.
+One might wish to be even more universal:
 
 As an example, aggregate types that have fields with eFP/D type could become part of this DIP, too.
 Unfortunately, while accessing the fields directly can be controlled by the context,
-indirect access (that is necessary when the fields are encapsulated) cannot be controlled by the context.
-Even a member function as simple as a getter of an FP/D can have its implementation hidden,
-and even if that getter of an FP/D filed is `pure` and `@nogc`, it can still access `immutable` global FP/D data
+indirect access through functions (necessary when the fields are encapsulated) cannot be controlled by the context.
+Even a member function as simple as the getter of an FP/D can have its implementation hidden,
+and even if that getter of an FP/D type field is `pure` and `@nogc`, it can still access `immutable` global FP/D data
 to get its result from.
 
 Properly extending the approach of this DIP to accommodate aggregate types like
-[Phobos' Array](https://dlang.org/phobos/std_container_array.html) is not feasible without further effort.
+[Phobos' Array](https://dlang.org/phobos/std_container_array.html) is not feasible without considerable further effort.
 
 ## Breaking Changes and Deprecations
 
-Functionals that don't essentially call one of their `const` or `immutable` qualified eFP/D parameters
+Functionals that do not essentially call one of their `const` or `immutable` qualified eFP/D parameters
 may suffer from breakage.
 
 An example of an affected functional could be the following.
@@ -1124,7 +1126,7 @@ int delegate() toDelegate(in int function() func) nothrow pure @safe
     return toDG!func;
 }
 ```
-A `@safe` context can call `toDelegate` with a `@system` argument.
+In the current state of the language, a `@safe` context can call `toDelegate` with a `@system` argument.
 
 With the changes proposed by this DIP, the call in the context will become invalid.
 However, one must wonder what the `@safe` context would do with that `@system` return value,
