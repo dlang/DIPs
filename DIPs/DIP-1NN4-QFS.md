@@ -267,9 +267,29 @@ With this DIP, the transition path is the first option together with qualifying 
 
 ## Prior Work
 
-There is no prior work in other languages known to the author.
+### Regarding Attributes
 
-The proposed changes are very specific to the D programming language.
+There is no prior work in other languages known to the author
+in the sense that a similar solution is implemented or has been proposed.
+
+The problems this DIP proposes a solution for, are not specific to the D programming language.
+
+In C++ since C++11, there is a close equivalent to D'S `nothrow` called
+[`noexcept`](https://en.cppreference.com/w/cpp/language/noexcept_spec)
+that is (often) used very similar to how function attributes are used in D.
+Since C++17, `noexcept` is part of the function's type as `nothrow` is in D.
+For that reason, functionals written in C++ in principle have the same problem.
+
+However, C++ does not require that `noexcept` functions only call `noexcept` functions.
+It is up to the programmer to ensure that no called function, including function pointer parameters,
+factually will not throw at runtime.
+(If they do, `std::unecpected` is called which usually aborts the program.)
+
+Such a solution is undesirable.
+It merely documents intent; a C++ compiler might perform some checks to emit a warning.
+In D, if a programmer wants to document intent,
+the library function [`assumeWontThrow`](https://dlang.org/library/std/exception/assume_wont_throw.html)
+would be the preferred choice.
 
 An example where conformity with warrant attributes is checked already in the context and not the functional
 is the case of the delegate parameter implicitly defined in `lazy` parameters
