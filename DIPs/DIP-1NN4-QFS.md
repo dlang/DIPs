@@ -499,7 +499,8 @@ Overloading is taken care of by proposing that no change is made.
 In the current state of the language,
 overload resolution considers by-copy binding of a value a conversion
 if first layer qualifiers of the argument type and the parameter type disagree.
-Still, these functions are considered different in type and mangling.
+
+Also, these functions are considered different in type and mangling.
 Therefore, no change in mangling symbols is needed.
 
 This DIP proposes that to disambiguate ambiguous overrides,
@@ -514,60 +515,81 @@ Overriding a method with one that has a more specific return type is valid in D,
 and is called covariant return type overriding.
 Overriding a method with one that has more general parameter types is
 called contravariant parameter overriding, and is invalid in D.
-This is due to the fact that it can be ambiguous which base class or interface method is to be overridden:
+This is due to the fact that it can be ambiguous which base class or interface method is to be overridden.
+Even if somewhat artificial, an obvious demonstration features two parameters switching roles:
 ```D
 interface I
 {
     void f(Base, Derived);
     void f(Derived, Base);
 }
+
 class C : I
 {
-    void f(Base, Base) { } // which one?
+    override void f(Base, Base) { } // which one?
 }
 ```
 
 To allow for dropping warrant attributes from eFP/D type parameters when overriding methods,
 contravariant parameter overriding is necessary in some form.
 
-Looking at how [function overloading](https://dlang.org/spec/function.html#function-overloading) is done,
+Compared to how [function overloading](https://dlang.org/spec/function.html#function-overloading) is done,
 it seems to the author that contravariant parameter overloading is valid in D
 with the match level 3 (match with implicit conversions) or 4 (exact match).
 
 This DIP proposes to allow for contravariant parameter overriding on match level 2 (match with qualifier conversion).
 An override becomes valid when every possible set of arguments to the overridden method
 can bind to the parameters of the overriding method.
-
 Following function overloading, a [partial ordering](https://dlang.org/spec/function.html#partial-ordering)
 may be necessary to determine the best match or that none exists (ambiguity).
 
-To handle ambiguities, this DIP proposes that the `override` specification may optionally carry a parameter list
+To handle the remaining ambiguities, this DIP proposes that the `override` specification may optionally carry a parameter list
 like the parameter list of a function.
 This parameter list must exactly match the parameter list of a base class or interface method.
 The base class or interface method with that exact parameters is overridden or implemented, respectively.
+This is called an *elaborate override specification*.
+A method that can have more than one elaborate override specification if the targeted base class methods differ,
+but can be handled by the same function.
+[Author's note: This can be achieved by setting multiple pointers in the vtable to the same value.
+I might be wrong about this, since my knowledge about implementing virtual stuff is very limited.]
 
-Adding a virtual overload to a virtual method might lead to ambiguity errors in derived classes.
+In the example above, it can become:
+```D
+...
+
+class C : I
+{
+    override(Base, Derived)
+    override(Derived, Base)
+    void f(Base, Base) { } // Overrides both!
+}
+```
+
+Adding a virtual overload to a non-`final` class might lead to ambiguity errors in derived classes.
 This is specifically one of the use-cases of the `@future` annotation.
 
 You may want to have a look at the [respective example](#overriding-methods).
 
 ### Lazy as a Lowering
 
-Lazy parameters use a delegate internally, but cannot bind delegates with the return type stated.
+Lazy parameters use a delegate internally, but cannot bind delegates with the return type stated:
 All argument expressions `expression` bound to `lazy` parameters are currently rewritten to `delegate() => expression`.
 This rewrite is not optional and occurs even if it leads to an error and omitting the rewrite would compile.
 
-This DIP proposes that `lazy typeSpec` become a shorthand for `in typeSpec delegate()`.
-([Since version 2.094.0](https://dlang.org/changelog/2.094.0.html#preview-in),
-`in` as a storage class means `const scope` and maybe `ref` that binds r-values.)
-Here, `typeSpec` includes the parameter's type,
-but includes the storage class `ref` and type constructors `const`, `immutable`, `inout`, and `shared`,
-in any combination.
-Those become part of the delegate return type.
-The `in` storage class makes all of them redundant, except `shared`.
-Because the implicitly generated delegate is never a `shared` object, `shared` is not needed on the delegate parameter.
+This DIP proposes that `lazy` means [`in`](https://dlang.org/changelog/2.094.0.html#preview-in),
+but can be combined with the storage class `ref` and storage class type constructors.
+The additional storage classes become part of the delegate type as follows:
+* `ref` becomes part of the delegate type as a member function attribute, meaning that the delegate return by reference.
+* Type constructors become part of the delegate type by applying them to the delegate's return type.
+
+Other storage classes make no sense in combination with `lazy`, as the implied `in` is incompatible with them,
+or they cannot become part of the delegate type in a meaningful way.
+
+Type constructors and `ref` are redundant with the `in` storage class, except `shared`.
+Because the implicitly generated delegate is always thread-local, i.e. never a `shared` object,
+`shared` is not meaningfully applied to the delegate.
 Also, there is no way to supply a `shared` delegate without circumventing the type system
-because the delegate is created always implicitly.
+because the delegate is always created implicitly.
 
 When `lazy` is used with `ref`, the `ref` is considered part of the delegate type
 (meaning the delegate returns by reference).
