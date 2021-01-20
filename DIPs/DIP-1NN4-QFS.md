@@ -13,7 +13,8 @@
 Functions that have function pointers or delegates as parameters cannot be integrated well in
 `pure`, `nothrow`, `@safe`, and `@nogc` code.
 This DIP proposes to adjust the constraints that the mentioned attributes impose.
-It will only affect aforementioned functions with function pointers or delegates as `const` or `immutable` parameters.
+It will only affect aforementioned functions
+with function pointers or delegates as `const`, `inout`, or `immutable` parameters.
 
 The goal is to recognize more code as valid that factually behaves in accordance to the attributes.
 An example is this:
@@ -480,12 +481,13 @@ When calling a functional, the types of the eFP/D arguments are known.
 By the proposal of this DIP,
 in a warrant attribute context, a call to a functional is valid with respect to the warrant attribute
 if, and only if,
-1. the functional is annotated with that warrant attribute — and
-2. all arguments that bind to `const` or `immutable` type parameters are annotated with that warrant attribute.
+1. the functional is annotated (possibly implicitly or inferred) with that warrant attribute — and
+2. the types of all arguments that bind to `const`, `inout`, or `immutable` eFP/D type parameters
+   are annotated with that warrant attribute.
 
 (As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute,
 i.e. stating a requirement, and the supplied argument fails to have this warrant attribute, it is a type mismatch;
-akin to supplying a `const` typed pointer as an argument to a mutable parameter.)
+akin to supplying a `const` typed pointer as an argument to a fully mutable parameter.)
 
 ### Overloading, Mangling and Overriding
 
@@ -1170,7 +1172,7 @@ Properly extending the approach of this DIP to accommodate aggregate types like
 
 ## Breaking Changes and Deprecations
 
-Functionals that do not essentially call one of their `const` or `immutable` qualified eFP/D parameters
+Functionals that do not essentially call one of their `const`, `inout`, or `immutable` qualified eFP/D parameters
 may suffer from breakage.
 
 An example of an affected functional could be the following.
