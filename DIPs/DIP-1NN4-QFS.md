@@ -327,40 +327,48 @@ In the discussion, Walter Bright, one of the Language Maintainers, raised strong
 >
 > I strongly oppose it.
 
-The author agrees that there is a didactic challenge to this, since attributes currently are absolutes.
+Note that a `pure` function can be memoized or is thread-safe and also has unique return values
+only if it is a non-static member function, or as an object, is a function pointer and not a delegate.
+A `pure` delegate or member function may access and mutate its context.
+Even in the current state of the language, more care must be taken than merely looking at attributes. 
+
+The author agrees that there is a didactic challenge to this, since attributes are currently absolutes.
+There is no solution that leaves them that way because the absoluteness is exactly the problem.
 However, from a didactic standpoint,
 attributes could be explained as describing the allowed and disallowed operations  of a function.
 A function call in and of itself is in accordance with any attribute.
-Regularly, the called function's operations are also the responsibility of the caller.
-In the case of eFP/D parameters,
-it is intuitively clear that the parameters' operations may not the responsibility of the functional,
+Regularly, the called function's operations are the responsibility of the caller.
+In the case of `const` eFP/D parameters,
+it intuitively makes sense that the parameters' operations may not the responsibility of the functional,
 but of the context binding the arguments to the parameters.
+In a way, making the functional responsible for `const` eFP/D parameters' operations is unfair.
 
 The example of a `pure` and therefore thread-safe functional called from an impure context
 is being addressed in the [Rationale](#rationale) section.
 It is true that when an impure callback binds to a parameter of a `pure` functional,
-the call will silently be considered impure.
-However, the error is not due to the functional, but the programmer using it incorrectly.
+the call will silently be considered impure, and because the call is legal, no error is raised.
+However, the mistake is not due to the functional, but the programmer using it incorrectly
+caused by a misunderstanding of what the attribute means.
 When specific properties of a callback are expected, the programmer should state those expectations.
 One way is putting the required attributes next to the parameters of the lambda if the callback is a lambda.
-Another is assigning the callback to a `const` variable typed explicitly.
+Another is assigning the callback to a `const` variable typed explicitly that will be optimized away certainly.
 A third is to `static assert` the required attributes using an `isPure` template or alike,
-similar to [Phobos' `std.traits.isSafe`](https://dlang.org/phobos/std_traits.html#isSafe).
-A fourth option is using a function template `pureCall` that forwards the call
-and also supplies the `pure` context to raise an error.
+analogous to [Phobos' `std.traits.isSafe`](https://dlang.org/phobos/std_traits.html#isSafe).
+A fourth option is using a function template `ensurePureCall!pureFunctional` that forwards the call
+and also supplies the `pure` context to raise an error if the arguments make the call impure.
 
 Since in all cases where a general context needs the guarantees provided by a warrant attribute,
-the programmers have already attributes in their mind,
+the programmers have already attributes in their mind and need a good understanding on what they mean exactly,
 the author deems it not far-fetched to ask them to state their requirements explicitly.
 
-If deemed necessary, appropriate additions to the standard library Phobos could be made,
-that help in those cases to state requirements with little efforts.
+If considered necessary, appropriate additions to the standard library Phobos could be made,
+that unambiguously state and enforce a warrant attribute with little writing and reading.
 
-The situation is no different in the current state of the language:
-When a functional is overloaded on the basis of the parameters' attributes
+Bright's criticism would have more merit, if the situation were not present in the current state of the language.
+However, when a functional is overloaded on the basis of the parameters' attributes
 (see the [current state alternative](#the-current-state) for an example),
-accidentally plugging in an impure callback to an overloaded functional
-will result in a surprising overload resolution result, but no compile error.
+unknowingly using an impure callback as an argument to a functional
+will result in an unexpected overload resolution, but no compile error.
 Stating one's expectations about the callback, is the *only* way to solve the problem.
 
 Walter Bright is not opposed to contravariant parameters as he stated in a comment to
