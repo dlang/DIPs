@@ -369,9 +369,21 @@ However, when a functional is overloaded on the basis of the parameters' attribu
 (see the [current state alternative](#the-current-state) for an example),
 unknowingly using an impure callback as an argument to a functional
 will result in an unexpected overload resolution, but no compile error.
-Stating one's expectations about the callback, is the *only* way to solve the problem.
+Stating one's expectations about the callback, is the *only* way to solve the problem,
+no matter if the proposed changes are implemented or not.
 
-Walter Bright is not opposed to contravariant parameters as he stated in a comment to
+### Regarding Contravariant Overloading
+
+To the author, there is no language known to allow contravariant parameter overloading.
+
+One language that comes close having a syntax allowing for it, is Visual Basic .NET:
+A method that implements an interface method needs an `Implements` clause stating the interface and method to target.
+This even allows naming the method differently than in the interface.
+
+Overriding with contravariant parameters has been discussed on the forums as well.
+Although hardly mentioned,
+it is almost a necessity for the proposed changes to interact with method overriding in the expected way.
+As far as the author knows, Walter Bright is not opposed to contravariant parameters as he stated in a comment to
 [issue 3075](https://issues.dlang.org/show_bug.cgi?id=3075).
 
 ## Description
@@ -383,6 +395,13 @@ The changes proposed by this DIP affect
 The first bullet point can be split into:
 * when warrant attributes are satisfied by functionals themselves, and
 * when warrant attributes are satisfied when calling a functional.
+
+These changes entail secondary changes to method overriding consistent with expectations
+and allow for a redefinition of `lazy` in a way intended by the Language Maintainers.
+
+These secondary changes are part of the DIP.
+However, the Language Maintainers may opt to accept the main proposal of the DIP,
+but not the proposed secondary changes, in favor of other solutions.
 
 ### Attribute Checking inside Functionals
 
