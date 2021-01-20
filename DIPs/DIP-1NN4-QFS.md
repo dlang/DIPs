@@ -296,9 +296,16 @@ is the case of the delegate parameter implicitly defined in `lazy` parameters
 and delegates created when binding to them.
 
 Among the rationale of DIP&nbsp;1032 was to make `lazy` less of a special case in the language.
-With this proposal, `lazy` becomes a lowering to a delegate.
+With this proposal, `lazy` becomes a lowering to a delegate:
+> **Excerpt of the rationale of [DIP&nbsp;1032](https://github.com/dlang/DIPs/blob/master/DIPs/other/DIP1032.md)** <br/>
+> A further reason is that the `lazy` function parameter attribute is underspecified
+> and is a constant complication in the language specification.
+> With this DIP&nbsp;[1032], `lazy` can move towards being defined in terms of an equivalent delegate parameter,
+> thereby simplifying the language by improving consistency.
 
-Yet they bear some similarity to the relaxation of `pure` allowing `pure` functions to modify
+This objective is accomplished by this DIP as described in [Lazy as a Lowering](#lazy-as-a-lowering).
+
+The proposed changes bear some similarity to the relaxation of `pure`, allowing `pure` functions to modify
 any mutable value reachable through its parameters.
 Those `pure` functions are called *weakly pure* in contrast to *strongly pure* ones
 that cannot possibly modify values except their local variables.
@@ -310,9 +317,11 @@ because the first overload is `@safe` depending on its argument.
 
 This proposal is based on an idea explained by H.&nbsp;S.&nbsp;Teoh in great detail.
 In the discussion, Walter Bright, one of the Language Maintainers, raised strong opposition to this approach:
-> **Walter Bright's answer in the Discussion Thread of DIP&nbsp;1032**<br/>
-> But it still tricks the user into thinking the function is pure, since it says right there it is pure. Pure isn't just an attribute for the compiler, it's for the user as it offers a guarantee about what the interface to a function is.
-> 
+> **Walter Bright's answer in the [Discussion Thread of DIP&nbsp;1032](https://forum.dlang.org/post/mailman.2553.1586000429.31109.digitalmars-d@puremagic.com)** <br/>
+> But it still tricks the user into thinking the function is pure, since it says right there it is pure.
+> Pure isn't just an attribute for the compiler,
+> it's for the user as it offers a guarantee about what the interface to a function is.
+>
 > Silently removing pure can also make the user think that a function is thread-safe when it is not.
 > Adding a feature that silently disables an explicitly placed "pure" attribute is going to become a hated misfeature.
 >
@@ -1188,10 +1197,11 @@ In the opinion of the author, the gains clearly outweigh the costs.
 1. [Parameterized delegate attributes](https://forum.dlang.org/post/ovitindvwuxkmbxufzvi@forum.dlang.org)
 1. [`@nogc` with `opApply`](https://forum.dlang.org/thread/erznqknpyxzxqivawnix@forum.dlang.org)
 
-### Discussion Thread of DIP&nbsp;1032
+### DIP 1032
 
-1. [H. S. Teoh's comment](https://forum.dlang.org/post/mailman.2553.1586000429.31109.digitalmars-d@puremagic.com)
-2. [Walter Bright's answer](https://forum.dlang.org/post/rfq8sc$t6r$1@digitalmars.com)
+1. [DIP 1032: Function Pointer and Delegate Parameters Inherit Attributes from Function](https://github.com/dlang/DIPs/blob/master/DIPs/other/DIP1032.md)
+1. [Discussion: H. S. Teoh's comment](https://forum.dlang.org/post/mailman.2553.1586000429.31109.digitalmars-d@puremagic.com)
+2. [Discussion: Walter Bright's answer](https://forum.dlang.org/post/rfq8sc$t6r$1@digitalmars.com)
 
 ### Mentioned and Related Issues in the Issue Tracker
 
@@ -1199,6 +1209,10 @@ In the opinion of the author, the gains clearly outweigh the costs.
 2. [Implement parameter contravariance](https://issues.dlang.org/show_bug.cgi?id=3075)
 3. [Cannot state ref return for delegates and function pointers](https://issues.dlang.org/show_bug.cgi?id=21521)
 4. [Function pointers' attributes not covariant when referencing](https://issues.dlang.org/show_bug.cgi?id=21537)
+
+### Other Links
+
+1. [CppRefernce.com about the `noexcept` specifier](https://en.cppreference.com/w/cpp/language/noexcept_spec)
 
 ## Copyright & License
 
