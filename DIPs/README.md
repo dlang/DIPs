@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1036](./DIP1036.md)|                Formatted String Tuple Literals| Community Round 2|
+|[1036](./DIP1036.md)|             String Inerpolation Tuple Literals| Community Round 2|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1038](./DIP1038.md)|                                     @nodiscard|  Post-Community 1|
