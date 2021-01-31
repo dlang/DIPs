@@ -419,8 +419,8 @@ that are annotated with the same attribute or have it inferred.
 Exceptions to this are statements in `debug` blocks and that `@safe` functions may also call `@trusted` functions.
 
 This DIP proposes that
-1. essential calls to `const` or `immutable` eFP/D type parameters are not to be subjected to this condition, as well as
-2. essential calls to local `const` or `immutable` eFP/D type variables declared in the functional,
+1. essential calls to `const`, `inout`, or `immutable` eFP/D type parameters are not to be subjected to this condition, as well as
+2. essential calls to local `const`, `inout`, or `immutable` eFP/D type variables declared in the functional,
    that are initialized by dereferencing and/or indexing a parameter without conversion, become valid, too.
 
 This DIP suggests that
@@ -448,12 +448,12 @@ You may want to take a look at [the respective example](#const-and-aliasing).
 
 However, this document does not contain a proof (or a proof sketch) that aliasing really is impossible.
 If the Language Maintainers find it too dangerous to risk,
-the author suggests going forth with `immutable` alone instead of `const` or `immutable`.
+the author suggests going forth with `immutable` alone instead of `const`, `inout`, or `immutable`.
 Because pointer, slice, and array types with more than one level of indirection are hard to use with `immutable`,
 applicability of them is greatly reduced.
 On the other hand, wide usage of them otherwise would probably not have happened either.
 
-This change entails that a parameter's `const` and `immutable` on the first level of indirection
+This change entails that a parameter's `const`, `inout`, and `immutable` on the first level of indirection
 must be distinguished from a qualifier on the second level of indirection.
 This is relevant for [overriding methods](#overloading-mangling-and-overriding).
 
@@ -475,7 +475,8 @@ The same goes for other guarantees warrant attributes make.
 ### Attribute Inference for Functional Templates
 
 By the proposal of this DIP,
-when inferring attributes for function templates that have runtime parameters of a `const` or `immutable` eFP/D type,
+when inferring attributes for function templates
+that have runtime parameters of a `const`, `inout`, or `immutable` eFP/D type,
 essential calls are considered to not invalidate any warrant attribute.
 
 That way, attribute inference follows the rules non-template functions are checked.
@@ -497,7 +498,7 @@ akin to supplying a `const` typed pointer as an argument to a fully mutable para
 
 ### Overloading, Mangling and Overriding
 
-The difference between  `const` and `immutable` on first and second layer of indirection that this DIP introduces
+The difference of `const`, `inout`, and `immutable` on first and second layer of indirection that this DIP introduces
 if the parameter's type is an eFP/D type,
 seem to affect overloading (and overload resolution), mangling, and overriding.
 
@@ -514,7 +515,7 @@ the override specifier may optionally take a function parameter list.
 
 When a class overrides a method defined in a base class or an interface,
 by the current rules of the language,
-the qualifiers `const` and `immutable` can be added to or dropped from the parameter's type in some circumstances,
+qualifiers `const`, `inout`, and `immutable` can be added to or dropped from the parameter's type in some circumstances,
 but the parameter types cannot be changed otherwise.
 
 Overriding a method with one that has a more specific return type is valid in D,
