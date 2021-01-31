@@ -57,7 +57,7 @@ Binding of arguments can still be done by implicitly embedding them in a delegat
 a general implicit conversion from expressions to delegates is not necessary, but would work equally well.
 
 Furthermore, when making e.g. `@safe` the default,
-the changes proposed by this DIP allow for an especially smooth transition path for higher-order functions,
+the changes proposed by this DIP allow for an especially smooth transition path for higher-order functions
 that is not available otherwise.
 
 Delegates and function pointers with different attributes are compatible yet different types.
@@ -70,7 +70,7 @@ This DIP proposes a general solution that is not specific to function pointer an
 2. [Rationale](#rationale)
 3. [Prior Work](#prior-work)
 4. [Description](#description)
-   * [Attribute Checking inside Functionals](#attribute-checking-inside-functionals)
+   * [Attribute Checking inside Higher-Order Functions](#attribute-checking-inside-higher-order-functions)
    * [Attribute Inference for Functional Templates](#attribute-inference-for-functional-templates)
    * [Attribute Checking inside Contexts](#attribute-checking-inside-contexts)
    * [Overloading, Mangling and Overriding](#overloading-mangling-and-overriding)
@@ -301,7 +301,7 @@ With this proposal, `lazy` becomes a lowering to a delegate:
 > **Excerpt of the rationale of [DIP&nbsp;1032](https://github.com/dlang/DIPs/blob/master/DIPs/other/DIP1032.md)** <br/>
 > A further reason is that the `lazy` function parameter attribute is underspecified
 > and is a constant complication in the language specification.
-> With this DIP&nbsp;[1032], `lazy` can move towards being defined in terms of an equivalent delegate parameter,
+> With this DIP, `lazy` can move towards being defined in terms of an equivalent delegate parameter,
 > thereby simplifying the language by improving consistency.
 
 This objective is accomplished by this DIP as described in [Lazy as a Lowering](#lazy-as-a-lowering).
@@ -328,7 +328,7 @@ In the discussion, Walter Bright, one of the Language Maintainers, raised strong
 >
 > I strongly oppose it.
 
-Note that a `pure` function can be memoized or is thread-safe and also has unique return values
+Note that a `pure` function can be memoized / is thread-safe / has unique return values
 only if it is a non-static member function, or as an object, is a function pointer and not a delegate.
 A `pure` delegate or member function may access and mutate its context.
 Even in the current state of the language, more care must be taken than merely looking at attributes. 
@@ -338,11 +338,12 @@ There is no solution that leaves them that way because the absoluteness is exact
 However, from a didactic standpoint,
 attributes could be explained as describing the allowed and disallowed operations  of a function.
 A function call in and of itself is in accordance with any attribute.
-Regularly, the called function's operations are the responsibility of the caller.
+Normally, the called function's operations are the responsibility of the caller.
 In the case of `const` eFP/D parameters,
-it intuitively makes sense that the parameters' operations may not the responsibility of the functional,
+it intuitively makes sense that the parameters' operations do not have to be the responsibility of the functional,
 but of the context binding the arguments to the parameters.
-In a way, making the functional responsible for `const` eFP/D parameters' operations is unfair.
+In a way, making the functional responsible for `const` eFP/D parameters' operations is unfair
+because the functional has no control whatsoever over the called parameter.
 
 The example of a `pure` and therefore thread-safe functional called from an impure context
 is being addressed in the [Rationale](#rationale) section.
@@ -375,10 +376,15 @@ no matter if the proposed changes are implemented or not.
 
 ### Regarding Contravariant Overloading
 
-To the author, there is no language known to allow contravariant parameter overloading.
+To the author, there the only language known to allow contravariant parameter overloading is Sather.
+In [its specification §&nbsp;5.5.](https://www.gnu.org/software/sather/docs-1.2/tutorial/type-conformance.html),
+contravariant parameter overriding (there called *contravariant conformance*) is explained.
+It solves the overloading vs. overriding problem by not allowing certain overloads.
 
 One language that comes close having a syntax allowing for it, is Visual Basic .NET:
-A method that implements an interface method needs an `Implements` clause stating the interface and method to target.
+A method that implements an interface method needs an
+[`Implements` clause](https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/statements/implements-clause)
+stating the interface and method to target.
 This even allows naming the method differently than in the interface.
 
 Overriding with contravariant parameters has been discussed on the forums as well.
@@ -404,7 +410,7 @@ These secondary changes are part of the DIP.
 However, the Language Maintainers may opt to accept the main proposal of the DIP,
 but not the proposed secondary changes, in favor of other solutions.
 
-### Attribute Checking inside Functionals
+### Attribute Checking inside Higher-Order Functions
 
 When a function is annotated with a warrant attribute, each statement must satisfy certain conditions.
 Among those conditions is, for any warrant attribute, that the function may only call functions
