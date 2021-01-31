@@ -21,15 +21,15 @@ An example is this:
 ```D
 class Aggregate : NogcToString // provides void toString(sink)
 {
-    /// Executes sink(c) for every char c of the string representation in sequence.
-    override void toString(const void delegate(char) sink) @safe @nogc
+    /// Executes sink(s) for every chars s part of the string representation in sequence.
+    override void toString(const scope void delegate(const scope char[]) sink) @safe @nogc
     { ... }
 
     /// Returns the string representation in a GC allocated string.
     final override string toString() @safe
     {
         string result;
-        void append(char c) { result ~= c; }
+        void append(scope const(char)[] s) { result ~= s; }
         toString(&append); // append is (inferred) @safe, but not @nogc
         return result;
     }
@@ -735,7 +735,7 @@ but then, it cannot be a template anymore; the sink type usually becomes a deleg
 string toString() const @safe pure /*maybe*/nothrow { ... }
 
 // For elaborate uses:
-private final void toStringImpl(Char)(const scope void delegate(Char) sink) { ... }
+private final void toStringImpl(Char)(const scope void delegate(const scope Char[]) sink) { ... }
 static foreach (Char; aliasSeq!(char, wchar, dchar))
     void toString(const scope void delegate(Char) sink) const { toStringImpl!Char(sink); }
 ```
@@ -746,10 +746,10 @@ Authors who want to support warrant attribute contexts have to implement up to 1
 private final void toStringImpl(DG)(const scope DG sink) { ... } // inferes attributes
 static foreach (Char; aliasSeq!(char, wchar, dchar))
 {
-    void toString(const scope void delegate(Char)       sink) const       { toStringImpl(sink); }
-    void toString(const scope void delegate(Char) @safe sink) const @safe { toStringImpl(sink); }
+    void toString(const scope void delegate(const scope Char[])       sink) const       { toStringImpl(sink); }
+    void toString(const scope void delegate(const scope Char[]) @safe sink) const @safe { toStringImpl(sink); }
     ... // 13 more
-    void toString(const scope void delegate(Char) pure nothrow @safe @nogc sink) const pure nothrow @safe @nogc
+    void toString(const scope void delegate(const scope Char[]) pure nothrow @safe @nogc sink) const pure nothrow @safe @nogc
     { toStringImpl(sink); }
 }
 ```
@@ -760,7 +760,7 @@ If the class is templated, there are 48 per instantiation.
 Worse than the template and virtual-table bloat is that users of the class
 who naïvely override the `toString` method in a derived class will only override the version without attributes.
 ```D
-override void toString(const scope void delegate(Char) sink) const { ... }
+override void toString(const scope void delegate(const scope Char[]) sink) const { ... }
 ```
 They get a hint that there were other overloads to override available:
 An error message pointing out that the derived class' `toString` hides base class `toString` functions.
