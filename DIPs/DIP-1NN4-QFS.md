@@ -542,9 +542,9 @@ contravariant parameter overriding is necessary in some form.
 
 Compared to how [function overloading](https://dlang.org/spec/function.html#function-overloading) is done,
 it seems to the author that contravariant parameter overloading is valid in D
-with the match level 3 (match with implicit conversions) or 4 (exact match).
+with the match level 3 (match with qualifier conversion) or 4 (exact match).
 
-This DIP proposes to allow for contravariant parameter overriding on match level 2 (match with qualifier conversion).
+This DIP proposes to allow for contravariant parameter overriding on match level 2 (match with implicit conversions).
 An override becomes valid when every possible set of arguments to the overridden method
 can bind to the parameters of the overriding method.
 Following function overloading, a [partial ordering](https://dlang.org/spec/function.html#partial-ordering)
