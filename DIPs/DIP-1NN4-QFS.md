@@ -1142,14 +1142,15 @@ The DIP (at the time of this writing) called *Argument-dependent Attributes* fol
 
 Another possibility is breaking code, but at least giving programmers the ability to state explicitly
 that a parameter is not (essentially) called, probably using an attribute like `@nocall`.
-The call of a functional with an argument binds to a parameter annotated `@nocall`, will not water down its guarantees.
-The new attribute would be inferred for parameters of function templates.
+The call of a functional with an argument that is passed to a parameter annotated `@nocall`
+will not water down its guarantees.
+The new attribute could be inferred for parameters of function templates.
 
 This solution is undesirable because a functional not calling its parameter is incredibly rare.
 Even rarer is the case where attributes of the argument passed to the functional and the attributes of the context
 are incompatible in the sense that the argument has strictly weaker guarantees than the context.
 Even then, this situation can be handled with the changes proposed by this DIP:
-When one makes the first layer of indirection mutable, it is handled the way it is in the current state of the language.
+Setting the first layer of indirection mutable, it is handled the way it is in the current state of the language.
 
 #### Indicate Calling a Parameter
 
@@ -1159,7 +1160,7 @@ only if it is passed to a parameter annotated with `@calls`.
 The new attribute would be inferred for function templates.
 
 This solution is undesirable because the attribute would be on almost every functional.
-Forgetting leads to compile errors that, depending on the error message, might be confusing.
+Forgetting that leads to compile errors that, depending on the error message, might be confusing.
 
 The same way as the alternative above, it could be handled by making the parameter `const`.
 
@@ -1168,31 +1169,30 @@ The same way as the alternative above, it could be handled by making the paramet
 The Language Maintainers may find that
 contravariant parameter overriding resolution too unpredictable in practical use.
 
-**Option A:** The elaborate `override` specification can be required in all cases
+**Alternative A:** Require an elaborate `override` specification in all cases
 that are not an exact match or qualifier convertible,
 not only those where partial ordering finds no unambiguous best match.
 If, on the other hand, an elaborate `override` is found to be too cumbersome for only dropping warrant attributes,
 a middle ground could be:<br/>
-**Option B:** Conversions dropping warrant attributes are considered
+**Alternative B:** Conversions changing warrant attributes be generally considered
 qualifier conversions instead of implicit conversions,
 or <br/>
-**Option C:** that when overriding methods in particular,
-an exception is made and attribute droppings are treated the same as qualifier conversions. 
+**Alternative C:** that when overriding methods in particular,
+an exception be made and attribute droppings are treated the same as qualifier conversions. 
 
-In the opinion of the author, an exception like Option C an unnecessary complication and detail to carry around
-and Option A is too restrictive to be practical.
-Option B is generally a good idea and may be adopted even if this DIP is rejected.
+In the opinion of the author, an exception like Alternative C an unnecessary complication and detail to carry around
+and Alternative A is too restrictive to be practical.
+Alternative B is generally a good idea and may be adopted even if this DIP is rejected.
 
 ## Limitations
 
 The proposal tries to be very universal.
 It not only deals with FP/D type parameters alone, but also types built on top of them (eFP/D types).
 One might wish to be even more universal:
-
 As an example, aggregate types that have fields with eFP/D type could become part of this DIP, too.
 Unfortunately, while accessing the fields directly can be controlled by the context,
-indirect access through functions (necessary when the fields are encapsulated) cannot be controlled by the context.
-Even a member function as simple as the getter of an FP/D can have its implementation hidden,
+indirect access through functions (necessary for encapsulation) cannot be controlled by the context.
+Even a member function as simple as the getter of an FP/D type field can have its implementation hidden,
 and even if that getter of an FP/D type field is `pure` and `@nogc`, it can still access `immutable` global FP/D data
 to get its result from.
 
@@ -1225,8 +1225,8 @@ Because the proposed change only affects parameters qualified on the highest lev
 this problem can be solved by pushing down the `const` qualifier one level of indirection.
 In the example above, `in` has to be removed or replaced by `scope`.
 
-The amount of breakage is probably very low.
-In the opinion of the author, the gains clearly outweigh the costs.  
+The amount of breakage is probably very low and has an easy transition path in almost all cases.
+In the opinion of the author, the gains clearly outweigh the costs.
 
 ## References
 
