@@ -165,7 +165,7 @@ mean very different things:
 * Only on a functional's parameter type, warrant attributes give rise to a *requirement*
   that the functional potentially *needs* to work properly.
 
-As an example, consider a functional taking a `pure` delegate parameter.
+As an example, consider a functional taking a `pure` function pointer parameter.
 In its internal logic, the functional might make use of memoization, or the fact that the parameter's return values are
 [unique](https://dlang.org/spec/const3.html#implicit_qualifier_conversions).
 In the case of uniqueness, omitting the requirement will result in invalid code,
