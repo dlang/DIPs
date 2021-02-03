@@ -3,12 +3,12 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)| Formal Assessment|
 |[1036](./DIP1036.md)|             String Inerpolation Tuple Literals| Community Round 2|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1038](./DIP1038.md)|                                     @nodiscard|  Post-Community 1|
 |[1039](./DIP1039.md)|             Static Arrays with Inferred Length|  Post-Community 1|
-|[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)|        Post-Final|
 
 ## Accepted DIPs
 |                           ID|                                 Title|
