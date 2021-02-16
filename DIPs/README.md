@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1034](./DIP1034.md)|                     Add a Bottom Type (reboot)| Formal Assessment|
 |[1038](./DIP1038.md)|                                     @nodiscard|      Final Review|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
@@ -24,6 +23,7 @@
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics|
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|
 |[1030](./accepted/DIP1030.md)|                       Named Arguments|
+|[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)|
 
 ## Rejected DIPs
 |                           ID|                                 Title|
