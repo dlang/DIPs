@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 1|
+|[1035](./DIP1035.md)|                            `@system` Variables| Community Round 2|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1039](./DIP1039.md)|             Static Arrays with Inferred Length|  Post-Community 1|
 |[1036](./DIP1036.md)|            String Interpolation Tuple Literals|  Post-Community 2|
