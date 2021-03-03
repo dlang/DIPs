@@ -2,11 +2,11 @@
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
-| DIP:            | (number/id -- assigned by DIP Manager)                          |
-| Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Walter Bright walter@digitalmars.com                            |
-| Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| DIP:            | 1040                                                            |
+| Review Count:   | 0                                                               |
+| Author:         | Max Haughton<br>Walter Bright walter@digitalmars.com            |
+| Implementation: |                                                                 |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
@@ -883,7 +883,7 @@ Razvan Nitu, Andrei Alexandrescu, Sahmi Soulaimane, Martin Kinkelin, Manu Evans,
 Mike Parker, Ali Cehreli
 
 ## Copyright & License
-Copyright (c) 2019 by the D Language Foundation
+Copyright (c) 2019, 2021 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
