@@ -1033,7 +1033,43 @@ One should mention that `pure`, when it meant strongly pure,
 did not get a weak counterpart for weak purity,
 but was redefined because strong and weak purity can be distinguished by the type system.
 
-The DIP (at the time of this writing) called *Argument-dependent Attributes* follows this approach.
+The DIP (at the time of this writing) called *Argument-dependent Attributes* (AdA for short) follows this approach.
+It uses the syntax `@safe(parameterFunc)` to express
+that the `@safe`ty of the functional depends on `parameterFunc`'s `@safe`ty.
+To be meaningful, `parameterFunc` must be a `@system` FP/D type.
+In its body, the functional cannot assign a `@system` FP/D object to `parameterFunc`, since calling it would be unsound.
+However, since `const` is not involved, the parameter can be reassigned with a `@safe` FP/D object.
+Unless the parameter is `ref`, a local variable serves the job equally well,
+since the assignment is internal to the functional and cannot be observed by the context. 
+
+When it comes to eFP/D types with at least one layer of indirection, e.g. `int delegate()[]`, 
+mutability affects the context;
+the functional may assign elements of the slice, affecting the context doing so:
+```D
+void safeFunc() @safe;
+void sysFunc() @system;
+
+void functional(void function()[] sinks) @safe(sinks)
+{
+    foreach (sink; sinks)
+    {
+        sink();
+        sink = &safeFunc; // allowed
+        sink = &sysFunc; // error; note that is(typeof(sink) == typeof(&sysFunc)) 
+    }
+}
+```
+In the opinion of the author, this is an uncommon thing to do or to ask for;
+a mitigation therefore has not to be particularly elegant.
+A way to rewrite this using the changes proposed by this DIP is the following:
+```D
+void functional(const void function()[] callSinks, void function() @safe[] writeSinks) @safe
+{
+    foreach (callSink; callSinks) callSink();
+    foreach (writeSink; writeSinks) writeSink = &safeFunc;
+}
+```
+The context can pass the same slice to both parameters, `callSinks` and `writeSinks`.
 
 #### Indicate not Calling a Parameter
 
@@ -1059,7 +1095,7 @@ The new attribute would be inferred for function templates.
 This solution is undesirable because the attribute would be on almost every functional.
 Forgetting that leads to compile errors that, depending on the error message, might be confusing.
 
-The same way as the alternative above, it could be handled by making the parameter `const`.
+Analogous to the alternative above, it could be handled by making the parameter `const`.
 
 ### Contravariant Overriding
 
