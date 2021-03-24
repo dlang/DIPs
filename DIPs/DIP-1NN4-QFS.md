@@ -185,7 +185,7 @@ for its internal logic to be sound.
 Most programmers opt against warrant attributes, i.e. for weak requirements,
 and therefore needlessly weaken the guarantees.
 
-The DIP solves this problem by always allowing calls to `const` and `immutable` parameters
+The DIP solves this problem by always allowing calls to `const` (or `inout` or `immutable`) parameters
 when checking a functional for satisfying the conditions of a warrant attribute.
 
 In a context where a functional is called, the type system has all the necessary information available
@@ -264,7 +264,9 @@ which is not a problem, since this is exactly what was happening before making `
 One could argue that changing defaults is inherently a breaking change.
 Still, breakage should be minimized and have a transition path.
 
-With this DIP, the transition path is the first option together with qualifying the parameter `const` or `immutable`.
+With this DIP, it is very likely that the first option together with qualifying the parameter `const`
+is a transition path.
+This is unavailable only if the parameter type contains indirections and mutation is necessary.
 
 ## Prior Work
 
@@ -435,7 +437,7 @@ The second clause concerning local variables allows for iterating over eFP/D typ
 that are slices or static or associative arrays
 using a `foreach` loop.
 
-Note that it is necessary that the full parameter's type is `const` or `immutable`.
+Note that it is necessary that the parameter's type is `const`, `immutable`, or `inout` on the uppermost level of indirection.
 If the uppermost level is mutable, the parameter can be reassigned in the functionals body before being called,
 invalidating the assumption
 that the context has full control over the eFP/D object and its type.
@@ -462,13 +464,14 @@ any other essential calls to eFP/Ds will be checked as is currently the case.
 
 Note especially that if the eFP/D parameter not only takes plain values but eFP/D types themselves,
 calls might not end up satisfying the attributes' conditions.
+This is the case for third- or even-higher-order functions. 
 You may want to take a look at [the respective example](#third-order-and-even-higher-order-functionals).
 
 Also note that type-checking parameters as if they were annotated `pure`, `@safe`, `nothrow`, and `@nogc`
 only affects the validity of the call expression itself.
 For example, uniqueness is unaffected:
 If the parameter is not annotated `pure`, the call will be considered `pure` when it comes to checking whether
-the functional is `pure`, but the parameters return value is not considered unique.
+the functional is `pure`, but the parameter's return value is not considered unique.
 For that, an explicit `pure` annotation to the parameter's underlying FP/D type is required.
 The same goes for other guarantees warrant attributes make.
 
@@ -494,7 +497,7 @@ if, and only if,
 
 (As in the current state of the language, if a parameter type to the functional is annotated with a warrant attribute,
 i.e. stating a requirement, and the supplied argument fails to have this warrant attribute, it is a type mismatch;
-akin to supplying a `const` typed pointer as an argument to a fully mutable parameter.)
+akin to supplying a base class object as an argument to a derived type parameter.)
 
 ### Overloading, Mangling and Overriding
 
@@ -620,10 +623,10 @@ It implies `-preview=in`.
 
 When a functional essentially calls a mutable parameter
 and that parameter's type lacks warrant attributes that the functional has,
-the compile error message will hint that making the parameter `const` (or `immutable`) will solve this problem.
+the compile error message will hint that qualifying the parameter `const` can solve this problem.
 
 When a call to a functional in a warrant attribute context violates that attribute
-because a eFP/D argument is passed to it,
+because a eFP/D argument without that attribute is passed to it,
 but the functional itself is annotated or inferred compliant to that attribute,
 a specific compile error message should be issued.
 The author suggests a message akin to:
@@ -689,7 +692,7 @@ struct SimpleLockstep(Ranges...)
 
 In principle, being member of an aggregate template, `opApply` has its warrant attributes inferred.
 Using `anyEmpty` and `popFronts` is unproblematic as they have their warrant attributes inferred, too.
-When `opApply` calling its parameter `foreachBody` that has a delegate type
+When `opApply` calls its parameter `foreachBody` that has a delegate type
 that is not annotated with any warrant attribute,
 attribute inference will yield no warrant attribute for `opApply`, too.
 
