@@ -61,8 +61,7 @@ the changes proposed by this DIP allow for an especially smooth transition path 
 that is not available otherwise.
 
 Delegates and function pointers with different attributes are compatible yet different types.
-For method overriding to behave as expected, overriding with contravariant parameters must be available to some degree.
-This DIP proposes a general solution that is not specific to function pointer and delegate types with attributes.
+For method overriding to behave as expected, overriding with contravariant parameters must be enabled to some degree.
 
 ## Contents
 
@@ -74,7 +73,6 @@ This DIP proposes a general solution that is not specific to function pointer an
    * [Attribute Inference for Functional Templates](#attribute-inference-for-functional-templates)
    * [Attribute Checking inside Contexts](#attribute-checking-inside-contexts)
    * [Overloading, Mangling and Overriding](#overloading-mangling-and-overriding)
-   * [Lazy as a Lowering](#lazy-as-a-lowering)
 5. [Examples](#examples)
    * [Lockstep Iteration](#lockstep-iteration)
    * [String Representations](#string-representations)
@@ -86,6 +84,9 @@ This DIP proposes a general solution that is not specific to function pointer an
    * [The Current State](#the-current-state)
    * [New Attributes](#new-attributes)
    * [Contravariant Overriding](#contravariant-overriding)
+6. [Outlook](#outlook)
+   * [Lazy as a Lowering](#lazy-as-a-lowering)
+   * [Default Attributes](#default-attributes)
 7. [Limitations](#limitations)
 7. [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 8. [References](#references)
@@ -377,25 +378,6 @@ will result in an unexpected overload resolution, but no compile error.
 Stating one's expectations about the callback, is the *only* way to solve the problem,
 no matter if the proposed changes are implemented or not.
 
-### Regarding Contravariant Overloading
-
-To the author, there the only language known to allow contravariant parameter overloading is Sather.
-In [its specification §&nbsp;5.5.](https://www.gnu.org/software/sather/docs-1.2/tutorial/type-conformance.html),
-contravariant parameter overriding (there called *contravariant conformance*) is explained.
-It solves the overloading vs. overriding problem by not allowing certain overloads.
-
-One language that comes close having a syntax allowing for it, is Visual Basic .NET:
-A method that implements an interface method needs an
-[`Implements` clause](https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/statements/implements-clause)
-stating the interface and method to target.
-This even allows naming the method differently than in the interface.
-
-Overriding with contravariant parameters has been discussed on the forums as well.
-Although hardly mentioned,
-it is almost a necessity for the proposed changes to interact with method overriding in the expected way.
-As far as the author knows, Walter Bright is not opposed to contravariant parameters as he stated in a comment to
-[issue 3075](https://issues.dlang.org/show_bug.cgi?id=3075).
-
 ## Description
 
 The changes proposed by this DIP affect
@@ -514,111 +496,37 @@ if first layer qualifiers of the argument type and the parameter type disagree.
 Also, these functions are considered different in type and mangling.
 Therefore, no change in mangling symbols is needed.
 
-This DIP proposes that to disambiguate ambiguous overrides,
-the override specifier may optionally take a function parameter list.
-
 When a class overrides a method defined in a base class or an interface,
 by the current rules of the language,
-qualifiers `const`, `inout`, and `immutable` can be added to or dropped from the parameter's type in some circumstances,
+qualifiers `const`, `inout`, and `immutable` can be added to or dropped from the parameter types in some circumstances,
 but the parameter types cannot be changed otherwise.
+To the author, it seems this is the case when the parameter type has indirections.
 
-Overriding a method with one that has a more specific return type is valid in D,
-and is called covariant return type overriding.
-Overriding a method with one that has more general parameter types is
-called contravariant parameter overriding, and is invalid in D.
-This is due to the fact that it can be ambiguous which base class or interface method is to be overridden.
-Even if somewhat artificial, an obvious demonstration features two parameters switching roles:
 ```D
 interface I
 {
-    void f(Base, Derived);
-    void f(Derived, Base);
+    void f(const(int)[]);
+    void g(const(int[]));
 }
 
 class C : I
 {
-    override void f(Base, Base) { } // which one?
+    override:
+    void f(const(int[])) { } // overrides I.f
+    void g(const(int)[]) { } // overrides I.g
 }
 ```
 
 To allow for dropping warrant attributes from eFP/D type parameters when overriding methods,
-contravariant parameter overriding is necessary in some form.
+contravariant parameter overriding is necessary in a minor form.
+How this is useful together with adding `const` is demonstrated in [respective example](#overriding-methods).
 
-Compared to how [function overloading](https://dlang.org/spec/function.html#function-overloading) is done,
-it seems to the author that contravariant parameter overloading is valid in D
-with the match level 3 (match with qualifier conversion) or 4 (exact match).
+The DIP proposes that conversions warrant attributes be considered qualifier conversions.
+This not only affects overriding, but also overloading;
+passing a `pure` delegate to a parameter of compatible impure delegate type will be considered
+match level&nbsp;3 (match with qualifier conversion) instead of level&nbsp;2 (match with implicit conversions).
 
-This DIP proposes to allow for contravariant parameter overriding on match level 2 (match with implicit conversions).
-An override becomes valid when every possible set of arguments to the overridden method
-can bind to the parameters of the overriding method.
-Following function overloading, a [partial ordering](https://dlang.org/spec/function.html#partial-ordering)
-may be necessary to determine the best match or that none exists (ambiguity).
-
-To handle the remaining ambiguities, this DIP proposes that the `override` specification may optionally carry a parameter list
-like the parameter list of a function.
-This parameter list must exactly match the parameter list of a base class or interface method.
-The base class or interface method with that exact parameters is overridden or implemented, respectively.
-This is called an *elaborate override specification*.
-A method that can have more than one elaborate override specification if the targeted base class methods differ,
-but can be handled by the same function.
-[Author's note: This can be achieved by setting multiple pointers in the vtable to the same value.
-I might be wrong about this, since my knowledge about implementing virtual stuff is very limited.]
-
-In the example above, it can become:
-```D
-...
-
-class C : I
-{
-    override(Base, Derived)
-    override(Derived, Base)
-    void f(Base, Base) { } // Overrides both!
-}
-```
-
-Adding a virtual overload to a non-`final` class might lead to ambiguity errors in derived classes.
-This is specifically one of the use-cases of the `@future` annotation.
-
-You may want to have a look at the [respective example](#overriding-methods).
-
-### Lazy as a Lowering
-
-Lazy parameters use a delegate internally, but cannot bind delegates with the return type stated:
-All argument expressions `expression` bound to `lazy` parameters are currently rewritten to `delegate() => expression`.
-This rewrite is not optional and occurs even if it leads to an error and omitting the rewrite would compile.
-
-This DIP proposes that `lazy` means [`in`](https://dlang.org/changelog/2.094.0.html#preview-in),
-but can be combined with the storage class `ref` and storage class type constructors.
-The additional storage classes become part of the delegate type as follows:
-* `ref` becomes part of the delegate type as a member function attribute, meaning that the delegate return by reference.
-* Type constructors become part of the delegate type by applying them to the delegate's return type.
-
-Other storage classes make no sense in combination with `lazy`, as the implied `in` is incompatible with them,
-or they cannot become part of the delegate type in a meaningful way.
-
-Type constructors and `ref` are redundant with the `in` storage class, except `shared`.
-Because the implicitly generated delegate is always thread-local, i.e. never a `shared` object,
-`shared` is not meaningfully applied to the delegate.
-Also, there is no way to supply a `shared` delegate without circumventing the type system
-because the delegate is always created implicitly.
-
-When `lazy` is used with `ref`, the `ref` is considered part of the delegate type
-(meaning the delegate returns by reference).
-(Note that delegate types retuning by reference cannot be expressed directly in a function signature;
-see [issue 21521](https://issues.dlang.org/show_bug.cgi?id=21521).)
-When `lazy` is used with `auto ref` in a function template,
-`ref`-ness of the delegate type is inferred from the argument.
-
-When binding an l-value expression, `delegate ref() => expression` is tried first.
-If that does not succeed, `delegate() => expression` is used.
-That way, l-value expressions bind to a delegate returning `ref` when possible.
-
-On a `lazy` parameter, the [trait `isRef`](https://dlang.org/spec/traits.html#isRef)
-returns the `ref`-ness of the delegate return value.
-One can test for the `lazy` storage class using `__traits(isLazy, lazyParam)` specifically.
-
-A preview switch `-preview=lazy` will be added to the compiler for the transition.
-It implies `-preview=in`.
+The DIP also proposes that contravariant parameter overriding with qualifier conversions be explicitly allowed.
 
 ### Error Messages
 
@@ -637,25 +545,9 @@ The author suggests a message akin to:
 Only stating that the call is a violation of the attribute might confuse the programmer into thinking
 that the annotation of the functional is defective or attribute inference did not lead to the expected attributes.
 
-When contravariant parameter overriding of methods leads to an ambiguity,
-an appropriate message should point out that `override(..paramters..)` is a way to disambiguate. 
-
 ### Grammar Changes
 
-For allowing disambiguation in overriding with contravariant parameter types,
-the grammar of `Attribute` and `StorageClass`, where the `override` keyword is present,
-must be amended allow for the inclusion of a parameter list for specific target overload.
-```diff
-    Attribute:
-        ...
-        override
-+       override Parameters
-
-    StorageClass:
-        ...
-        override
-+       override Parameters
-```
+No language grammar changes are necessary for implementing this proposal.
 
 ## Examples
 
@@ -898,7 +790,8 @@ the call to `aliasingProneFunctional` is not considered `@safe`, leading to a co
 
 ### Overriding Methods
 
-This example demonstrates what changes when base class or interface methods are overridden.
+This example demonstrates what changes when base class or interface methods are overridden
+and how dropping attributes when overriding is useful. 
 ```D
 class Base
 {
@@ -1170,23 +1063,60 @@ The same way as the alternative above, it could be handled by making the paramet
 
 ### Contravariant Overriding
 
-The Language Maintainers may find that
-contravariant parameter overriding resolution too unpredictable in practical use.
+The Language Maintainers may find that changing what qualifier conversions are is too unpredictable.
+As an alternative, when overriding methods in particular,
+an exception be made and attribute droppings are treated the same as qualifier conversions.
 
-**Alternative A:** Require an elaborate `override` specification in all cases
-that are not an exact match or qualifier convertible,
-not only those where partial ordering finds no unambiguous best match.
-If, on the other hand, an elaborate `override` is found to be too cumbersome for only dropping warrant attributes,
-a middle ground could be:<br/>
-**Alternative B:** Conversions changing warrant attributes be generally considered
-qualifier conversions instead of implicit conversions,
-or <br/>
-**Alternative C:** that when overriding methods in particular,
-an exception be made and attribute droppings are treated the same as qualifier conversions. 
+## Outlook
 
-In the opinion of the author, an exception like Alternative C an unnecessary complication and detail to carry around
-and Alternative A is too restrictive to be practical.
-Alternative B is generally a good idea and may be adopted even if this DIP is rejected.
+None of the following expositions are being proposed as a change,
+however, they serve as a demonstration of what future developments of the language are enabled by it.
+
+### Lazy as a Lowering
+
+Lazy parameters use a delegate internally, but cannot bind delegates with the return type stated:
+All argument expressions `expression` bound to `lazy` parameters are currently rewritten to `delegate() => expression`.
+This rewrite is not optional and occurs even if it leads to an error and omitting the rewrite would compile.
+
+Implementing this DIP, `lazy` can be changed to mean [`in`](https://dlang.org/changelog/2.094.0.html#preview-in),
+but can be combined with the storage class `ref` and storage class type constructors.
+The additional storage classes become part of the delegate type as follows:
+* `ref` becomes part of the delegate type as a member function attribute,
+  meaning that the delegate returns by reference.
+* For function templates, `auto ref` becomes part of the delegate type as `ref`
+  if the supplied argument returns by `ref` and nothing otherwise.
+* Type constructors become part of the delegate type by applying them to the delegate's return type.
+
+Other storage classes make no sense in combination with `lazy`, as the implied `in` is incompatible with them,
+or they cannot become part of the delegate type in a meaningful way.
+
+Type constructors and `ref` are redundant with the `in` storage class, except `shared`.
+Because the implicitly generated delegate is always thread-local, i.e. never a `shared` object,
+`shared` is not meaningfully applied to the delegate.
+Also, there is no way to supply a `shared` delegate without circumventing the type system
+because the delegate is always created implicitly.
+
+When `lazy` is used with `ref`, the `ref` is considered part of the delegate type
+(meaning the delegate returns by reference).
+(Note that delegate types retuning by reference cannot be expressed directly in a function signature;
+see [issue 21521](https://issues.dlang.org/show_bug.cgi?id=21521).)
+When `lazy` is used with `auto ref` in a function template,
+`ref`-ness of the delegate type is inferred from the argument.
+
+When binding an l-value expression, `delegate ref() => expression` is tried first.
+If that does not succeed, `delegate() => expression` is used.
+That way, l-value expressions bind to a delegate returning `ref` when possible.
+
+On a `lazy` parameter, the [trait `isRef`](https://dlang.org/spec/traits.html#isRef)
+returns the `ref`-ness of the delegate return value.
+One can test for the `lazy` storage class using `__traits(isLazy, parameter)` specifically.
+
+A preview switch `-preview=lazy` will be added to the compiler for the transition.
+It implies `-preview=in`.
+
+### Default Attributes
+
+As pointed out, changes akin to the ones proposed here are necessary for making a warrant attribute the default.
 
 ## Limitations
 
