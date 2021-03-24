@@ -14,7 +14,7 @@
 |                           ID|                                 Title| DMD version  |
 |-----------------------------|--------------------------------------|--------------|
 |[1003](./accepted/DIP1003.md)|            Remove `body` as a Keyword| 2.075.0      |
-|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept|              |
+|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept| 2.076.0      |
 |[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax| 2.081.0      |
 |[1010](./accepted/DIP1010.md)|                        Static foreach| 2.076.0      |
 |[1013](./accepted/DIP1013.md)|               The Deprecation Process| &mdash;      |
