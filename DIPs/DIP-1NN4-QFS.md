@@ -202,7 +202,7 @@ This is, however, less of a problem than it seems at first glance:
 * Consider a `@safe` context calling a `@safe` functional with a `@system` argument.
   This becomes invalid, since a `@safe` functional makes guarantees for its internal logic.
   What the `@system` callback does, is among the responsibility of the context,
-  and in a `@safe` context, calling a  `@system` function is invalid.
+  and in a `@safe` context, calling a `@system` function is invalid.
 
 Especially in meta-programming, it might not be clear at all whether a callback's type has a warrant attribute or not.
 For `@safe` and `@nogc`,
@@ -340,7 +340,7 @@ Even in the current state of the language, more care must be taken than merely l
 The author agrees that there is a didactic challenge to this, since attributes are currently absolutes.
 There is no solution that leaves them that way because the absoluteness is exactly the problem.
 However, from a didactic standpoint,
-attributes could be explained as describing the allowed and disallowed operations  of a function.
+attributes could be explained as describing the allowed and disallowed operations of a function.
 A function call in and of itself is in accordance with any attribute.
 Normally, the called function's operations are the responsibility of the caller.
 In the case of `const` eFP/D parameters,
