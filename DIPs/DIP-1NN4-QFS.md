@@ -95,7 +95,8 @@ This DIP proposes a general solution that is not specific to function pointer an
 ## Terms and Definitions
 
 The attributes `pure`, `nothrow`, `@safe`, and `@nogc` will be called *warrant attributes* in this DIP.
-Notably absent are `@system` and `@trusted` as they do not warrant any compiler-side checks.
+Notably absent are `throw` (cf. [DIP&nbsp;1029](https://github.com/dlang/DIPs/blob/master/DIPs/accepted/DIP1029.md)),
+`@system` and `@trusted` as they do not warrant any compiler-side checks.
 Also absent is `@live` because `@live` functions may call non-`@live` functions.
 
 In this document, *FP/D (type)* will be an abbreviation for *function pointer (type) or delegate (type)*.
