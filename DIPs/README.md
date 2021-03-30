@@ -11,20 +11,20 @@
 |[1038](./DIP1038.md)|                                     @nodiscard|        Post-Final|
 
 ## Accepted DIPs
-|                           ID|                                 Title|
-|-----------------------------|--------------------------------------|
-|[1003](./accepted/DIP1003.md)|            Remove `body` as a Keyword|
-|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept|
-|[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax|
-|[1010](./accepted/DIP1010.md)|                        Static foreach|
-|[1013](./accepted/DIP1013.md)|               The Deprecation Process|
-|[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics|
-|[1018](./accepted/DIP1018.md)|                  The Copy Constructor|
-|[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls|
-|[1024](./accepted/DIP1024.md)|                        Shared Atomics|
-|[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|
-|[1030](./accepted/DIP1030.md)|                       Named Arguments|
-|[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)|
+|                           ID|                                 Title| DMD version  |
+|-----------------------------|--------------------------------------|--------------|
+|[1003](./accepted/DIP1003.md)|            Remove `body` as a Keyword| 2.075.0      |
+|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept| 2.076.0      |
+|[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax| 2.081.0      |
+|[1010](./accepted/DIP1010.md)|                        Static foreach| 2.076.0      |
+|[1013](./accepted/DIP1013.md)|               The Deprecation Process| &mdash;      |
+|[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics| 2.088.1      |
+|[1018](./accepted/DIP1018.md)|                  The Copy Constructor| 2.086.0      |
+|[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls| 2.092.0      |
+|[1024](./accepted/DIP1024.md)|                        Shared Atomics|              |
+|[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|              |
+|[1030](./accepted/DIP1030.md)|                       Named Arguments|              |
+|[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)|              |
 
 ## Rejected DIPs
 |                           ID|                                 Title|
