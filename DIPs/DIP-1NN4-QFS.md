@@ -436,6 +436,11 @@ This DIP proposes that
    that are initialized by dereferencing and/or indexing an eFP/D parameter or another such local variable,
    become valid, too.
 
+For associative arrays, `in` expressions returning a pointer to a value count as indexing,
+as well as binding values in a `foreach` loop does.
+However, value access through its [methods](https://dlang.org/spec/hash-map.html#properties) (e.g. `byValue`)
+are not proposed to be special cased.
+
 This DIP author suggests that
 in the case of checking `@safe` and `nothrow` for a functional,
 if the parameter's underlying FP/D type is explicitly annotated `@system` and/or `throw`,
