@@ -15,54 +15,7 @@ Functions that have function pointers or delegates as parameters cannot be integ
 This DIP proposes to adjust the constraints that the mentioned attributes impose.
 It will only affect aforementioned functions
 with function pointers or delegates as `const`, `inout`, or `immutable` parameters.
-
 The goal is to recognize more code as valid that factually behaves in accordance to the attributes.
-An example is this:
-```D
-class Aggregate : NogcToString // provides void toString(sink)
-{
-    /// Executes sink(s) for every chars s part of the string representation in sequence.
-    override void toString(const scope void delegate(const scope char[]) sink) @safe @nogc
-    { ... }
-
-    /// Returns the string representation in a GC allocated string.
-    final override string toString() @safe
-    {
-        string result;
-        void append(scope const(char)[] s) { result ~= s; }
-        toString(&append); // append is (inferred) @safe, but not @nogc
-        return result;
-    }
-}
-```
-Notice how `sink` is not annotated `@safe` or `@nogc`, but it is declared `const`.
-The key observation of this DIP is
-that because it is `const`, any call like `sink("bla")` can only execute the delegate passed to it
-(`sink` cannot e.g. be reassigned),
-and thus, the parameterless `toString` function has full control about whether the argument `&append`
-that binds to `sink` is `@safe` and/or `@nogc`.
-
-This DIP proposes that
-* the first `toString` function is allowed to call `sink` even if not annotated `@safe` and/or `@nogc` — and
-* that the call `toString(&append)` is only `@safe` and/or `@nogc` when *both*
-  the called function `toString` and the argument `&append` are `@safe` and/or `@nogc`, respectively.
-
-As the example shows, calling `toString` with a delegate that may allocate is valid,
-but the call as a whole is not a `@nogc` operation,
-so `toString()` cannot be annotated `@nogc`. 
-Calling `toString` with a `@system` sink would also be valid, but the call will be considered `@system`
-since the condition that the argument be `@safe` is violated.
-
-These rules allow making `lazy` a lowering to a delegate type.
-Binding of arguments can still be done by implicitly embedding them in a delegate;
-a general implicit conversion from expressions to delegates is not necessary, but would work equally well.
-
-Furthermore, when making e.g. `@safe` the default,
-the changes proposed by this DIP allow for an especially smooth transition path for higher-order functions
-that is not available otherwise.
-
-Delegates and function pointers with different attributes are compatible yet different types.
-For method overriding to behave as expected, overriding with contravariant parameters must be enabled to some degree.
 
 ## Contents
 
@@ -165,12 +118,11 @@ Higher-order functions are cumbersome to use in a warrant attribute context.
 The execution of a context function may provably satisfy the conditions of a warrant attribute,
 but is considered invalid because the formal conditions of the warrant attribute are not met.
 
-Warrant attributes on a functional (or, in fact, on any function) and on a functional's parameter
+First note that warrant attributes on a functional (or, in fact, on any function) and on a functional's parameter
 mean very different things:
-* On a functional, they give rise to a *guarantee* the function makes that callers may rely upon.
+* On a functional, they give rise to a *guarantee* it makes that contexts may rely upon.
 * Only on a functional's parameter type, warrant attributes give rise to a *requirement*
   that the functional potentially *needs* to work properly.
-  It is the caller's responsibility to provide a compliant argument.
 
 As an example, consider a functional taking a `pure` function pointer parameter.
 In its internal logic, the functional might make use of memoization, or the fact that the parameter's return values are
@@ -185,29 +137,87 @@ In the current state of the language,
 a functional cannot have strong guarantees and weak requirements at the same time.
 Having strong guarantees means
 that the functional provably behaves in accordance to warrant attributes,
-meaning it can be annotated with them.
+so that it can be annotated with them.
 Having weak requirements means
 that the functional does not need the guarantees of a warrant attribute on a parameter function
 for its internal logic to be sound.
-Most programmers opt *against* warrant attributes, i.e. *for* weak requirements,
+When pressed, most library authors opt *against* warrant attributes, i.e. *for* weak requirements,
 and therefore needlessly weaken the guarantees.
+For example, Phobos' [lockstep](https://dlang.org/library/std/range/lockstep.html) does that.
 
-The DIP solves this problem by always allowing calls to `const` (or `inout` or `immutable`) parameters
-when checking a functional for satisfying the conditions of a warrant attribute.
+The DIP solves this problem by always allowing calls to `const` (or `inout` or `immutable`) parameter functions
+when checking a functional for satisfying the conditions of a warrant attribute,
+irrespective of those parameter functions' types lacking the warrant attribute.
+In a context where a functional is called, the type system has all the necessary information available to determine
+if the execution of it will comply with the warrant attributes of the context.
+For that it must take the warrant attributes of the arguments' types into account.
 
-In a context where a functional is called, the type system has all the necessary information available
-to determine if the execution of it will comply with the warrant attributes of the context.
+Loosening warrant attributes' restrictions in that way, allows more first-order functions to be annotated.
+An illustration of what this DIP enables is this:
+```D
+interface NogcToString
+{
+    /// Executes `sink(str)` for every part `str` of the string representation.
+    void toString(void delegate(const scope char[]) @nogc sink) @nogc;
+}
 
-This entails that not all calls to a functional annotated with a warrant attribute will result in call expressions
+class Aggregate
+    : Object       // provides string toString()
+    , NogcToString // provides void toString(sink)
+{
+    override void toString(const scope void delegate(const scope char[]) sink) const @safe @nogc
+    { ... }
+
+    /// Returns the string representation in a GC allocated string.
+    final override string toString() const @safe
+    {
+        string result;
+        void append(scope const(char)[] s) { result ~= s; }
+        toString(&append); // append is (inferred) @safe, but not @nogc
+        return result;
+    }
+}
+```
+
+The signature of the interface's `toString` indicates that the class override may require the sink to be `@nogc`
+in order to fulfill its guarantee to not allocate.
+
+Notice how, in the override, `sink` is not annotated `@safe` or `@nogc`, but it is declared `const`.
+The key observation of this DIP is
+that because it is `const`, any call like `sink("bla")` can only execute the delegate passed to it
+(`sink` cannot e.g. be reassigned),
+and thus, the parameterless `toString` function has full control about whether the argument `&append`
+binding to `sink` is `@safe` and/or `@nogc`.
+
+Apart from the statement `toString(&append)`, the parameterless `toString` is `@safe`. 
+By the proposed changes, the statement will be recognized `@safe` on the grounds that
+* the called `toString` function is annotated (or inferred) `@safe` — and
+* the type of the argument `&append` binding to a `const` parameter is also (annotated or) inferred `@safe`.
+  (Note that it is the actual argument that is checked, not the type of the parameter it binds to.
+  That argument must satisfy the conditions posed by the parameter type, but it can have stronger guarantees.
+  In the sense of the proposal, it is these additional guarantees that matter.)
+
+On the other hand, that statement is (still) not recognized `@nogc` on the grounds that,
+while the called `toString` function is annotated (or inferred) `@nogc`,
+the type of the argument `&append` binding to a `const` parameter is not annotated or inferred  `@nogc`.
+
+Similarly, the statement is not recognized `pure`
+because the called `toString` functional is not annotated or inferred `pure`,
+even though the argument `&append` is inferred `pure`.
+
+The changes entail that not all calls to a functional annotated with a warrant attribute will result in call expressions
 that are considered in compliance with that warrant attribute.
 This is, however, less of a problem than it seems at first glance:
 * Consider a `@system` or `@trusted` context calling a `@safe` functional with a `@system` argument.
   The context does not expect an execution satisfying the formal `@safe` constraints, therefore
   the fact that *the call* to the `@safe` annotated function is not `@safe` can be mostly ignored.
+  The memory safety audit for the context must include the callback anyway. 
 * Consider a `@safe` context calling a `@safe` functional with a `@system` argument.
   This becomes invalid, since a `@safe` functional makes guarantees for its internal logic.
   What the `@system` callback does, is among the responsibility of the context,
   and in a `@safe` context, calling a `@system` function is invalid.
+  Note that this is only true if the callback binds to a `const` parameter;
+  if the parameter is mutable, there is no difference to the current state of the language.
 
 Especially in meta-programming, it might not be clear at all whether a callback's type has a warrant attribute or not.
 For `@safe` and `@nogc`,
@@ -215,6 +225,7 @@ this is mostly unproblematic, since these are only interesting from a safety or 
 but no program's logic depends on the guarantees these attributes make:
 A memory-unsafe program is broken in itself and
 GC allocating may at worst slow down a program unexpectedly due to the GC issuing a collection cycle.
+When GC allocations are an issue, profiling will be necessary anyway.
 [Author's note: I'm not completely sure. Please have a think whether these claims are really true.]
 
 However, the attributes `pure` and `nothrow` are of interest, even in an impure context,
@@ -223,11 +234,12 @@ or a context where throwing exceptions is allowed.
   In this case, if the call to the functional is impure due to calling it with an impure callback, the code is invalid.
   An impure context may expect a `pure` execution for memoization or thread-safety, too.
 * A `nothrow` operation cannot fail recoverably.
-  It fails irrecoverably or succeeds (or gets stuck in a loop); in either case, no rollback operation is necessary.
+  It fails irrecoverably or succeeds (or gets stuck); in either case, no rollback operation is necessary.
   This fact may be used by the context even if it may throw itself.
 
 With the changes proposed by this DIP, except for uniqueness,
-it is necessary to manually ensure the execution is `pure` or `nothrow` if that is required.
+it is necessary to manually ensure the execution is `pure` or `nothrow`
+if that is expected or required for a sound execution.
 This is especially true for meta-programming (function templates etc.), but not limited to it.
 Usually, this can be achieved by properly annotating the callback where it is defined:
 Instead of `x => x + 1` one has to write `(x) pure nothrow => x + 1`.
@@ -235,9 +247,11 @@ When the type of the argument bound to `x` depends on factors outside the contro
 e.g. if `typeof(x)` happens to have an impure or possibly throwing `opBinary!"+"(int)`,
 that will lead to a compilation error where the lambda is formulated.
 
-In the opinion of the author,
+Even in the current state of the language,
 a context should not rely on the annotations of the functional to check its requirements implicitly,
-but instead make those requirements explicit in its statements.
+but instead must make those requirements explicit in its statements:
+Because functionals can be overloaded on the parameter types' warrant attributes,
+that implicit check cannot be relied upon in general.
 
 The benefits and drawbacks of making this or another warrant attribute the default,
 are discussed regularly on the forums.
@@ -249,31 +263,34 @@ Without this change, a suitable unannotated `void functional(void function() f)`
 * `void functional(void function()       f) @safe` — or
 * `void functional(void function() @safe f) @safe`.
 
-(Here, *suitable* means that `functional` contains `@safe` operations only apart from the call to `f`.
+(Here, *suitable* means that `functional` contains `@safe` operations only, apart from calls to `f`.
 One way to test that is annotating the parameter and the functional.)
 
 In the current state of the language, the first option can be excluded immediately:
 When `functional` calls its parameter `f`, it will no longer compile.
 This breaking change is obvious and would affect almost all unannotated functionals.
 
-So it must be the second option, which entails that
+So it would have to be the second option, which entails that
 most `@system` annotated contexts can no longer make use of `functional`
 because its signature now *requires* any argument be `@safe`.
 That is overly restrictive from the viewpoint of a `@system` context:
 There is probably no reason why `functional` should not be used by a `@system` context.
 
-With this change, however, the first option is the way to go:
+With this change, however, the first option is viable:
 A `@safe` context must supply a `@safe` argument for the call to `functional` to be considered `@safe`.
 A `@system` context may supply a `@system` argument, rendering the call to `functional` a `@system` operation
 which is not a problem, since this is exactly what was happening before making `@safe` the default.
 
 One could argue that changing defaults is inherently a breaking change.
 Still, breakage should be minimized and have a transition path.
-Higher-order functions are not a fringe case that can be ignored.
+Higher-order functions are not an obscure fringe case that can be ignored.
 
 With this DIP, the first option together with qualifying the parameter `const` is a transition path
 for most functionals.
-It is unavailable only if the parameter type contains indirections and mutation is necessary.
+If the functional assigns the parameter, a local variable must be introduced instead.
+If the parameter is not taken directly, but e.g. in a slice (see [Description](#description)),
+assignment cannot be replaced by a local variable.
+This, however, can be dismissed as being an obscure fringe case that can be ignored.
 
 ## Prior Work
 
@@ -319,9 +336,9 @@ The proposed changes bear some similarity to the relaxation of `pure`, allowing 
 any mutable value reachable through their parameters.
 Those `pure` functions are called *weakly pure* in contrast to *strongly pure* ones
 that cannot possibly modify values except their local variables.
-The same way, letting weakly pure functions be annotated `pure` allowed for more *strongly pure* functions,
+The same way, letting weakly pure functions be annotated `pure` allowed more *strongly pure* functions be annotated,
 the changes proposed by this DIP allow more functions carrying a warrant attribute:
-The example in the [Abstract](#abstract) shows how the second `toString` overload can be recognized as `@safe`
+The example in the [Rationale](#rationale) shows how the second `toString` overload can be recognized as `@safe`
 when the first overload is `@safe` depending on its argument.
 
 This proposal is based on an idea explained by H.&nbsp;S.&nbsp;Teoh in great detail.
@@ -1222,6 +1239,8 @@ In the opinion of the author, the gains clearly outweigh the costs.
 
    This document only refers to higher-order functions as the ones in the first bullet point
    since this proposal is not concerned about return values.
+   
+   Also note that *first-order function* in this context refers to any function that is not a higher-order function.
 1. [Wikipedia: *Functional*](https://en.wikipedia.org/wiki/Functional_(mathematics)):
    > In computer science, [the term *functional*] is synonymous with higher-order functions,
    > i.e. functions that take functions as arguments or return them.
@@ -1252,7 +1271,7 @@ In the opinion of the author, the gains clearly outweigh the costs.
 
 ### Other Links
 
-1. [CppRefernce.com about the `noexcept` specifier](https://en.cppreference.com/w/cpp/language/noexcept_spec)
+1. [CppReference.com about the `noexcept` specifier](https://en.cppreference.com/w/cpp/language/noexcept_spec)
 
 ## Copyright & License
 
