@@ -70,7 +70,7 @@ The following steps outline the process for the best-case scenario after a DIP i
 * after Final Review, no revisions are required and no other DIP is under active consideration, so the DIP may immediately move into Formal Assessment.
 * the language maintainers have enough information to render a verdict on the DIP within 30 days.
 
-So in the best-case scenario, a DIP will require two - three months to go from Community Review to acceptance or rejection. The DIP manager will strive to keep the process as short as possible, but it should be expected that the best-case scenario will be rare and a period of four or five months will be more common.
+So in the best-case scenario, a DIP will require two to three months to go from Community Review to acceptance or rejection. The DIP manager will strive to keep the process as short as possible, but it should be expected that the best-case scenario will be rare and a period of four or five months will be more common.
 
 [DIP Repository]: https://github.com/dlang/DIPs
 [D Forums]: https://forum.dlang.org/
