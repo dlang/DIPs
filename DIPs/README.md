@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1041](./DIP1041.md)|          Attributes for Higher-Order Functions| Community Round 1|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1039](./DIP1039.md)|             Static Arrays with Inferred Length|  Post-Community 1|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
