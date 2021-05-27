@@ -8,7 +8,6 @@
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1041](./DIP1041.md)|          Attributes for Higher-Order Functions|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 2|
-|[1036](./DIP1036.md)|            String Interpolation Tuple Literals|  Post-Community 2|
 |[1038](./DIP1038.md)|                                     @nodiscard|        Post-Final|
 
 ## Accepted DIPs
@@ -69,3 +68,4 @@
 |[1026](./other/DIP1026.md)   |Deprecate Context-Sensitive String Literals|
 |[1031](./other/DIP1031.md)   |Deprecate Brace-Style Struct Initializers|
 |[1032](./other/DIP1032.md)   |Function Pointer and Delegate Parameters Inherit Attributes from Function|
+|[1036](./otner/DIP1036.md)   |   String Interpolation Tuple Literals|
