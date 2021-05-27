@@ -68,4 +68,4 @@
 |[1026](./other/DIP1026.md)   |Deprecate Context-Sensitive String Literals|
 |[1031](./other/DIP1031.md)   |Deprecate Brace-Style Struct Initializers|
 |[1032](./other/DIP1032.md)   |Function Pointer and Delegate Parameters Inherit Attributes from Function|
-|[1036](./otner/DIP1036.md)   |   String Interpolation Tuple Literals|
+|[1036](./other/DIP1036.md)   |   String Interpolation Tuple Literals|
