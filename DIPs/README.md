@@ -3,12 +3,12 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1038](./DIP1038.md)|                                     @nodiscard| Formal Assessment|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1039](./DIP1039.md)|             Static Arrays with Inferred Length|  Post-Community 1|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1041](./DIP1041.md)|          Attributes for Higher-Order Functions|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 2|
-|[1038](./DIP1038.md)|                                     @nodiscard|        Post-Final|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
