@@ -41,9 +41,8 @@ boom
 * [Reviews](#reviews)
 
 ## Rationale
-Required.
 
-When using a lot of enumes, typing their name become a chore, let save some tping for later more important code
+When using a lot of enums, typing their name become a chore, let save some tping for later more important code
 
 Check other languages
 
