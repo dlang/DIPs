@@ -42,7 +42,7 @@ boom
 
 ## Rationale
 
-When using a lot of enums, typing their name become a chore, let save some tping for later more important code
+When using a lot of enums, typing their name become a chore, let save some typing for later more important code
 
 Check other languages
 
