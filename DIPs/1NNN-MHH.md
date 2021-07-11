@@ -1,237 +1,122 @@
-# Introduce `__ATTRIBUTE__`
+# Shortened Method Syntax
 
-| Field           | Value                                                           |
-|-----------------|-----------------------------------------------------------------|
-| DIP:            | (number/id -- assigned by DIP Manager)                          |
-| Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | Max Haughton mh2410@[universityofbathdomain]                    |
-| Implementation: | github.com/maxhaton/dmd  (too buggy for a PR as of writing)                          |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Field           | Value                                                          |
+|-----------------|----------------------------------------------------------------|
+| DIP:            | (number/id -- assigned by DIP Manager)                         |
+| Review Count:   | 0 (edited by DIP Manager)                                      |
+| Author:         | Max Haughton, Adam Ruppe                                       |
+| Implementation: | https://github.com/dlang/dmd/pull/11833                        |
+| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected") |
 
 ## Abstract
-This DIP allows user-defined attributes to access the declarations onto which they are attached. This is achieved by the introduction of a new  `SpecialKeyword` "\_\_ATTRIBUTE\_\_" to the grammar. When used as a default 
-initializer this shall be resolved to a `string[]` containing the fully qualified names of the declarations, if any, the expression's parent UDA declaration is attached to.
 
-Note that the exact name (i.e. "ATTRIBUTE") is easily changed.
+This DIP unifies the syntax of function literals and function definitions.
+The following syntax is proposed: 
+```D
+int add(int x, int y) pure => x + y;
+```
+
+Thanks to a failure of process, this feature is already present inside the implementation of the 
+D programming language. This DIP will disambiguate the status of this feature, i.e. after thorough 
+consideration a decision can be made and acted upon rather than leaving features in limbo.
+
 ## Contents
-- [Let UDAs see what they are attached to](#)
-  - [Abstract](#abstract)
-  - [Contents](#contents)
-  - [Rationale](#rationale)
-  - [Prior Work](#prior-work)
-  - [Description](#description)
-  - [Reference](#reference)
-  - [Copyright & License](#copyright--license)
-  - [Reviews](#reviews)
+* [Rationale](#rationale)
+* [PriorWork](#prior-work)
+* [Description](#description)
+* [Reference](#reference)
+* [Copyright & License](#copyright--license)
+* [Reviews](#reviews)
 
 ## Rationale
-For a UDA to do work in D, it currently must be accessed via the scope in which the declarations it is attached to are declared. For most uses this is ideal: for example when serializing a data structure using a UDA is an efficient and maintainable way of specifying the semantics of how the given data structure is to be serialized. 
-### A simple example of a UDA - Serializing an exam result
+There already exists [syntactic sugar](https://en.wikipedia.org/wiki/Syntactic_sugar) for function literals in the D programming language, for example
 ```D
-struct Serialize {
-    string impl;
-	this(string forWhom)
-    {
-    	impl = forWhom;
-    }
-}
-struct ExamResult {
-    //The student's name is needed in all reports
-    @Serialize("ParentReport") @Serialize("InternalReport") 
-    string studentName;
-    //The examiner's name is only needed for internal moderation
-    @Serialize("InternalReport") 
-    string examinerName;
-    //Same as the first
-    @Serialize("ParentReport") @Serialize("InternalReport") 
-    float overallScore;
-    //Don't serialize this
-    string dbEntry;
-}
+const succ = (int x) => x + 1;
 ```
-
-Clearly in this case there is a strictly top-down topology to the usage of these user-defined attributes, whenever this structure is serialized D's metaprogramming facilities makes it trivial to *iterate* (emphasis added for later relevance) over `ExamResult`'s members and look for any attributes relevant to our little library.
-### A less simple example
-There are, however, situations where a UDA is highly useful but there does not exist as clean of a hierarchy as in the previous example.
-
-For example, an attribute will often be attached to a - in effect - free standing symbol like a `unittest`. 
+is equivalent to
 ```D
-enum runMyTest;
-
-@runMyTest unittest {
-
-}
+const succ = function(int x) { return x + 1; };
 ```
-Since most of these declarations are at or near module scope, we can simply iterate over *all* the `unittest`s looking for one's matching our UDA. Although not technically required, it is still common to find these tests in a pre-compilation step - or by manually setting the test runner to work using a `mixin` statement.
+No such syntactic sugar exists for functions and method definitions - therefore, a trivial change to the language unifies the syntax of 
+those constructs and saves a little typing for the programmer.
 
-This pattern is fine for `unittest`s: When used, there are usually many of them, and when there are not many the potential for a performance hit is mitigated by the compiler providing a list of `unittest`s within a given scope.
-
-### The behaviour to be enabled by this DIP.
-There are, however, situations where this pattern is less than ideal. Some UDAs may be used to declare things which are both sparse and not `unittest`s. 
-
-If we setup a mechanism to get these UDA-ed symbols - assuming we know where they are i.e. a recursive search is currently not possible but scopes containing UDAs can be declared using a different UDA - we still have to iterate over *every* declaration in a given scope looking for those with our desired set of attributes. For a sparse declaration - that is, if we are looking for a few declarations out of a several thousand line file - this is not an efficient way of doing things.
-
-For example, this DIP is motivated specifically by a desire to be able to declare benchmarks in the following manner (without needing the user to `mixin` anything):
-
-```D
-@Benchmark!(SomeInformationAboutTheBenchmark)
-float dotp(float[3] vec1, float[3] vec2) pure
-{
-    return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2] 
-}
-//The library can then do what it wants with dotp, be that schedule it to run or add it to a table at compile time
-```
-
-This DIP proposes a simple solution to this problem: Let the UDA see sideways, that is, let it see what it is attached to. Rather than being some paradigm shift in how UDAs are used, this should simply be viewed as having the same effect of adding syntactic sugar for the following construct:
-```D
-    module home;
-    enum MyUDA;
-    template HandleTheUDA(alias handleThis) {/* impl */}
-    @MyUDA void widget() {}
-    //Ugly
-    mixin HandleTheUDA!handleThis;
-    //Slow, we don't want to search the entire module just for one UDA
-    mixin HandleTheUDA!home;
-```
-i.e. With this DIP, MyUDA can be declared as a template that can perform the `mixin` itself. This does not add any new dragons or side effects beyond what the original construct could do.
 ## Prior Work
-### A pattern that already does the job
-The following pattern can be used within a UDA to find what said UDA is attached to.
-```D
-//Module is needed for obvious reasons, the line parameter makes it unique for most uses
-template FinderUDA(string name, string m = __MODULE__, int l = __LINE__)
-{
-    import std.format;
-	import std.traits;
-    enum FinderUDA;
-    mixin(format!"alias mod = %s;"(m));
-    //Your implementation goes here
-    pragma(msg, getSymbolsByUDA!(mod, FinderUDA));
-}
+As mentioned previously, this DIP has the potential to result in a post-facto blessing of 
+a feature already present (available through a preview flag) in the compiler, this implementation
+was written by Adam Ruppe - in recognition of this he is listed as a coauthor.
 
-@FinderUDA!"Hello" 
-void wow()
+This feature is present within the C# programming language, where instances of its use are referred to as 
+[Expression-bodied members](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/expression-bodied-members).
+This feature has been available for use since either C# version 6 or 7 depending on context - for reference the most recent stable release is version 9.0.
+
+The C# documentation linked above gives an example of idiomatic use of this feature (reproduced below). In considering this piece of code, we 
+should be careful to remember that C# (to some degree of approximation at least) encourages access to state through methods (Getters and Setters, properties, etc.),
+so the use of this feature may be more profitable in C# than in D where the aforementioned idiom is not as popular - that is to say that in the authors experience 
+D programs with many single line functions bodies are significantly less prevalent than in C#.
+```c#
+public class Location
 {
-	import std.stdio;
-    writeln("WOW!");
+   private string locationName;
+
+   public Location(string name)
+   {
+      locationName = name;
+   }
+
+   public string Name => locationName;
 }
 ```
-In this case it prints "tuple(wow)".
-
-This pattern has obvious flaws: Unless told where to look recursively, it can only work with symbols at module scope, the attribute declaration/s must be on separate lines to be uniquely identified, and more subtly in a big file we now have to search through every declaration that the UDA *could* be attached to. The compiler already has this information, let's use it.
-
-### How the patterns enabled by this DIP are done in C++
-Thanks to the simplicity of textual preprocessing, C++ can enable this pattern using a macro. However, this is extremely error-prone so a common way of achieving everything mentioned so far in this article is to have a separate compilation step to collect and use information from the source code.
-
-For example, Epic Games' Unreal Engine uses the following syntax to interface between C++ and "Blueprints" 
-```C++
-class AGameActor : public AActor
-{
-  GENERATED_BODY()
-  public:
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
-  FString Name;
-  UFUNCTION(BlueprintCallable, Category = Properties)
-  FString ToString();
-};
-```
-The game then inserts hijacks the compile to read the (in our terms) user-defined attributes from the header file, however this not only hurts compilation times but is also fairly antithetical to the "D way" of doing things.
 ## Description
-This DIP simply proposes adding to the language a new *SpecialKeyword* `__ATTRIBUTE__` to the grammar. 
+### Syntax 
+The grammar changes are as follows:
 ```diff
-SpecialKeyword:
-    __FILE__
-    __FILE_FULL_PATH__
-    __MODULE__
-    __LINE__
-    __FUNCTION__
-    __PRETTY_FUNCTION__
-+   __ATTRIBUTE__
-```
-It will always resolve to a string array literal.
-```D
-void main(string[] args)
-{
-    const attr = __ATTRIBUTE__;
-    pragma(msg, typeof(attr), attr); //"const(string[]) and []"
-}
-```
-This literal shall be empty unless `__ATTRIBUTE__` is used as a default initializer, in which case it shall be resolved to either to be either empty or an array literal of the fully qualified names of all declarations a UDA is attached to, if and only if (subject to existing default initializer resolution) it is resolved to an expression within said *UserDefinedAttribute*
+FunctionBody:
+     SpecifiedFunctionBody
+     MissingFunctionBody
++    ShortenedFunctionBody
+...
 
-### Some specific examples:
-A templated struct
-```D
-module testmodule;
-struct Test(string name, string[] attr = __ATTRIBUTE__)
-{
-    pragma(msg, name, " says: ", attr);
-    this(int l) {/*Do work*/}  
-}
-@Test!"name"(1) 
-int echo(int x)
-{
-    return x;
-}
-//"name says: ["testmodule.echo"]"
++ShortenedFunctionBody:
++    => AssignExpression ;
 ```
-A simple function
-```D
-module testmodule;
-auto just(string[] at = __ATTRIBUTE__)
+### Semantics 
+This proposed semantics are a simple example of what is often referred to as lowering:
+```
+FunctionDeclarator => AssignExpression;
+```
+shall be rewritten to
+```
+FunctionDeclarator
 {
-    return at;
+	return AssignExpression;
 }
+```
+Although valid syntax, this construct is semantically nonsense in the case of a constructor or destructor (i.e. they cannot have a return value) and 
+use in these contexts should be explicitly rejected early by the implementation to ensure a meaningful error message for the programmer. 
 
-@(just())
-int x, y, z;
-
-pragma(msg, pragma(msg, __traits(getAttributes, x)[0]));
-//"["testmodule.x", "testmodule.y", "testmodule.z"]"
-```
-A class 
+The crux of the [implementation](https://github.com/dlang/dmd/blob/master/src/dmd/parse.d#L5139) is listed with annotations below:
 ```D
-class wow {
-    string[] cont;
-    this(string[] attr = __ATTRIBUTE__)
-    {
-        cont = attr;
-    }
-}
-@(new wow)
-int cheese;
-pragma(msg, __traits(getAttributes, cheese)[0]);
-//"wow(["testmodule.cheese"])"
+const returnloc = token.loc;
+nextToken();//Walk past the =>
+// ↓ the where the lowered result goes     |  ↓ Ingest the expression following the =>
+f.fbody = new AST.ReturnStatement(returnloc, parseExpression());
+f.endloc = token.loc;
+check(TOK.semicolon);
 ```
-Finally, eliminating a `mixin`.
-```D
-template runThisFunction(string name, string[] attrs = __ATTRIBUTE__)
-{
-    pragma(msg, "DRT", attrs);
-    enum runThisFunction;
+Although this listing is informative, the *location* of this implementation within the parser (within `parseContracts`) should not go unquestioned (elaborated in the following section). It should 
+also be noted that the above code uses `parseExpression` rather than parsing an assign expression specifically - the author does not know if this matters in practice (or as an exercise).
 
-    shared static this()
-    {
-        import std.stdio;
-        static foreach(at; attrs) {
-            mixin("alias theFunc = " ~ at ~ ";");
-            writef!"%s is running %s"(name, at);
-            theFunc();
-        }  
-        
-    }
-}
-@(runThisFunction!"Darth Vader")
-void runMe()
-{
-    import std.stdio;
-    writeln("dlang");
-}
-//Eliminates having to write @runThisFunction then using a mixin to actually do the work
-```
 ## Reference
-[The Unreal Engine property system](https://www.unrealengine.com/en-US/blog/unreal-property-system-reflection)
+Recently, [it has been raised](https://github.com/dlang/dlang.org/pull/3059) that the implementation currently allows the use of function contracts with 
+this syntax. This is not possible with function literals, so it has not been included in the body of this DIP however it is mentioned here both for future 
+reference and in case, upon review, it is a desirable feature.
 
+### Trivia 
 
+* [The syntax is mentioned on bugzilla a decade ago](https://issues.dlang.org/show_bug.cgi?id=7176). The dialectics in this thread
+  can be considered a pre-review.
+* [Shortened Methods are documented in the specification](https://github.com/dlang/dlang.org/pull/2956)
+* [A dmd changelog entry is added](https://github.com/dlang/dmd/pull/12241)
 ## Copyright & License
 Copyright (c) 2020 by the D Language Foundation
 
