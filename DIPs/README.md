@@ -6,7 +6,6 @@
 |[1038](./DIP1038.md)|                                     @nodiscard| Formal Assessment|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
-|[1041](./DIP1041.md)|          Attributes for Higher-Order Functions|  Post-Community 1|
 |[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 2|
 
 ## Accepted DIPs
@@ -43,6 +42,7 @@
 |[1022](./other/DIP1022.md)   |                      foreach auto ref|
 |[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
 |[1033](./other/DIP1033.md)   |Implicit Conversion of Expressions to Delegates|
+|[1041](./other/DIP1041.md)   | Attributes for Higher-Order Functions|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
