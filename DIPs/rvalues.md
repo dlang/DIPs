@@ -4,7 +4,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | TBA |
 | Review Count:   | 0 |
-| Author:         | Manu Evans, Walter Bright, Andrei Alexandrescu |
+| Author:         | Alexander Heistermann (alexanderheistermann@gmail.com), Manu Evans, Walter Bright, Andrei Alexandrescu |
 | Status:         | Draft |
 
 ## Abstract
