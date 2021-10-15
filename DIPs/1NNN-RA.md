@@ -1,12 +1,24 @@
 
+| Field           | Value                                                           |
+|-----------------|-----------------------------------------------------------------|
+| DIP:            |                                                                 |
+| Review Count:   | 0                                                               |
+| Author:         | Robert Aron                                                     |
+| Implementation: |                                                                 |
+| Status:         | Draft                                                           |
+
 ## Abstract
 
 Every class defined in the D language has `Object` as the root ancestor. Object defines four methods: `toString`, `toHash`, `opCmp` and `opEquals`; at a fist glance, their presence might not strike you with much, but they are doing more harm than good. Their signatures predate the introduction of the `@nogc`, `nothrow`, `pure`, and `@safe` function attributes, and also of the `const`, `immutable`, and `shared` type qualifiers. As a consequence, these methods make it difficult to use `Object` with qualifiers or in code with properties such as `@nogc`, `pure`, or `@safe`. We propose the introduction of a new class, `ProtoObject`, as the root class and ancestor of `Object`. `ProtoObject` defines no method and requires the user to implement the desired behaviour through interfaces: this approach enables the user to opt-in for the behaviour that makes sense for his class and the design is flexible enough to allow future attributes and language improvements to be used without breaking code.
 
-### Links
-
-#### Eduard Staniloiu on the default class hierarchy
-- [From DConf 2017](https://gist.github.com/edi33416/0e592f4afbeb2fb81d3abf235b9732ce)
+## Contents
+* [Rationale](#rationale)
+* [Prior Work](#prior-work)
+* [Description](#description)
+* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+* [Reference](#reference)
+* [Copyright & License](#copyright--license)
+* [Reviews](#reviews)
 
 ### Rationale
 The current definition of `Object` is:
@@ -378,15 +390,20 @@ Again, we provide the user with default implementations for a hashing function i
 Implementations of `Ordered`, `Equals` and `Hash` must agree with each other. That is, `a.cmp(b) == 0` if and only if `(a == b) && (a.toHash == b.toHash)`. It's easy to accidentally make them disagree by mixing in some of the interface implementations and manually implementing others.
 
 
-### Breaking changes / deprecation process
+### Breaking Changes and Deprecations
 No breaking changes are anticipated because this provides an alternative for users, not a complete redesign of the class hierarchy.
 
 ### Acknowledgments
 This DIP is based upon the idea proposed by Andrei Alexandrescu and previously worked on by Eduard Staniloiu.
 
+## Reference
+#### Eduard Staniloiu on the default class hierarchy
+- [From DConf 2017](https://gist.github.com/edi33416/0e592f4afbeb2fb81d3abf235b9732ce)
 
 ## Copyright & License
 
 Copyright (c) 2021 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+
+## Reviews
