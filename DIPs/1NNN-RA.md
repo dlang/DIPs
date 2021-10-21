@@ -3,7 +3,7 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            |                                                                 |
 | Review Count:   | 0                                                               |
-| Author:         | Robert Aron                                                     |
+| Authors:        | Robert Aron, Eduard Staniloiu                                   |
 | Implementation: |                                                                 |
 | Status:         | Draft                                                           |
 
