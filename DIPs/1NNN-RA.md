@@ -134,9 +134,9 @@ Java's `java.lang.Object` defines the following methods:
 
 Each object also has an `Object monitor` that is used in Java `synchronized` sections. Basically it is a semaphore, indicating if a critical section code is being executed by a thread or not. Before a critical section can be executed, the thread must obtain an Object monitor. Only one thread at a time can own that object's monitor.
 
-We can see that there are quite a few simillarites between D and Java:
+We can see that there are quite a few similarites between D and Java:
 * both define `opEquals` and `getHash`
-* `getClass` is simillar to `typeid(obj)`
+* `getClass` is similar to `typeid(obj)`
 * `clone` gives us access to a `Prototype` like creation pattern; in D we have the `Factory Method`
 * both have an `object monitor`
 
@@ -244,11 +244,11 @@ As you can see in the example, if we can't dynamic cast to `Ordered`, then we ca
 
 Any other class, `class T`, that desires to be comparable, needs to extend ProtoObject and implement `Ordered`.
 ```D
-class Book : ProtoObject, Orderd
+class Book : ProtoObject, Ordered
 {
     enum BookFormat { pdf, epub, paperback, hardcover }
 
-    ssize_t isbn;
+    ulong isbn;
     BookFormat format;
 
     int cmp(scope const ProtoObject rhs)
@@ -270,17 +270,17 @@ As you can expect, most of the classes that desire to implement `Ordered` will h
 At it's most basic form, `mixin`g in `ImplementOrdered` will go through all the members of the implementing type and compare them with `rhs`
 
 ```D
-safe unittest
+@safe unittest
 {
-    class Book : ProtoObject, Orderd
+    class Book : ProtoObject, Ordered
     {
         mixin ImplementOrdered;
         enum BookFormat { pdf, epub, paperback, hardcover }
 
-        ssize_t isbn;
+        ulong isbn;
         BookFormat format;
 
-        this(ssize_t isbn, BookFormat format)
+        this(ulong isbn, BookFormat format)
         {
             this.isbn = isbn;
             this.format = format;
@@ -296,17 +296,17 @@ In the case above, comparing the two books, `b1` and `b2`, won't result in an eq
 
 This is why `ImplementOrdered` allows you to specify the only members that you wish to compare.
 ```D
-safe unittest
+@safe unittest
 {
-    class Book : ProtoObject, Orderd
+    class Book : ProtoObject, Ordered
     {
         mixin ImplementOrdered!("x");
         enum BookFormat { pdf, epub, paperback, hardcover }
 
-        ssize_t isbn;
+        ulong isbn;
         BookFormat format;
 
-        this(ssize_t isbn, BookFormat format)
+        this(ulong isbn, BookFormat format)
         {
             this.isbn = isbn;
             this.format = format;
