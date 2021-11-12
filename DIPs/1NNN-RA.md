@@ -3,13 +3,13 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            |                                                                 |
 | Review Count:   | 0                                                               |
-| Authors:        | Robert Aron, Eduard Staniloiu                                   |
+| Authors:        | Robert Aron, Eduard Staniloiu, Razvan Nitu                      |
 | Implementation: |                                                                 |
 | Status:         | Draft                                                           |
 
 ## Abstract
 
-Every class defined in the D language has `Object` as the root ancestor. Object defines four methods: `toString`, `toHash`, `opCmp` and `opEquals`; at a fist glance, their presence might not strike you with much, but they are doing more harm than good. Their signatures predate the introduction of the `@nogc`, `nothrow`, `pure`, and `@safe` function attributes, and also of the `const`, `immutable`, and `shared` type qualifiers. As a consequence, these methods make it difficult to use `Object` with qualifiers or in code with properties such as `@nogc`, `pure`, or `@safe`. We propose the introduction of a new class, `ProtoObject`, as the root class and ancestor of `Object`. `ProtoObject` defines no method and requires the user to implement the desired behaviour through interfaces: this approach enables the user to opt-in for the behaviour that makes sense for his class and the design is flexible enough to allow future attributes and language improvements to be used without breaking code.
+Every class defined in the D language has `Object` as the root ancestor. Object defines four methods: `toString`, `toHash`, `opCmp` and `opEquals`; at a first glance, their presence might not strike you with much, but they are doing more harm than good. Their signatures predate the introduction of the `@nogc`, `nothrow`, `pure`, and `@safe` function attributes, and also of the `const`, `immutable`, and `shared` type qualifiers. As a consequence, these methods make it difficult to use `Object` with qualifiers or in code with properties such as `@nogc`, `pure`, or `@safe`. We propose the introduction of a new class, `ProtoObject`, as the root class and ancestor of `Object`. `ProtoObject` defines no method and requires the user to implement the desired behaviour through interfaces: this approach enables the user to opt-in for the behaviour that makes sense for his class and the design is flexible enough to allow future attributes and language improvements to be used without breaking code.
 
 ## Contents
 * [Rationale](#rationale)
