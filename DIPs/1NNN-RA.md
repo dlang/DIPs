@@ -9,7 +9,7 @@
 
 ## Abstract
 
-Every class defined in the D language has `Object` as the root ancestor. Object defines four methods: `toString`, `toHash`, `opCmp` and `opEquals`; at a first glance, their presence might not strike you with much, but they are doing more harm than good. Their signatures predate the introduction of the `@nogc`, `nothrow`, `pure`, and `@safe` function attributes, and also of the `const`, `immutable`, and `shared` type qualifiers. As a consequence, these methods make it difficult to use `Object` with qualifiers or in code with properties such as `@nogc`, `pure`, or `@safe`. We propose the introduction of a new class, `ProtoObject`, as the root class and ancestor of `Object`. `ProtoObject` defines no method and requires the user to implement the desired behaviour through interfaces: this approach enables the user to opt-in for the behaviour that makes sense for his class and the design is flexible enough to allow future attributes and language improvements to be used without breaking code.
+Every class defined in the D language has `Object` as the root ancestor. Object defines four methods: `toString`, `toHash`, `opCmp`, and `opEquals`; at a first glance, their presence might not strike you with much, but they are doing more harm than good. Their signatures predate the introduction of the `@nogc`, `nothrow`, `pure`, and `@safe` function attributes, and also of the `const`, `immutable`, and `shared` type qualifiers. As a consequence, these methods make it difficult to use `Object` with qualifiers or in code with properties such as `@nogc`, `pure`, or `@safe`. We propose the introduction of a new class, `ProtoObject`, as the root class and ancestor of `Object`. `ProtoObject` defines no method and requires the user to implement the desired behaviour through interfaces: this approach enables the user to opt-in for the behaviour that makes sense for his class and the design is flexible enough to allow future attributes and language improvements to be used without breaking code.
 
 ## Contents
 * [Rationale](#rationale)
@@ -68,7 +68,7 @@ void main()
     assert(a == [c, c, c]);
 }
 ```
-while the next section of code fails to compile with the message "incompatible types for array comparison: `C[]` and `C[3]`":
+whereas the next section of code fails to compile with the message "incompatible types for array comparison: `C[]` and `C[3]`":
 ```D
 class C { int a; this(int) @safe {} }
 
@@ -79,9 +79,9 @@ class C { int a; this(int) @safe {} }
     assert(a == [c, c, c]);
 }
 ```
-It fails because the it calls the non-safe `Object.opEquals` method in a safe function. In fact, just comparing 2 classes with no user-defined opEquals - `assert (c == c)` - will issue an error in @safe code: "`@safe` function `D main` cannot call `@system` function `object.opEquals`".
+It fails because the non-safe `Object.opEquals` method is called in a safe function. In fact, just comparing 2 classes with no user-defined opEquals - `assert (c == c)` - will issue an error in @safe code: "`@safe` function `D main` cannot call `@system` function `object.opEquals`".
 
-To make this work, a new root of all classes(in our case `ProtoObject`) and the `Equals` interface are needed, as well as an implementation for a mixin template that provides the implementation for opEquals. Then the `C` class must inherit from them and it must contain the mixin template as a field:
+To make it work, a new root of all classes (in our case `ProtoObject`) and the `Equals` interface are needed, as well as an implementation for a mixin template that provides the implementation for opEquals. Then the `C` class must inherit from them and it must contain the mixin template as a field:
 ```D
 class C : ProtoObject, Equals
 {
@@ -113,26 +113,26 @@ The final points are of crucial importance:
 * Root objects must work in attributed code without issues. Since we, sadly, can't predict the future and know if and what attributes and qualifiers will be available in the language, this is yet another argument to have a ProtoObject with no methods.
 
 ## Prior Work
-As some of you already know, both Java and C# have an `Object` class as the superclass of all classes. For both languages, `Object`
+Both Java and C# have an `Object` class as the superclass of all classes. For both languages, `Object`
 defines a set of default methods, with Java baking into `Object` much more than C# does.
 
 #### Java
 
 Java's `java.lang.Object` defines the following methods:
 
-| Method name                                                 | Description |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| boolean equals(Object o);                                   | Gives generic way to compare objects|
-| Class getClass();                                           | The Class class gives us more information about the object|
-| int hashCode();                                             | Returns a hash value that is used to search objects in a collection|
-| void notify();                                              | Used in synchronizing threads|
-| void notifyAll();                                           | Used in synchronizing threads|
-| String toString();                                          | Can be used to convert the object to String|
-| void wait();                                                | Used in synchronizing threads|
-| protected Object clone() throws CloneNotSupportedException; | Return a new object that are exactly the same as the current object|
-| protected void finalize() throws Throwable;                 | This method is called just before an object is garbage collected |
+| Method name                                                   | Description |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `boolean equals(Object o);`                                   | Gives generic way to compare objects|
+| `Class getClass();`                                           | The Class class gives us more information about the object|
+| `int hashCode();`                                             | Returns a hash value that is used to search objects in a collection|
+| `void notify();`                                              | Used in synchronizing threads|
+| `void notifyAll();`                                           | Used in synchronizing threads|
+| `String toString();`                                          | Can be used to convert the object to String|
+| `void wait();`                                                | Used in synchronizing threads|
+| `protected Object clone() throws CloneNotSupportedException;` | Return a new object that are exactly the same as the current object|
+| `protected void finalize() throws Throwable;`                 | This method is called just before an object is garbage collected |
 
-Each object also has an `Object monitor` that is used in Java `synchronized` sections. Basically it is a semaphore, indicating if a critical section code is being executed by a thread or not. Before a critical section can be executed, the thread must obtain an Object monitor. Only one thread at a time can own that object's monitor.
+Each object also has an `Object` monitor that is used in Java `synchronized` sections. Basically it is a semaphore, indicating if a critical section code is being executed by a thread or not. Before a critical section can be executed, the thread must obtain an Object monitor. Only one thread at a time can own that object's monitor.
 
 We can see that there are quite a few similarites between D and Java:
 * both define `opEquals` and `getHash`
@@ -144,13 +144,13 @@ We can see that there are quite a few similarites between D and Java:
 
 C#'s `System.Object` defines the following methods that will be inherited by every C# class:
 
-| Method name   | Description |
-| ------------  | ----------- |
-| GetHashCode() | Retrieve a number unique to that object. |
-| GetType()     | Retrieves information about the object like method names, the objects name etc. |
-| ToString()    | Convert the object to a textual representation - usually for outputting to the screen or file. |
+| Method name     | Description |
+| --------------- | ----------- |
+| `GetHashCode()` | Retrieve a number unique to that object. |
+| `GetType()`     | Retrieves information about the object like method names, the objects name etc. |
+| `ToString()`    | Convert the object to a textual representation - usually for outputting to the screen or file. |
 
-As you can see, C# stripped a lot from it's `Object`, comparint to Java, and it comes a lot closer to what we desire:
+C# stripped a lot from it's `Object`, comparint to Java, and it comes a lot closer to what we desire:
 * Firstly, there is no builtin monitor. The [Monitor](https://docs.microsoft.com/en-us/dotnet/api/system.threading.monitor?view=netframework-4.7.2)
 object is implemented as a separate class that inherits from `Object` in the `System.Threading` namespace.
 * Secondly, C# has a smaller number of *imposed* methods, but they are still imposed, and `toString` will continue to be GC dependent.
@@ -158,7 +158,7 @@ object is implemented as a separate class that inherits from `Object` in the `Sy
 #### Rust
 
 Rust has a totally different approach: data aggregates (structs, enums and tuples) are all unrelated types.
-You can define methods on them, and make the data itself private, all the usual tactics of encapsulation, but there is no subtyping and
+A developer can define methods on them, and make the data itself private, all the usual tactics of encapsulation, but there is no subtyping and
 no inheritance of data.
 
 The relationships between various data types in Rust are established using traits.
@@ -177,7 +177,7 @@ impl Quack for Duck {
 }
 ```
 
-After looking at how Java, C# and Rust have tackled the same problem, we are confident that the proposed solution is a good one:
+After looking at how Java, C#, and Rust have tackled the same problem, we are confident that the proposed solution is a good one:
 define an empty root object and define Interfaces that expose what is the desired behaviour of the class(es) that implement it.
 It can be argued that one is not really interested what type an object is, but rather if it can do a certain action (has a certain
 behaviour). A key requirement in the design is that existing code must continue to work, and new code should start using `ProtoObject`
@@ -206,17 +206,17 @@ This reconfiguration makes `ProtoObject`, not `Object`, the ultimate root of all
 
 This proposal is based on the following key insight. Currently, `Object` has two roles: (a) the root of all classes, and (b) the default supertype of class definitions that don't specify one. But there is no requirement that these two roles are fulfilled by the same type. This proposal keeps `Object` the default supertype in class definitions, which preserves existing code behavior. The additional supertypes of `Object` only influence newly-introduced code that is aware of them and uses them.
 
-The recommended way of going forward with types that inherit from `ProtoObject` is write and implement interfaces that expose the desired behaviour for the type that it supports. It can be argued that one is not really interested what type an object is, but rather what actions it can perform: what types can it act like? In this regard, an object of type T can be treated as a Collection, a Range or a Key in map, provided that it implements the right interfaces.
+The recommended way of going forward with types that inherit from `ProtoObject` is write and implement interfaces that expose the desired behaviour for the type that it supports. It can be argued that one is not really interested what type an object is, but rather what actions it can perform: what types can it act like? In this regard, an object of type T can be treated as a Collection, a Range, or a Key in map, provided that it implements the right interfaces.
 
 The GoF Design Patterns book talks at length about prefering implementing interfaces to inheriting from concrete classes, and why we should **favor object composition over class inheritance**. Extending from concrete classes is usually seen as a form of code reuse, but this is easly overused by programmers and can lead to the fragile base class problem. The same code reuse can be achieved through composition and delegation schemes: we are already doing this with `structs` and `Design by Introspection`.
 
 As stated earlier, the users will be required to implement specific interfaces that define methods corresponding to the ones in `Object`
-| Interface | Method name                   |
-| --------- | ----------------------------- |
-| Stringify | string toString();            |
-| Hash      | size_t toHash();              |
-| Ordered   | int opCmp(const Object);      |
-| Equals    | bool opEquals(const Object);  |
+| Interface   | Method name                   |
+| ----------- | ----------------------------- |
+| `Stringify` | `string toString();`          |
+| `Hash`      | `size_t toHash();`            |
+| `Ordered`   | `int opCmp(const Object);`    |
+| `Equals`    | `bool opEquals(const Object);`|
 
 #### Ordering
 
@@ -229,7 +229,7 @@ interface Ordered
 }
 ```
 
-As you can see, the `cmp` function takes a `ProtoObject` argument. This is required so we can compare two instances of `ProtoObject`. Let's see the example
+The `cmp` function takes a `ProtoObject` argument. This is required so we can compare two instances of `ProtoObject`. Let's see the example
 
 ```D
 int __cmp(ProtoObject p1, ProtoObject p2)
@@ -240,7 +240,7 @@ int __cmp(ProtoObject p1, ProtoObject p2)
     return o1.cmp(p2);
 }
 ```
-As you can see in the example, if we can't dynamic cast to `Ordered`, then we can't compare the instances. Otherwise, we can safely call the `cmp` function and let dynamic dispatch do the rest.
+As one can see in the example, if we can't dynamic cast to `Ordered`, then we can't compare the instances. Otherwise, we can safely call the `cmp` function and let dynamic dispatch do the rest.
 
 Any other class, `class T`, that desires to be comparable, needs to extend ProtoObject and implement `Ordered`.
 ```D
@@ -265,7 +265,7 @@ An order is a total order if it is (for all a, b and c):
 * total and antisymmetric: exactly one of a < b, a == b or a > b is true; and
 * transitive, a < b and b < c implies a < c. The same must hold for both == and >.
  
-As you can expect, most of the classes that desire to implement `Ordered` will have to write some boilerplate code. Inspired by Rust's `derive`, we implemented `ImplementOrdered(M...)` template mixin. This provides the basic implementation for `Ordered` and more.
+As one can expect, most of the classes that desire to implement `Ordered` will have to write some boilerplate code. Inspired by Rust's `derive`, we implemented `ImplementOrdered(M...)` template mixin. This provides the basic implementation for `Ordered` and more.
  
 At it's most basic form, `mixin`g in `ImplementOrdered` will go through all the members of the implementing type and compare them with `rhs`
 
@@ -387,7 +387,7 @@ interface Hash
 
 Again, we provide the user with default implementations for a hashing function in the form of `ImplementHash` and `ImplementHashExcept`.
 
-Implementations of `Ordered`, `Equals` and `Hash` must agree with each other. That is, `a.cmp(b) == 0` if and only if `(a == b) && (a.toHash == b.toHash)`. It's easy to accidentally make them disagree by mixing in some of the interface implementations and manually implementing others.
+Implementations of `Ordered`, `Equals`, and `Hash` must agree with each other. That is, `a.cmp(b) == 0` if and only if `(a == b) && (a.toHash == b.toHash)`. It's easy to accidentally make them disagree by mixing in some of the interface implementations and manually implementing others.
 
 
 ### Breaking Changes and Deprecations
