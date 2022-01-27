@@ -69,12 +69,12 @@ The code below will determine from that variable whether or not to print the bac
         import core.stdc.string : strcmp;
 
         /**
-         * A new user-defined evironment variable is used to decide whether or not
-         * to print the stack backtrace. If the variable exists, and if it's set to 1
-         * then backtrace is printed. If it doesn't exist, or if it exists and
-         * and it's set to a value that is anything other than 1, then default to not
-         * printing the backtrace. NOTE: This changes previous behaviour of always
-         * printing the stack trace.
+         * A new user-defined evironment variable is used to decide whether to print
+         * the stack backtrace. If the variable exists and set to 1 then the backtrace
+         * is printed. If that environment variable does not exist, or if it does exist
+         * but it's value is set to anything other than 1, then the default is to not
+         * print the backtrace.
+         * NOTE: This changes previous behaviour of always printing the stack trace.
          */
         char *btOp = getenv("DLANG_BACKTRACE");
         if (btOp != null)
