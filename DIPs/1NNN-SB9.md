@@ -106,7 +106,7 @@ require the user to set the environment variable, as defined above.
 
 It is not expected that this would be a breaking change to any user code.
 
-Althought it is a breaking change, those tasked with role of using the
+Althought it is a breaking change, those tasked with the role of using the
 stack backtrace output, are likely to have sufficient knowledge and expertise
 to easily adjust to this change.
 
