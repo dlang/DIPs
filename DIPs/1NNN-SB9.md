@@ -39,7 +39,8 @@ No prior work is to be found.
 ## Description
 The base class of all thrown objects is defined in druntime\src\object.d
 class Throwable : Object { .. }
-A toString overload within this class is the responsible entity for printing the 
+
+A 'toString' overload within this class is the responsible entity for printing the 
 stack backtrace. The specific code is:
 
         if (info)
@@ -59,7 +60,7 @@ stack backtrace. The specific code is:
         }
         
 By replacing the code above, with the code below, the user can decide when the
-backtrace is printed, by simply setting an enviromental variable as such:
+backtrace is printed, by simply setting an environmental variable as such:
 
 DLANG_BACKTRACE=1
 
@@ -70,10 +71,9 @@ The code below will determine from that variable whether or not to print the bac
 
         /**
          * A new user-defined evironment variable is used to decide whether to print
-         * the stack backtrace. If the variable exists and set to 1 then the backtrace
-         * is printed. If that environment variable does not exist, or if it does exist
-         * but it's value is set to anything other than 1, then the default is to not
-         * print the backtrace.
+         * the stack backtrace. If the variable exists and it is set to 1, then the backtrace
+         * is printed. If variable does not exist, or if it does exist but it's value is
+         * set to anything other than 1, then the default is to not print the backtrace.
          * NOTE: This changes previous behaviour of always printing the stack trace.
          */
         char *btOp = getenv("DLANG_BACKTRACE");
