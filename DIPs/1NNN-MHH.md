@@ -43,6 +43,49 @@ const succ = function(int x) { return x + 1; };
 Via a trivial change to the language, a similar syntax can be implemented for function definitions.
 This will bring more consistency to the syntax of function literals and definitions and save the programmer a few keystrokes.
 
+For example, consider a simple range producing a range excluding one end (`[from, to)`):
+```d
+struct LongerExclusiveRange(T)
+{
+	T from, to;
+   invariant(from <= to);
+   bool empty() {
+      return from == to;
+   }
+   void popFront() {
+      ++from;
+   }
+   T front() {
+      return from;
+   }
+}
+```
+The implementation in D without this DIP is 14 lines.
+```d
+struct ExclusiveRange(T)
+{
+	T from, to;
+   invariant(from <= to);
+   bool empty() => from == to;
+   auto popFront() => ++from;
+   T front() => from;
+}
+```
+An implementation utilizing this DIP is only 8 lines (about 40% less typing).
+
+The syntax enabled by this DIP can also make writing compositions of functions (ranges or otherwise), more direct: If there is nothing to
+require use of braces then they can be elided. For example, take this arbitrary composition of ranges:
+```d
+auto doesWork()
+    => iota(1, 100)
+        .map!(x => x + 1)
+        .filter!(x => x > 4)
+        .each!writeln;
+```
+With the shortened methods syntax, this function terminates syntactically in the same place it does semantically.
+The call to `each` is where the function's work ends, this DIP allows the programmer to end the function's syntax there too.
+This saves the author some keystrokes, and saves the reader from having to process unnecessarily visual noise.
+
 ## Prior Work
 This DIP has the potential to result in a post-facto blessing of
 a preview feature already supported by the compiler. [The existing implementation](https://github.com/dlang/dmd/pull/11833)
