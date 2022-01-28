@@ -1,4 +1,4 @@
-# Printing stack backtrace only when required
+# Print stack backtrace only when required
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
