@@ -99,19 +99,18 @@ The code below will determine from that variable whether or not to print the bac
         }
 
 ## Breaking Changes and Deprecations
-As noted in the comments within the code above, this is a breaking change,
-in that the stack backtrace will no longer get printed by default, but would now
-require the user to set the environment variable, as defined above.
+As noted in the comments within the code above, this could be considered a breaking
+change, in that anyone currently relying on the backtrace to be output 'by default',
+will now have to manually set the following environment variable: DLANG_BACKTRACE=1
 
-It is not expected that this would be a breaking change to any user code.
+However, those who actually use the stack backtrace output, are highly likely
+to already have sufficient knowledge and expertise to easily adjust to this change.
 
-Althought it is a breaking change, those tasked with the role of using the
-stack backtrace output, are likely to have sufficient knowledge and expertise
-to easily adjust to this change.
+It is not expected that this would be a breaking change to any code.
 
 ## Reference
 This is similar to what Rust do, where they require that you set RUST_BACKTRACE=1
-to get the stack trace.
+to get the stack backtrace.
 
 https://rustc-dev-guide.rust-lang.org/compiler-debugging.html
 
