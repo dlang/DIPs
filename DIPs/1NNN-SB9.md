@@ -71,10 +71,11 @@ The code below will determine from that variable whether or not to print the bac
          * the stack backtrace. If the variable exists, and it's value is set to 1, then the
          * backtrace is printed. If the variable 'does not' exist, or if it 'does exist' but
          * it's value is set to anything other than 1, then 'the default' is to not print the
-         * backtrace. NOTE: This changes previous behaviour of always printing the backtrace.
+         * backtrace itself, but instead print a message on how to view the backtrace.
+         * NOTE: This changes previous behaviour of always printing the backtrace.
          */
         import core.stdc.stdlib : getenv;
-        import core.stdc.string : strcmp
+        import core.stdc.string : strcmp;
         char *btOp = getenv("DLANG_BACKTRACE");
         if (btOp != null)
         {
@@ -96,6 +97,14 @@ The code below will determine from that variable whether or not to print the bac
                     }
                 }
             }
+            else
+            {
+                sink("\n----------------\nTo see stack trace, set environment variable: DLANG_BACKTRACE=1\n");
+            }
+        }
+        else
+        {
+            sink("\n----------------\nTo see stack trace, set environment variable: DLANG_BACKTRACE=1\n");
         }
 
 ## Breaking Changes and Deprecations
