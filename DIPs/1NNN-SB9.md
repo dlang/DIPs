@@ -99,19 +99,21 @@ The code below will determine from that variable whether or not to print the bac
             }
             else
             {
-                sink("\n----------------\nTo see stack trace, set environment variable: DLANG_BACKTRACE=1\n");
+                sink("\n\nTo see stack trace, set environment variable: DLANG_BACKTRACE=1\n");
             }
         }
         else
         {
-            sink("\n----------------\nTo see stack trace, set environment variable: DLANG_BACKTRACE=1\n");
+            sink("\n\nTo see stack trace, set environment variable: DLANG_BACKTRACE=1\n");
         }
 
 Example output if above change was implemented:
 
 std.exception.ErrnoException@std\stdio.d(544): Cannot open file `nosuchfile' in mode `rb' (No such file or directory)
-----------------
+
 To see stack trace, set environment variable: DLANG_BACKTRACE=1
+
+
 
 ## Breaking Changes and Deprecations
 As noted in the comments within the code above, this could be considered a breaking
