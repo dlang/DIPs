@@ -3,11 +3,11 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1047](./DIP1047.md)|                        Shortened Method Syntax| Community Round 1|
+|[1035](./DIP1035.md)|                            `@system` Variables|      Final Review|
 |[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
-|[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 2|
+|[1047](./DIP1047.md)|                        Shortened Method Syntax|  Post-Community 1|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
