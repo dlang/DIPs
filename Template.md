@@ -61,7 +61,7 @@ Optional links to reference material such as existing discussions, research pape
 or any other supplementary materials.
 
 ## Copyright & License
-Copyright (c) 2020 by the D Language Foundation
+Copyright (c) 2022 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
