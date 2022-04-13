@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
 |[1047](./DIP1047.md)|                        Shortened Method Syntax|  Post-Community 1|
@@ -60,6 +59,7 @@
 |[1004](./other/DIP1004.md)   |                Inherited Constructors|
 |[1011](./other/DIP1011.md)   |                      extern(delegate)|
 |[1012](./other/DIP1012.md)   |                            Attributes|
+|[1037](./other/DIP1037.md)   |              Add Unary Operator `...`|
 
 ## Withdrawn DIPS
 |                           ID|                                 Title|
