@@ -22,7 +22,7 @@
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|              |
 |[1030](./accepted/DIP1030.md)|                       Named Arguments|              |
 |[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)|              |
-|[1038](./accepted/DIP1038.md)|                              @mustUse|              |
+|[1038](./accepted/DIP1038.md)|                              @mustuse|              |
 |[1035](./accepted/DIP1035.md)|                   `@system` Variables|              |
 
 ## Rejected DIPs
