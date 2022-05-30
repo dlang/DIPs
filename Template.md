@@ -4,9 +4,9 @@
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
 | Review Count:   | 0 (edited by DIP Manager)                                       |
-| Author:         | (your name and contact data)                                    |
+| Author:         | (your name and contact email address)                           |
 | Implementation: | (links to implementation PR if any)                             |
-| Status:         | Will be set by the DIP manager (e.g. "Approved" or "Rejected")  |
+| Status:         | Draft                                                           |
 
 ## Abstract
 
