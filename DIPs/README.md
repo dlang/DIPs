@@ -5,7 +5,7 @@
 |--------------------|-----------------------------------------------|------------------|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
-|[1047](./DIP1047.md)|                        Shortened Method Syntax|  Post-Community 1|
+|[1043](./DIP1043.md)|                        Shortened Method Syntax|  Post-Community 1|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
