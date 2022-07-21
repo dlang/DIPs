@@ -3,12 +3,9 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1038](./DIP1038.md)|                                     @nodiscard| Formal Assessment|
-|[1037](./DIP1037.md)|                       Add Unary Operator `...`|  Post-Community 1|
-|[1039](./DIP1039.md)|             Static Arrays with Inferred Length|  Post-Community 1|
+|[1043](./DIP1043.md)|                        Shortened Method Syntax|        Post-Final|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
-|[1041](./DIP1041.md)|          Attributes for Higher-Order Functions|  Post-Community 1|
-|[1035](./DIP1035.md)|                            `@system` Variables|  Post-Community 2|
+|[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
@@ -25,6 +22,8 @@
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|              |
 |[1030](./accepted/DIP1030.md)|                       Named Arguments|              |
 |[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)| 2.097.0      |
+|[1038](./accepted/DIP1038.md)|                              @mustuse|              |
+|[1035](./accepted/DIP1035.md)|                   `@system` Variables|              |
 
 ## Rejected DIPs
 |                           ID|                                 Title|
@@ -44,6 +43,7 @@
 |[1022](./other/DIP1022.md)   |                      foreach auto ref|
 |[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
 |[1033](./other/DIP1033.md)   |Implicit Conversion of Expressions to Delegates|
+|[1041](./other/DIP1041.md)   | Attributes for Higher-Order Functions|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
@@ -59,6 +59,7 @@
 |[1004](./other/DIP1004.md)   |                Inherited Constructors|
 |[1011](./other/DIP1011.md)   |                      extern(delegate)|
 |[1012](./other/DIP1012.md)   |                            Attributes|
+|[1037](./other/DIP1037.md)   |              Add Unary Operator `...`|
 
 ## Withdrawn DIPS
 |                           ID|                                 Title|
@@ -69,3 +70,4 @@
 |[1031](./other/DIP1031.md)   |Deprecate Brace-Style Struct Initializers|
 |[1032](./other/DIP1032.md)   |Function Pointer and Delegate Parameters Inherit Attributes from Function|
 |[1036](./other/DIP1036.md)   |   String Interpolation Tuple Literals|
+|[1039](./other/DIP1039.md)   |    Static Arrays with Inferred Length|
