@@ -12,7 +12,7 @@
 
 Contextual Enum Type Omission (ETO) is a shortcut to allow the omission of an enum member's
 type name when it can be contextually inferred.
-
+This feature's presence in other languages has made enums in them far more usable.
 
 ## Contents
 * [Rationale](#rationale)
@@ -29,8 +29,8 @@ involves the unnecessary repetition of the enum member's type name.
 
 The solution used by many other modern language is simple: permit the omission
 of the enum member's type name when it can be inferred from its context.
-
 Dlang having this shortcut would be equally beneficial, with few drawbacks.
+
 //
 Required.
 
