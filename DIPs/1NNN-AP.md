@@ -26,8 +26,10 @@ type name when it can be contextually inferred.
 ## Rationale
 Writing the same enum type names over and over again (e.g. exhaustive enum switch-cases)
 involves the unnecessary repetition of the enum member's type name.
+
 The solution used by many other modern language is simple: permit the omission
 of the enum member's type name when it can be inferred from its context.
+
 Dlang having this shortcut would be equally beneficial, with few drawbacks.
 //
 Required.
@@ -38,9 +40,10 @@ chances of the DIP being understood and carefully evaluated.
 
 ## Prior Work
 Implementation of this feature in other languages:
-[Swift](https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html)
-[Ziglang](https://ziglang.org/documentation/master/#Enum-Literals)
-[Odin](https://odin-lang.org/docs/overview/#implicit-selector-expression)
+- [Swift](https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html)
+- [Ziglang](https://ziglang.org/documentation/master/#Enum-Literals)
+- [Odin](https://odin-lang.org/docs/overview/#implicit-selector-expression)
+
 According to [this issue](https://github.com/dlang/projects/issues/88#issue-1288877431),
 the languages Jail and Styx also have this functionality. However, I was unable find
 enough evidence to verify this claim.
@@ -55,7 +58,7 @@ If there is no prior work to be found, it must be explicitly noted here.
 ## Description
 I propose that ETO will work in the following contexts:
 
-### 1. Assignment statements.
+#### 1. Assignment statements.
 Assigning to a variable with a known type should allow ETO.
 ```d
 enum A{ a,b,c,d; }
@@ -72,7 +75,7 @@ void main(){
 }
 ```
 
-### 2. Return statements.
+#### 2. Return statements.
 If a function has an explicit enum return type, its return statement(s)
 should allow ETO.
 ```d
@@ -87,7 +90,7 @@ auto myBrokenFunc(){
 }
 ```
 
-### 3. Parameters.
+#### 3. Parameters.
 Most parameters require explicit typing beforehand, and thus should
 always allow ETO. The exception is alias template parameters, which
 should disallow ETO altogether.
@@ -106,7 +109,7 @@ void main(){
 }
 ```
 
-### 4. Switch-case statements.
+#### 4. Switch-case statements.
 Switch-case statements should always allow ETO.
 ```d
 enum WordLetterOfTheDay{ a,b,c,d; }
@@ -132,7 +135,7 @@ void main(){
 }
 ```
 
-### 5. Array literals.
+#### 5. Array literals.
 When an array literal has a specified type, ETO should always be allowed(1).
 When an array literal has an ambiguous type, I propose that any type explicitly
 used for the first array index should be applied to the rest of the array with ETO(2).
@@ -142,6 +145,7 @@ enum A{ a,b,c,d; }
 A[4] x = [.a, .b, .c, .d];  //(1)
 auto y = [A.a, .b, .c, .d]; //(2)
 ```
+
 //
 Required.
 
@@ -165,6 +169,7 @@ A myBrokenFunc(){
 }
 ```
 The exception should be in switch-case statements, as they cannot have function calls as cases.
+
 //
 This section is not required if no breaking changes or deprecations are anticipated.
 
@@ -176,6 +181,7 @@ being approved.
 
 ## Reference
 [DIPX: Enum Literals / Implicit Selector Expression](https://forum.dlang.org/thread/yxxhemcpfkdwewvzulxf@forum.dlang.org)
+
 [Implementing Parent Enum Inference in the language (.MyValue instead of MyEnum.MyValue) #88](https://github.com/dlang/projects/issues/88)
 
 //
