@@ -162,6 +162,7 @@ A[4] x = [$a, $b, $c, $d];  //(1)
 auto y = [A.a, $b, $c, $d]; //(2)
 ```
 
+#### Other considerations
 Any time where there is more than one valid candidate for the type of a member, ETI should not be allowed.
 ```d
 enum A{ a,b,c,d; }
