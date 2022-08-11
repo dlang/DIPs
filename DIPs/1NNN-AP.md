@@ -101,8 +101,8 @@ auto myBrokenFunc(){
 
 #### 3. Parameters.
 Most parameters require explicit typing beforehand, and thus should
-always allow ETI. The exception is alias template parameters, which
-should disallow ETI altogether.
+always allow ETI. The exception is `alias` template parameters, which
+cannot use ETI.
 ```d
 enum A{ a,b,c,d; }
 
@@ -150,6 +150,7 @@ void main(){
 
 #### 5. Array literals.
 When an array literal has a specified type, ETI should always be allowed(1).
+
 When an array literal has an ambiguous type, I propose that any type explicitly
 used for the first array item should be applied to the rest of the array with ETI(2).
 ```d
