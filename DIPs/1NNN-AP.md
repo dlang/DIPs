@@ -16,11 +16,6 @@ type name when it can be contextually inferred.
 While D's pre-existing syntax makes ETI a more complex feature to implement than in brand
 new languages, its presence in many new languages has proven its convenience and popularity.
 
-//
-Required.
-
-Short and concise description of the idea in a few lines.
-
 ## Contents
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
@@ -37,13 +32,6 @@ The solution used by many other modern language is simple: permit the omission
 of the enum member's type name when it can be inferred from its context.
 Dlang having this shortcut would be equally beneficial, with few drawbacks.
 
-//
-Required.
-
-A short motivation about the importance and benefits of the proposed change.  An existing,
-well-known issue or a use case for an existing projects can greatly increase the
-chances of the DIP being understood and carefully evaluated.
-
 ## Prior Work
 Implementation of this feature in other languages:
 - [Swift](https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html)
@@ -53,14 +41,6 @@ Implementation of this feature in other languages:
 Java allows omitting an enum type in switch-case statements: [https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html)
 
 A suggestion for a similar feature in Rust, but with a different approach: [https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851](https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851)
-
-//
-Required.
-
-If the proposed feature exists, or has been proposed, in other languages, this is the place
-to provide the details of those implementations and proposals. Ditto for prior DIPs.
-
-If there is no prior work to be found, it must be explicitly noted here.
 
 ## Description
 Due to `.enumMember` being the same syntax as the [module scope operator](https://dlang.org/spec/module.html#module_scope_operators),
@@ -177,25 +157,13 @@ void main(){
 }
 ```
 
-//
-Required.
-
-Detailed technical description of the new semantics. Language grammar changes
-(per https://dlang.org/spec/grammar.html) needed to support the new syntax
-(or change) must be mentioned. Examples demonstrating the new semantics will
-strengthen the proposal and should be considered mandatory.
-
 ## Reference
 - [DIPX: Enum Literals / Implicit Selector Expression](https://forum.dlang.org/thread/yxxhemcpfkdwewvzulxf@forum.dlang.org)
 - [Enum literals, good? bad? what do you think?](https://forum.dlang.org/thread/zvhelliyehokebybmttz@forum.dlang.org)
 - [Implementing Parent Enum Inference in the language (.MyValue instead of MyEnum.MyValue) #88](https://github.com/dlang/projects/issues/88)
 
-//
-Optional links to reference material such as existing discussions, research papers
-or any other supplementary materials.
-
 ## Copyright & License
-Copyright (c) 2022 by the D Language Foundation
+Copyright © 2022 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
