@@ -1,4 +1,4 @@
-# Contextual Enum Type Omission
+# Enum Type Inference
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -10,9 +10,16 @@
 
 ## Abstract
 
-Contextual Enum Type Omission (ETO) is a shortcut to allow the omission of an enum member's
+Enum Type Inference (ETI) is a shortcut to allow the omission of an enum member's
 type name when it can be contextually inferred.
-This feature's presence in other languages has made enums in them far more usable.
+
+While D's pre-existing syntax makes ETI a more complex feature to implement than in brand
+new languages, its presence in many new languages has proven its convenience and popularity.
+
+//
+Required.
+
+Short and concise description of the idea in a few lines.
 
 ## Contents
 * [Rationale](#rationale)
@@ -25,7 +32,7 @@ This feature's presence in other languages has made enums in them far more usabl
 
 ## Rationale
 Writing the same enum type names over and over again (e.g. exhaustive enum switch-cases)
-involves the unnecessary repetition of the enum member's type name.
+involves the unnecessary, often gratuitous repetition of the enum member's type name.
 
 The solution used by many other modern language is simple: permit the omission
 of the enum member's type name when it can be inferred from its context.
@@ -44,9 +51,8 @@ Implementation of this feature in other languages:
 - [Ziglang](https://ziglang.org/documentation/master/#Enum-Literals)
 - [Odin](https://odin-lang.org/docs/overview/#implicit-selector-expression)
 
-According to [this issue](https://github.com/dlang/projects/issues/88#issue-1288877431),
-the languages Jail and Styx also have this functionality. However, I was unable find
-enough evidence to verify this claim.
+Java allows omitting an enum type in switch-case statements: [https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html)
+A suggestion for a similar feature in Rust, but with a different approach: [https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851](https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851)
 
 //
 Required.
@@ -57,10 +63,10 @@ to provide the details of those implementations and proposals. Ditto for prior D
 If there is no prior work to be found, it must be explicitly noted here.
 
 ## Description
-I propose that ETO will work in the following contexts:
+I propose that ETI will work in the following contexts:
 
 #### 1. Assignment statements.
-Assigning to a variable with a known type should allow ETO.
+Assigning to a variable with a known type should allow ETI.
 ```d
 enum A{ a,b,c,d; }
 
@@ -78,7 +84,7 @@ void main(){
 
 #### 2. Return statements.
 If a function has an explicit enum return type, its return statement(s)
-should allow ETO.
+should allow ETI.
 ```d
 enum A{ a,b,c,d; }
 
@@ -93,8 +99,8 @@ auto myBrokenFunc(){
 
 #### 3. Parameters.
 Most parameters require explicit typing beforehand, and thus should
-always allow ETO. The exception is alias template parameters, which
-should disallow ETO altogether.
+always allow ETI. The exception is alias template parameters, which
+should disallow ETI altogether.
 ```d
 enum A{ a,b,c,d; }
 
@@ -111,7 +117,7 @@ void main(){
 ```
 
 #### 4. Switch-case statements.
-Switch-case statements should always allow ETO.
+Switch-case statements should always allow ETI.
 ```d
 enum WordLetterOfTheDay{ a,b,c,d; }
 
@@ -137,14 +143,28 @@ void main(){
 ```
 
 #### 5. Array literals.
-When an array literal has a specified type, ETO should always be allowed(1).
+When an array literal has a specified type, ETI should always be allowed(1).
 When an array literal has an ambiguous type, I propose that any type explicitly
-used for the first array index should be applied to the rest of the array with ETO(2).
+used for the first array item should be applied to the rest of the array with ETI(2).
 ```d
 enum A{ a,b,c,d; }
 
 A[4] x = [.a, .b, .c, .d];  //(1)
 auto y = [A.a, .b, .c, .d]; //(2)
+```
+
+Any time where there is more than one valid enum candidate, ETI should not be allowed:
+```d
+enum A{ a,b,c,d; }
+enum B{ a,b,c,d; }
+
+void myFunc(A param){}
+void myFunc(B param){}
+
+void main(){
+    myFunc(A.a);
+    myFunc(.a); //error, we have two equally valid candidates!
+}
 ```
 
 //
@@ -157,7 +177,7 @@ strengthen the proposal and should be considered mandatory.
 
 ## Breaking Changes and Deprecations
 In order to maintain compatibility with existing codebases, attempting
-to use ETO in ambiguous contexts should prioritise non-ETO syntax,
+to use ETI in ambiguous contexts should prioritise non-ETI syntax,
 but emit a warning so that the user is made aware of the ambiguity:
 ```d
 enum A{ a,b,c,d; }
@@ -165,11 +185,13 @@ enum A{ a,b,c,d; }
 A b(){ return A.d; }
 
 A myBrokenFunc(){
-    return .b;//warning, prioritising "A b()" in what appears to be attempted ETO syntax
+    return .b;//warning, prioritising "A b()" in what appears to be attempted ETI syntax
     //returns A.d
 }
 ```
-The exception should be in switch-case statements, as they cannot have function calls as cases.
+The only exceptions should be
+1. in switch-case statements, as they cannot contain function calls;
+2. in array literals where the first item has an explicit type.
 
 //
 This section is not required if no breaking changes or deprecations are anticipated.
@@ -181,9 +203,9 @@ user code and have no well-defined deprecation process have a minimal chance of
 being approved.
 
 ## Reference
-[DIPX: Enum Literals / Implicit Selector Expression](https://forum.dlang.org/thread/yxxhemcpfkdwewvzulxf@forum.dlang.org)
-
-[Implementing Parent Enum Inference in the language (.MyValue instead of MyEnum.MyValue) #88](https://github.com/dlang/projects/issues/88)
+- [DIPX: Enum Literals / Implicit Selector Expression](https://forum.dlang.org/thread/yxxhemcpfkdwewvzulxf@forum.dlang.org)
+- [Enum literals, good? bad? what do you think?](https://forum.dlang.org/thread/zvhelliyehokebybmttz@forum.dlang.org)
+- [Implementing Parent Enum Inference in the language (.MyValue instead of MyEnum.MyValue) #88](https://github.com/dlang/projects/issues/88)
 
 //
 Optional links to reference material such as existing discussions, research papers
