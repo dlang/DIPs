@@ -28,7 +28,7 @@ new languages, its presence in many new languages has proven its convenience and
 Writing the same enum type names over and over again (e.g. exhaustive enum switch-cases)
 involves the unnecessary, often gratuitous repetition of the enum member's type name.
 
-The solution used by many other modern language is simple: permit the omission
+The solution used by many other modern languages is simple: permit the omission
 of the enum member's type name when it can be inferred from its context.
 Dlang having this shortcut would be equally beneficial, with few drawbacks.
 
