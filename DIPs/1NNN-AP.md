@@ -52,6 +52,7 @@ Implementation of this feature in other languages:
 - [Odin](https://odin-lang.org/docs/overview/#implicit-selector-expression)
 
 Java allows omitting an enum type in switch-case statements: [https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html)
+
 A suggestion for a similar feature in Rust, but with a different approach: [https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851](https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851)
 
 //
