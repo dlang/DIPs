@@ -133,8 +133,8 @@ When an array literal has a specified type, ETI should always be allowed(1).
 
 
 
-When an array literal has an ambiguous type, I propose that any type explicitly
-used for the first array item should be applied to the rest of the array with ETI(2).
+When an array literal has an ambiguous type, I propose that if an enum type is explicitly
+used for the first array item, ETI should be allowed in the remainder of the array.
 ```d
 enum A{ a,b,c,d; }
 
