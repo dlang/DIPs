@@ -25,7 +25,6 @@ Short and concise description of the idea in a few lines.
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
 * [Description](#description)
-* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Reference](#reference)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
@@ -64,7 +63,9 @@ to provide the details of those implementations and proposals. Ditto for prior D
 If there is no prior work to be found, it must be explicitly noted here.
 
 ## Description
-I propose that ETI will work in the following contexts:
+Due to `.enumMember` being the same syntax as the [module scope operator](https://dlang.org/spec/module.html#module_scope_operators),
+I propose that ETI should use the syntax `$enumMember`. I'm open to discussing alternatives,
+but I believe that my proposed syntax represents the best compromise between convenience and compatibility.
 
 #### 1. Assignment statements.
 Assigning to a variable with a known type should allow ETI.
@@ -74,12 +75,12 @@ enum A{ a,b,c,d; }
 struct B{ A one, two; }
 
 void main(){
-    A    myA1 = .b; //myA1 = A.b
-    auto myA2 = .b; //error, unless a function "A b()" exists, we don't know the type of ".b"
+    A    myA1 = $b; //myA1 = A.b
+    auto myA2 = $b; //error, we don't know the type of "$b"!
     
     B myB;
-    myB.one = .c; //myB.one = A.c
-    myB.two = .d; //myB.two = A.d
+    myB.one = $c; //myB.one = A.c
+    myB.two = $d; //myB.two = A.d
 }
 ```
 
@@ -90,11 +91,11 @@ should allow ETI.
 enum A{ a,b,c,d; }
 
 A myFunc(){
-    return .c; //returns A.c
+    return $c; //returns A.c
 }
 
 auto myBrokenFunc(){
-    return .c; //error, unless a function "T c()" exists, we don't know the type of ".c"
+    return $c; //error, we don't know the type of "$c"!
 }
 ```
 
@@ -108,37 +109,41 @@ enum A{ a,b,c,d; }
 struct B{ A one, two; }
 
 void myFunc(A param){}
+void myTempFunc(T)(T param){}
 
 void main(){
-    B    myB1 = {one:.a, two:.b};
-    auto myB2 = B(.a, .b);
+    B    myB1 = {one:$a, two:$b};
+    auto myB2 = B($a, $b);
     
-    myFunc(.a);
+    myFunc($a);
+    myTempFunc!A($a);
+    myTempFunc($a); //error, can't infer a type to instantiate template with from "$a"
 }
 ```
 
 #### 4. Switch-case statements.
-Switch-case statements should always allow ETI.
+Switch-case statements should have a special syntax that works the same way as `switch(myVar) with(typeof(myVar))`.
 ```d
-enum WordLetterOfTheDay{ a,b,c,d; }
+enum WordLetterOfTheDay{ a,b,c,d/*...*/; }
 
 void main(){
-    WordLetterOfTheDay letterToday = .b;
+    auto letterToday = WordLetterOfTheDay.b;
     
     import std.stdio;
     switch(letterToday){
-        case .a:
+        case a:
             writeln("Apple");
             break;
-        case .b:
+        case b:
             writeln("Bicycle");
             break;
-        case .c:
+        case c:
             writeln("Caterpillar");
             break;
-        case .d:
+        case d:
             writeln("Didgeridoo");
             break;
+        /*...*/
     }
 }
 ```
@@ -150,11 +155,11 @@ used for the first array item should be applied to the rest of the array with ET
 ```d
 enum A{ a,b,c,d; }
 
-A[4] x = [.a, .b, .c, .d];  //(1)
-auto y = [A.a, .b, .c, .d]; //(2)
+A[4] x = [$a, $b, $c, $d];  //(1)
+auto y = [A.a, $b, $c, $d]; //(2)
 ```
 
-Any time where there is more than one valid enum candidate, ETI should not be allowed:
+Any time where there is more than one valid candidate for the type of a member, ETI should not be allowed.
 ```d
 enum A{ a,b,c,d; }
 enum B{ a,b,c,d; }
@@ -164,7 +169,7 @@ void myFunc(B param){}
 
 void main(){
     myFunc(A.a);
-    myFunc(.a); //error, we have two equally valid candidates!
+    myFunc($a); //error, we have two equally valid candidates!
 }
 ```
 
@@ -175,33 +180,6 @@ Detailed technical description of the new semantics. Language grammar changes
 (per https://dlang.org/spec/grammar.html) needed to support the new syntax
 (or change) must be mentioned. Examples demonstrating the new semantics will
 strengthen the proposal and should be considered mandatory.
-
-## Breaking Changes and Deprecations
-In order to maintain compatibility with existing codebases, attempting
-to use ETI in ambiguous contexts should prioritise non-ETI syntax,
-but emit a warning so that the user is made aware of the ambiguity:
-```d
-enum A{ a,b,c,d; }
-
-A b(){ return A.d; }
-
-A myBrokenFunc(){
-    return .b;//warning, prioritising "A b()" in what appears to be attempted ETI syntax
-    //returns A.d
-}
-```
-The only exceptions should be
-1. in switch-case statements, as they cannot contain function calls;
-2. in array literals where the first item has an explicit type.
-
-//
-This section is not required if no breaking changes or deprecations are anticipated.
-
-Provide a detailed analysis on how the proposed changes may affect existing
-user code and a step-by-step explanation of the deprecation process which is
-supposed to handle breakage in a non-intrusive manner. Changes that may break
-user code and have no well-defined deprecation process have a minimal chance of
-being approved.
 
 ## Reference
 - [DIPX: Enum Literals / Implicit Selector Expression](https://forum.dlang.org/thread/yxxhemcpfkdwewvzulxf@forum.dlang.org)
