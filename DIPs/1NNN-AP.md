@@ -151,6 +151,8 @@ void main(){
 #### 5. Array literals.
 When an array literal has a specified type, ETI should always be allowed(1).
 
+
+
 When an array literal has an ambiguous type, I propose that any type explicitly
 used for the first array item should be applied to the rest of the array with ETI(2).
 ```d
