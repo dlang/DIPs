@@ -55,8 +55,9 @@ enum A{ a,b,c,d; }
 struct B{ A one, two; }
 
 void main(){
-    A    myA1 = $b; //myA1 = A.b
-    auto myA2 = $b; //error, we don't know the type of "$b"!
+    A    myA1 = $b;      //myA1 = A.b
+    A    myA2 = $b | $c; //myA2 = A.c
+    auto myA3 = $b;      //error, we don't know the type of "$b"!
     
     B myB;
     myB.one = $c; //myB.one = A.c
@@ -94,6 +95,7 @@ void main(){
     auto myB2 = B($a, $b);
     
     myFunc($a);
+    myFunc($a + $a); //passes A.b
     myTempFunc!A($a);
     myTempFunc($a); //error, can't infer a type to instantiate template with from "$a"
 }
@@ -136,8 +138,11 @@ used for the first array item, ETI should be allowed in the remainder of the arr
 ```d
 enum A{ a,b,c,d; }
 
-A[4] x = [$a, $b, $c, $d];  //(1)
-auto y = [A.a, $b, $c, $d]; //(2)
+//(1):
+A[4] x = [$a, $b, $c, $d];
+//(2):
+auto y = [A.a, $b, $c, $d]; //typeof(y) = A[]
+auto z = [A.c, 64, $b, $b]; //typeof(z) = int[]
 ```
 
 #### Other considerations
