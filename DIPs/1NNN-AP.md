@@ -80,9 +80,7 @@ auto myBrokenFunc(){
 ```
 
 #### 3. Parameters.
-Most parameters require explicit typing beforehand, and thus should
-always allow ETI. The exception is `alias` template parameters, which
-cannot use ETI.
+Any explicitly typed enum parameters should allow ETI.
 ```d
 enum A{ a,b,c,d; }
 
