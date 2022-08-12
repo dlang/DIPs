@@ -103,6 +103,8 @@ void main(){
 
 #### 4. Switch-case statements.
 Switch-case statements should have a special syntax that works the same way as `switch(myVar) with(typeof(myVar))`.
+
+**NOTE**: this snytax is undergoing revision, [please discuss its revision here](https://github.com/dlang/DIPs/pull/230#discussion_r943648505). 
 ```d
 enum WordLetterOfTheDay{ a,b,c,d/*...*/; }
 
@@ -131,10 +133,8 @@ void main(){
 #### 5. Array literals.
 When an array literal has a specified type, ETI should always be allowed(1).
 
-
-
 When an array literal has an ambiguous type, I propose that if an enum type is explicitly
-used for the first array item, ETI should be allowed in the remainder of the array.
+used for the first array item, ETI should be allowed in the remainder of the array(2).
 ```d
 enum A{ a,b,c,d; }
 
