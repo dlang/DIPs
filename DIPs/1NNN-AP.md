@@ -145,7 +145,7 @@ auto y = [A.a, $b, $c, $d]; //(2)
 #### Other considerations
 Any time where there is more than one valid candidate for the type of a member, ETI should not be allowed.
 ```d
-enum A{ a,b,c,d; }
+enum A{ a,b,c,d,e; }
 enum B{ a,b,c,d; }
 
 void myFunc(A param){}
@@ -154,6 +154,7 @@ void myFunc(B param){}
 void main(){
     myFunc(A.a);
     myFunc($a); //error, we have two equally valid candidates!
+    myFunc($e); //OK, the only candidate is "myFunc(A.e)", since B does not have "$e"
 }
 ```
 
