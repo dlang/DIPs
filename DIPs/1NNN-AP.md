@@ -102,9 +102,7 @@ void main(){
 ```
 
 #### 4. Switch-case statements.
-Switch-case statements should have a special syntax that works the same way as `switch(myVar) with(typeof(myVar))`.
-
-**NOTE**: this snytax is undergoing revision, [please discuss its revision here](https://github.com/dlang/DIPs/pull/230#discussion_r943648505). 
+Switch-case statements should always allow ETI.
 ```d
 enum WordLetterOfTheDay{ a,b,c,d/*...*/; }
 
@@ -113,16 +111,16 @@ void main(){
     
     import std.stdio;
     switch(letterToday){
-        case a:
+        case $a:
             writeln("Apple");
             break;
-        case b:
+        case $b:
             writeln("Bicycle");
             break;
-        case c:
+        case $c:
             writeln("Caterpillar");
             break;
-        case d:
+        case $d:
             writeln("Didgeridoo");
             break;
         /*...*/
