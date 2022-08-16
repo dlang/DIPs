@@ -20,6 +20,7 @@ new languages, its presence in many new languages has proven its convenience and
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
 * [Description](#description)
+* [Grammatical Changes](#grammatical-changes)
 * [Reference](#reference)
 * [Copyright & License](#copyright--license)
 * [Reviews](#reviews)
@@ -157,6 +158,12 @@ void main(){
     myFunc($a); //error, we have two equally valid candidates!
     myFunc($e); //OK, the only candidate is "myFunc(A.e)", since B does not have "$e"
 }
+```
+
+## Grammatical Changes
+```diff
+PrimaryExpression:
++   $ Identifier
 ```
 
 ## Reference
