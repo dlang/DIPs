@@ -89,6 +89,7 @@ enum A{ a,b,c,d; }
 struct B{ A one, two; }
 
 void myFunc(A param){}
+void myDefaultFunc(A param=$d){}
 void myTempFunc(T)(T param){}
 
 void main(){
@@ -97,6 +98,10 @@ void main(){
     
     myFunc($a);
     myFunc($a + $a); //passes A.b
+    
+    myDefaultFunc();
+    myDefaultFunc($c);
+    
     myTempFunc!A($a);
     myTempFunc($a); //error, can't infer a type to instantiate template with from "$a"
 }
