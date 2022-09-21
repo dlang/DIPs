@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1043](./DIP1043.md)|                        Shortened Method Syntax| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
 
@@ -22,8 +21,9 @@
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|              |
 |[1030](./accepted/DIP1030.md)|                       Named Arguments|              |
 |[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)|              |
-|[1038](./accepted/DIP1038.md)|                              @mustuse|              |
 |[1035](./accepted/DIP1035.md)|                   `@system` Variables|              |
+|[1038](./accepted/DIP1038.md)|                              @mustuse|              |
+|[1043](./accepted/DIP1043.md)|               Shortened Method Syntax|              |
 
 ## Rejected DIPs
 |                           ID|                                 Title|
