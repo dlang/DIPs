@@ -1,12 +1,12 @@
 # Enum Parameters
 
-| Field           | Value                                           |
-|-----------------|-------------------------------------------------|
-| DIP:            | (number/id -- assigned by DIP Manager)          |
-| Review Count:   | 0 (edited by DIP Manager)                       |
-| Author:         | Quirin F. Schrll ([@Bolpat](github.com/Bolpat)) |
-| Implementation: | *none*                                          |
-| Status:         | Draft                                           |
+| Field           | Value                                            |
+|-----------------|--------------------------------------------------|
+| DIP:            | (number/id -- assigned by DIP Manager)           |
+| Review Count:   | 0 (edited by DIP Manager)                        |
+| Author:         | Quirin F. Schroll ([@Bolpat](github.com/Bolpat)) |
+| Implementation: | *none*                                           |
+| Status:         | Draft                                            |
 
 ## Abstract
 
