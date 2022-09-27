@@ -85,11 +85,33 @@ The downsides of that are:
 
 ## Prior Work
 
-None that I know of.
-
 Walter Bright in a very old talk had a slide with `static` function parameters.
 Because `static` has already a lot of meanings and `enum` is clear and even shorter, `enum` was chosen.
-The author regards `static` as a solid alternative.
+
+### Zig
+
+In the Zig language, the proposed feature essentially exists with the keyword `comptime`:
+> A `comptime` parameter means that:
+> * At the callsite, the value must be known at compile-time, or it is a compile error.
+> * In the function definition, the value is known at compile-time.
+>
+> — [Zig Language Reference § comptime](https://ziglang.org/documentation/0.9.1/#comptime)
+
+Zig, in contrast to D, has no templates and thus does not separate compile-time and run-time parameters into different parameter lists.
+Instead, compile-time parameters are designated as such and may be types, which at compile-time are first-class values in Zig.
+
+### Nim
+
+In the programming language Nim, `static` is a type constructor.
+Values of this type are compile-time constants.
+As such, parameters of `static`-qualified types must be bound to compile-time values.
+
+> As their name suggests, static parameters must be constant expressions[.]  
+> […]  
+> For the purposes of code generation, all static params are treated as generic params –
+> the proc will be compiled separately for each unique supplied value (or combination of values).
+> 
+> — [Nim Manual § `static[T]`](https://nim-lang.org/docs/manual.html#special-types-static-t)
 
 ## Description
 
@@ -97,6 +119,18 @@ The author regards `static` as a solid alternative.
 
 Allow `enum` as a function parameter attribute and a member function attribute.
 For the grammar, [see](#grammar) below.
+
+The author regards the keyword `static` as an alternative, but distinctly below `enum`.
+Another option would be a compiler-recognized user-defined attribute.
+If compile-time values were a new concept, this proposal would suggest `@comptime`,
+but `enum` is already established to introduce manifest constants (i.e. compile-time values)
+at global, aggregate, and function local scope.
+Diverting from that introduces inconsistency.
+
+<!--
+`static immutable`.
+like 
+-->
 
 ### Semantics
 
@@ -143,8 +177,7 @@ What `auto enum ref` would mean is:
 * if not possible, pass by reference;
 * otherwise issue a compile error.
 
-This hardly makes no sense.
-If it is really intended, separate overloads can achieve the same. ― *End of Note*
+If it is really intended, separate overloads can achieve the same.
 
 ### Grammar
 
