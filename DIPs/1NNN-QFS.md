@@ -12,7 +12,7 @@
 
 On function templates, allow `enum` to be used as a parameter storage class and a member function attribute.
 Arguments binding to `enum` parameters must be compile-time constants, as if template value parameters.
-With `auto enum`, “compile-time-ness” is determined from argument (cf. `auto ref`).
+With `auto enum`, “compile-time-ness” is determined from argument (cf. `auto ref`) and queried via a trait.
 
 
 ## Contents
@@ -134,6 +134,8 @@ like
 
 ### Semantics
 
+#### Storage Class
+
 The argument binding and overload selection semantics of `enum` bear some similarity to `ref`.
 
 An `enum` parameter binds only to compile-time constants (cf. a `ref` parameter only binds to lvalues).
@@ -153,7 +155,7 @@ The same is true for `this` in an `enum` non-`static` member function body.
 The difference between `enum` parameters and template value parameters is only in calling syntax:
 `f!ct_value(args)` versus `f(ct_value, args)`.
 
-The `enum` storage class is incompatible with any other storage classes except type constructors.
+The `enum` storage class is incompatible with any other storage classes currently in the language except type constructors.
 Using them together is a compile error.
 Type constructors are allowed, but have no effect
 because compile-time values are `immutable` and for any type constructor `qual` and every type `T`, we have `qual(immutable T)` ≡ `immutable T`).
@@ -179,6 +181,17 @@ What `auto enum ref` would mean is:
 
 If it is really intended, separate overloads can achieve the same.
 
+#### Trait
+
+To effectively test if an `auto enum` parameter is `enum` or not in a particular template instance,
+the `isEnum` new trait is added.
+The expression `__traits(isEnum, symbol)` returns wether
+* the `symbol` refers to a value of an `enum` — or
+* the `symbol` refers to an `enum` parameter.
+
+Note that for a type `T`, we already have `is(T == enum)` to test if it is an enumeration type,
+which is a rather distinct question from a value being a compile-time constant.
+
 ### Grammar
 
 ```diff
@@ -203,6 +216,15 @@ If it is really intended, separate overloads can achieve the same.
         shared
 +       enum
         FunctionAttribute
+        
+    TraitsKeyword:
+        …
+        isTemplate
+        isRef
+        isOut
++       isEnum
+        isLazy
+        …
 ```
 
 `ParameterStorageClass` was `InOut`, see [Issue 23359](https://issues.dlang.org/show_bug.cgi?id=23359).
