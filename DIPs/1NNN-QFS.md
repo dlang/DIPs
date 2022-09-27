@@ -50,11 +50,7 @@ Authors of containers and ranges would want to give users compile errors instead
 
 Another case where `enum` parameters shine, is user-defined types that encapsulate value sequences, e.g. `std.typecons.Tuple`.
 One could define `opIndex` as follows:
-* If the types have a common type, dynamic indexing is possible and an overload without `enum` parameter is supplied.
-  Depending on the types, this can even be a `ref` return: E.g. for `Tuple!(int, immutable int)`, dynamic indexing can safely return `ref const(int)`.
-  Even for `Tuple!(ubyte, short)`, a common type is `int`, thus `opIndex` with a run-time index must return by value.
-  Index bounds must still be checked at run-time.
-* In any case, `ref opIndex(enum size_t index)` can be defined to return a different type depending on the index
+* In any case, `ref opIndex()(enum size_t index)` can be defined to return a different type depending on the index
   because the index is known at compile-time as if it were a template value parameter.
 * Slicing on a tuple is currently not really possible:
   It returns an alias sequence that must be repackaged; if the `Tuple` had names, those are lost.
@@ -62,11 +58,19 @@ One could define `opIndex` as follows:
   ```d
   auto opSlice()(enum size_t l, enum size_t u) => slice!(l, u);
   ```
+* Using Design by Introspeciton, if the types have a common type, dynamic indexing is possible and certain overloads with a non-`enum` index can be supplied.
+  Depending on the types, this can even be a `ref` return:  
+  For `Tuple!(int, immutable int)`, dynamic indexing can safely return `ref const(int)`;
+  in this case, also `opIndex()` can be defined and return `const(int)[]`, i.e. a slice of objects of the common type.
+  A tuple of this kind is effectively a static array with more details about individual elements.  
+  For `Tuple!(ubyte, short)`, a common type is `int`, thus `opIndex` with a run-time index can return `int` by value (albeit not by `ref`),
+  and accordingly a slicing overload cannot be supplied.  
+  Index bounds must be checked at run-time.
 
 Today, even if `Tuple` would recognize the compatibility of its types so that dynamic indexing makes sense, it cannot have `opIndex`,
 because any `opIndex` shadows the much more important indexing supplied via `alias elements this`.
 
-Even `SumType` could use `opIndex` to extract the current value if supplied and interal index match (and throw an exception otherwise).
+Even `SumType` could use `opIndex` to extract the current value: If supplied and interal index match returns the value, otherwise throw an exception.
 
 <!--
 Having `opIndex` with compile-time indexing and slicing available allows for another form of tuple that meaningfully encapsulates its fields,
@@ -136,11 +140,15 @@ like
 
 ### Semantics
 
-#### Storage Class
+#### `enum` Storage Class
 
-The argument binding and overload selection semantics of `enum` bear some similarity to `ref`.
+The argument binding and overload resolution semantics of `enum` bear some similarity to `ref`.
 
 An `enum` parameter binds only to compile-time constants (cf. a `ref` parameter only binds to lvalues).
+When comparing overload candidates in the partial ordering, `enum` is a better match than non-`enum`.
+In any case, after sorting out overloads with incompatible number of parameters and parameter types,
+if candidates contain `enum` parameters, constant folding must be attempted for them, i.e.
+a candidate can only be excluded when an `enum` parameter is bound to an argument for which constant folding failed.
 
 A non-`enum` parameter binds to run-time and compile-time arguments,
 but for compile-time values, `enum` parameters are a better match
@@ -167,7 +175,17 @@ Type constructors are allowed, but have no effect
 because compile-time values are essentially `immutable`, and for any type constructor `qual` and every type `T`, we have `qual(immutable T)` ≡ `immutable T`).
 -->
 
+#### `auto enum` Storage Class
+
 One can use `auto enum` to infer from the argument wether it is a compile-time constant (cf. `auto ref` to infer the argument’s value category).
+
+An `auto enum` parameter bindy to any argument of compatible type.
+On overload resolution,
+when comparing overload candidates in the partial ordering,
+`auto enum` is a worse match than `enum` and other non-`auto enum`.
+When the best candidate determined by overload resolution contains `auto enum` parameters,
+constant folding must be attempted for them, i.e.
+`auto enum` only binds the argument as a run-time value after constant folding failed.
 
 The `auto enum` storage class is compatible with all other storage classes except `ref`,
 i.e. `auto enum auto ref` is valid, but `auto enum ref` is invalid.
