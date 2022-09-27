@@ -128,6 +128,8 @@ at global, aggregate, and function local scope.
 Diverting from that introduces inconsistency.
 
 <!--
+Becuase in a future version of D where mutable enums are fixed, it may be that
+enum cannot bind to values with indirections,
 `static immutable`.
 like 
 -->
@@ -157,8 +159,13 @@ The difference between `enum` parameters and template value parameters is only i
 
 The `enum` storage class is incompatible with any other storage classes currently in the language except type constructors.
 Using them together is a compile error.
+This proposal does not define `enum` to be incompatible with potential future storage classes;
+it just so happens that all the current parameter storage classes have semnatics that do not apply to compile-time constants.
+<!--
+The following is wrong, but it could be because of a bug.
 Type constructors are allowed, but have no effect
-because compile-time values are `immutable` and for any type constructor `qual` and every type `T`, we have `qual(immutable T)` ≡ `immutable T`).
+because compile-time values are essentially `immutable`, and for any type constructor `qual` and every type `T`, we have `qual(immutable T)` ≡ `immutable T`).
+-->
 
 One can use `auto enum` to infer from the argument wether it is a compile-time constant (cf. `auto ref` to infer the argument’s value category).
 
@@ -191,6 +198,10 @@ The expression `__traits(isEnum, symbol)` returns wether
 
 Note that for a type `T`, we already have `is(T == enum)` to test if it is an enumeration type,
 which is a rather distinct question from a value being a compile-time constant.
+Still, being a compile-time constant is differnt from being an `enum` value,
+because although all `enum` values are compile-time constants,
+not all compile-time constants are `enum` (e.g. `static immutable` variables),
+and thus `__traits(isEnum, symbol)` returns `false` on them.
 
 ### Grammar
 
