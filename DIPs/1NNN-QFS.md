@@ -77,6 +77,36 @@ Having `opIndex` with compile-time indexing and slicing available allows for ano
 i.e. a `ReadOnlyTuple` that returns its components by 
 -->
 
+The implementation of a function template with an `enum` parameter might not depend on the value of that parameter.
+If it does, it is necessary to generate multuple instances of the function differing only by the value of the `enum` parameter,
+resulting in what is colloquially known as “template bloat”.
+In cases like `format` and `regex` the compile-time knowledge can be used for speed optimizations,
+but a correct implementation might only validate the format string or regular expression at compile-time,
+but otherwise resort to a run-time implementation.
+
+Every `enum` parameter falls into exactly one of these categories:
+1. Its value is used for Design by Introspection.¹
+2. Its value is used only in template constraints and `static assert` statements (or it is not used at all).
+3. Its value is used, but only in places where it would be admissible to be a run-time value.
+
+Category 1 is unsolvable: Template bloat cannot be avoided by design.  
+Category 2 is solvable as an optimization: A compiler might recognize the lack of uses other than the mentioned
+and not generate instances differing only by values of the parameters of this category.  
+Category 3 is the sad case because it is not clear if the user inteded different instances or not.
+
+¹ DbI is to be understood loosely.
+Here, use of Design by Introspection refers to any use that results in a different implementation,
+not counting validity checks (i.e. contracts and asserts) because they produce the same implementation
+unless they fail and produce no implementation at all.
+
+A compiler-recognized paramter attribute `@nodbi` serves to distinguish the categories:
+* It is an error to use a `@nodbi` `enum` parameter for Design by Introspection.
+* A `@nodbi enum` parameter is used as a run-time value in places where it would be admissible to be a run-time value.
+
+From a caller’s perspective, an argument passed to a `@nodbi enum` parameter is a run-time parameter that is subject to compile-time checks:
+Overload resolution may take the value into account using template constraints,
+and `static assert` statements might use the value both in their condition and error message.
+
 ## Alternatives
 
 For a unified syntax for compile-time and run-time arguments, one can go the other way around and bind a run-time variable to a template alias parameter. Introspection can then be used to determine if the alias refers to a compile-time constant and choose an algorithm depending on that.
@@ -172,7 +202,8 @@ it just so happens that all the current parameter storage classes have semnatics
 <!--
 The following is wrong, but it could be because of a bug.
 Type constructors are allowed, but have no effect
-because compile-time values are essentially `immutable`, and for any type constructor `qual` and every type `T`, we have `qual(immutable T)` ≡ `immutable T`).
+because compile-time values are essentially `immutable`,
+and for any type constructor `qual` and every type `T`, we have `qual(immutable T)` equal to `immutable T`.
 -->
 
 #### `auto enum` Storage Class
@@ -221,6 +252,100 @@ because although all `enum` values are compile-time constants,
 not all compile-time constants are `enum` (e.g. `static immutable` variables),
 and thus `__traits(isEnum, symbol)` returns `false` on them.
 
+#### The `@nodbi` Attribute
+
+The token sequence `@` `nodbi` is added to the list of parameter storage classes.
+
+The value of a `@nodbi enum` parameter is treated as if it were a run-time value, except
+* inside the template contract of the template it is defined on, or
+* top-level `static assert` statements in the body of the function template it is defined on, or
+* when the expression that contains it is bound to a `@nodbi enum` or `@nodbi auto enum` parameter
+  and it is used for constant-folding only.
+
+*[Example:*
+```d
+int collatz(int n) => n % 2 ? 3 * n + 1 : n / 2;
+void f()(auto enum int x) { static assert(!__traits(isEnum, x), x.stringof ~ " must not be a compile-time constant."); }
+void g()(@nodbi enum int i) if (i > 0) { f(collatz(i + 1)); }
+void h() { g(1);  g(2); }
+```
+The function template `g` is well-formed because it uses `i` only in its contract and as a run-time value:
+In its invocation of `f`, `x` is inferred non-`enum` and thus the `static assert` does not fail.  
+The function `h` calles `g` with two different arguments, but only one `g!().g(int)` will be generated
+because the run-time logic of `g` is guaranteed not to depend on the value of `i`.  
+The function template `f` in and of itself would be well-formed if `x` were annotated `@nodbi` because it uses `x` only in `static assert`,
+but in its invocation in `g`, `x` would be inferred `enum` and the `static assert` would fail.
+— *end example]*
+
+*[Example:*
+```d
+import std.meta : AliasSeq, Stride;
+void example()(@nodbi enum size_t n)
+    if (is( Stride!(n + 1, int, uint, char, double) == AliasSeq!(int, char) )) // okay, used in contract
+{
+    auto m = n + 2; // okay, used as run-time value
+    enum k = n + 1; // error, used as compile-time constant (counts as Design by Introspection)
+    auto xs = new int[n]; // okay, used as a run-time value; same as `new int[](n)`.
+    static assert(n < 10); // okay, used in static assert
+    int[n + 1] array; // error, used as compile-time constant (counts as Design by Introspection)
+    static if (n > 1) { ++m; } // error, same reason
+    static foreach (i; 0 .. n) { ++m; } // error, same reason
+    enum string s = n.stringof; // okay, results in "n" (details see below)
+    /++++/ assert(n.stringof == "n"); // okay, and does not fire (details see below)
+    static assert(n.stringof != "n"); // okay, and does not fire (details see below)
+    static assert(s == "n"); // okay, `s` can be read at compile-time, and does not fire, because `s` is `"n"`
+    int[n.sizeof + n.alignof] a; // okay, `sizeof` and `alignof` depend on type, not value
+    
+    import std.meta : Alias;
+    alias doppelgänger = Alias!n; // okay, a parameter is a symbol and as such can be alias’d
+    alias notGood = Alias!(n + 1); // error, `n + 1` is not a symbol, thus uses `n` as a compile-time constant
+    alias stride = Stride!(n + 3, int, uint, char, double); // error, used as compile-time constant
+    static assert(is( Stride!(n + 2, int, uint, char, double) == AliasSeq!(int, double) )); // okay, used in static assert
+    
+    // error, value of `n` used in a static assert that is not top-level:
+    static if (__traits(compiles, { static assert(n > 0); })) { }
+    static if (is(typeof({ static assert(n > 0); }))) { } // error, same reason
+    
+    // error, value of `n` used in a contract other than the template that declares it:
+    void exampleImpl(T)() if (T.sizeof == n) { } // thus ...
+    static if (is(typeof(exampleImpl!bool()))) { } // ... this does not compile.
+}
+```
+* In the assignment of the `enum`s, `n` is treated like a run-time value;
+thus, `n + 1` is an error and `n.stringof` evaluates to `"n"`, not its value as a string, exactly as if it were a non-`enum` parameter.
+The same would happen if `s` were declared `const` or `immutable` instead.
+* In the `assert` statement, `n` is treated like a run-time value;
+thus, `n.stringof` evaluates to `"n"` here, like the assignment above it.
+* In the `static assert`, `n` is treated like a compile-time constant;
+because it is a number, its string representation will never be `"n"` and the assertion never fires.
+* In the `static assert` below, `s` can be read at compile-time and its value is `"n"`.
+The same would happen if `s` were declared `const` or `immutable` instead.
+— *end example]*
+
+*[Note:*
+The inconsistent behavior of `stringof` is not introduced by this proposal.
+The workaround mentioned in the [Alternatives](#alternatives) section suffers from the same inconsistency.
+― *end note]*
+
+The alias declarations could be allowed if they end up being used only in `static asserts`.
+The DIP author considers the burden for the compiler to track dependent aliases too large to require it as part of the propsal
+while providing a benefit only in very niche cases.
+
+The semantics of `@nodbi auto enum` derive from those of `@nodbi` and `enum`:
+If `auto enum` becomes `enum`, it is treated like `@nodbi enum`,
+otherwise the parameter is a run-time value already.
+
+An `@nodbi auto enum` parameter cannot produce two distinct tempalte instantiations based on it becoming `enum` or not
+because using the “`enum`-ness” for Design by Introspection is invalid.
+
+The author leaves it to the discretion of the language maintainiers,
+whether it is an error to attach the `@nodbi` attribute to something other than `enum` or `auto enum` parameters.
+Among the following options, the author suggests 2., because it is likely the easiest on the implementation.
+1. It could be allowed for any parameter, but on parameters other than `enum` or `auto enum` it would be ignored,
+   but an error elsewhere.
+2. It could be allowed anywhere, but on anything except parameters other than `enum` or `auto enum` it would be ignored.
+3. It could be an error except on parameters other than `enum` or `auto enum`.
+
 ### Grammar
 
 ```diff
@@ -235,6 +360,7 @@ and thus `__traits(isEnum, symbol)` returns `false` on them.
         return
         scope
 +       enum
++       @ nodbi
 
     MemberFunctionAttribute:
         const
