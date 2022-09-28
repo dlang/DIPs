@@ -305,10 +305,12 @@ void example()(@nodbi enum size_t n)
     // error, value of `n` used in a static assert that is not top-level:
     static if (__traits(compiles, { static assert(n > 0); })) { }
     static if (is(typeof({ static assert(n > 0); }))) { } // error, same reason
-    
-    // error, value of `n` used in a contract other than the template that declares it:
-    void exampleImpl(T)() if (T.sizeof == n) { } // thus ...
-    static if (is(typeof(exampleImpl!bool()))) { } // ... this does not compile.
+    // good guess, but `n.stringof` is `"n"` here and branch is always taken, regardless of the value of `n`:
+    static if (__traits(compiles, { static assert(n.stringof != "0"); })) { }
+    static if (is(typeof({ static assert(n.stringof != "0"); }))) { } // branch is always taken, same reason
+    // Because the value of `n` is used in a contract other than the template that declares it ...
+    void exampleImpl(T)() if (T.sizeof == n) { } // this is not well-formed ...
+    static if (is(typeof(exampleImpl!bool()))) { } // ... and the branch is never taken.
 }
 ```
 * In the assignment of the `enum`s, `n` is treated like a run-time value;
