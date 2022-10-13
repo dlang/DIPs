@@ -44,9 +44,9 @@ There is almost no downside to it and especially not in view of the benefits.
 In its current state, D programmers must remember to use the right syntax.
 In a meta-programming context, when the argument might or might not be a compile-time constant, it is even harder.
 
-In principle, users should not need to know to use `format!"%(%s%)"(slice)` versus `format("%(%s%)", slice)`.
-Users should not have to remember not to use `regex(r"pattern")`, but `ctRegex!r"pattern"`.
-Authors of containers and ranges would want to give users compile errors instead of run-time exceptions when possible.
+Ideally, users should not need to remember to use `format!"%(%s%)"(slice)` instead of `format("%(%s%)", slice)` to enable checks;
+likewise, users should not have to remember not to use `regex(r"pattern")`, but `ctRegex!r"pattern"`, in order to enable optimizations.
+Authors of containers and ranges want to give users compile errors instead of run-time exceptions when possible.
 
 Another case where `enum` parameters shine, is user-defined types that encapsulate value sequences, e.g. `std.typecons.Tuple`.
 One could define `opIndex` as follows:
