@@ -38,10 +38,11 @@ Java allows omitting the enum type in switch-case statements: https://docs.oracl
 A suggestion for a similar feature in Rust, but with a different approach: https://internals.rust-lang.org/t/enum-path-inference-with-variant-syntax/16851
 
 ## Description
-This DIP proposes that ETI in D should use the syntax `$enumMember`. This syntax was chosen because the dot operator without an enum name as used in other languages, i.e., `.enumMember`, would have the same syntax as D's [module scope operator](https://dlang.org/spec/module.html#module_scope_operators). Alternatives are possible,
-but the proposed syntax represents the best compromise between convenience and compatibility.
+This DIP proposes that ETI in D should use the syntax `$enumMember`. This syntax was chosen because the dot operator without an enum name as used in other languages (`.enumMember`) would have the same syntax as D's [module scope operator](https://dlang.org/spec/module.html#module_scope_operators). Suggestions for an alternative syntax may be raised,
+but the proposed syntax should already represent the best compromise between convenience and compatibility.
 
-Following are the circumstances in which ETI will be permitted.
+In principle, ETI should be allowed anywhere that an enum type is known unambiguously at compile-time.
+The following is a (non-exhaustive) list of circumstances in which ETI will be permitted.
 
 ### 1. Initializers and assignments
 ETI is allowed when initializing or assigning to a variable that has a known enum type.
@@ -223,13 +224,12 @@ And finally, here's a version rewritten to use `with` statements:
 ```d
 void main(){
     Obj myObj;
-    with(myObj){
-        with(Size)  size  = large;
-        with(Shape) shape = round;
-        with(State) state = on;
-        with(Size){
-            myFn(medium, Shape.square, State.undefined);
-        }
+    with(myObj) with(Size) with(Shape) with(State){
+        size  = large;
+        shape = round;
+        state = on;
+        
+        myFn(medium, square, undefined);
     }
 }
 ```
