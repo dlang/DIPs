@@ -95,10 +95,11 @@ and not generate instances differing only by values of the parameters of this ca
 Category 3 is the sad case because it is not clear if the user inteded different instances or not.
 
 ¹ DbI is to be understood loosely.
-Here, use of Design by Introspection refers to any use that results in a different implementation,
+Here, use of “Design by Introspection” refers to any use that results in a different implementation,
 not counting validity checks (i.e. contracts and asserts) because they produce the same implementation
 unless they fail and produce no implementation at all.
 
+[Optional; may be removed in a future draft.]
 A compiler-recognized paramter attribute `@nodbi` serves to distinguish the categories:
 * It is an error to use a `@nodbi` `enum` parameter for Design by Introspection.
 * A `@nodbi enum` parameter is used as a run-time value in places where it would be admissible to be a run-time value.
@@ -254,11 +255,14 @@ and thus `__traits(isEnum, symbol)` returns `false` on them.
 
 #### The `@nodbi` Attribute
 
+[Note: The `@nodbi` attribute is an optional part of the proposal and may be removed in a future draft.
+The semantics of `enum` paramters are complete and useful without it.]
+
 The token sequence `@` `nodbi` is added to the list of parameter storage classes.
 
 The value of a `@nodbi enum` parameter is treated as if it were a run-time value, except
 * inside the template contract of the template it is defined on, or
-* top-level `static assert` statements in the body of the function template it is defined on, or
+* top-level `static assert` statements in the body of the template it is defined on or inside a non-template construct nested in it, or
 * when the expression that contains it is bound to a `@nodbi enum` or `@nodbi auto enum` parameter
   and it is used for constant-folding only.
 
