@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1040](./DIP1043.md)|                            Enum Type Inference| Community Round 1|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 |[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
 
@@ -14,7 +15,7 @@
 |[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax| 2.081.0      |
 |[1010](./accepted/DIP1010.md)|                        Static foreach| 2.076.0      |
 |[1013](./accepted/DIP1013.md)|               The Deprecation Process| &mdash;      |
-|[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics| 2.088.1      |
+|[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics| &mdash;      |
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor| 2.086.0      |
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls| 2.092.0      |
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics|              |
