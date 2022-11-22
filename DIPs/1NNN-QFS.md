@@ -218,8 +218,8 @@ When the best candidate determined by overload resolution contains `auto enum` p
 constant folding must be attempted for them, i.e.
 `auto enum` only binds the argument as a run-time value after constant folding failed.
 
-The `auto enum` storage class is compatible with all other storage classes except `ref`,
-i.e. `auto enum auto ref` is valid, but `auto enum ref` is invalid.
+The `auto enum` storage class is compatible with all other storage classes except `ref` and `out`,
+i.e. `auto enum auto ref` is valid, but `auto enum ref` (and `auto enum out`) are invalid.
 If the argument is a compile-time constant, `auto enum` becomes `enum` and other storage classes (if any) are ignored.
 Otherwise, `auto enum` is ignored (cf. binding an rvalue to an `auto ref` parameter) and
 the semantics of the aforementioned parameter storage classes (if any) take over.
