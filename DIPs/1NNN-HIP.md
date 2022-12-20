@@ -88,13 +88,13 @@ enum _isConst2 = funcAttributes.has("const");
 enum _isRef2 = funcAttributes.has("ref");
 ```
 
-The proposed solution for this problem is then the keywords `mixin delete`:
+The proposed solution for this problem is then the keywords `mixin private`:
 ```d
 mixin template MyMixin(A)
 {
     static foreach(mem; __traits(allMembers, A))
     {
-        mixin delete {
+        mixin private {
             alias myMember = __traits(getMember, A, mem);
             enum funcAttributes = __traits(getFunctionAttributes, myMember);
             enum _isConst = funcAttributes.has("const");
@@ -114,7 +114,7 @@ No prior work has been done on that.
 
 ## Description
 
-All code inside `mixin delete` will need to be evaluated on compilation time, and will be usable inside `mixin template`.
+All code inside `mixin private` will need to be evaluated on compilation time, and will be usable inside `mixin template`.
 
 It must allow redefinition of variables or have other kind of mechanism for compatibility with `static foreach` (maybe generating an specific scope for mixin templates).
 
@@ -133,18 +133,18 @@ Declaration:
     ConditionalDeclaration
     StaticForeachDeclaration
     StaticAssert
-+   MixinDeleteDeclaration
++   MixinPrivateDeclaration
 ```
 
 ```
-+MixinDeleteDeclaration:
-+    mixin delete DeclarationBlock
++MixinPrivateDeclaration:
++    mixin private DeclarationBlock
 ```
 
 
 
 ## Breaking Changes and Deprecations
-Breaking changes aren't anticipated as both `mixin` and `delete` keywords are reserved and the combination of them still doesn't exists.
+Breaking changes aren't anticipated as both `mixin` and `private` keywords are reserved and the combination of them still doesn't exists.
 
 ## Copyright & License
 Copyright (c) 2022 by the D Language Foundation
