@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
-|[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
 |[1040](./DIP1044.md)|                            Enum Type Inference|  Post-Community 1|
 
 ## Accepted DIPs
@@ -72,3 +71,4 @@
 |[1032](./other/DIP1032.md)   |Function Pointer and Delegate Parameters Inherit Attributes from Function|
 |[1036](./other/DIP1036.md)   |   String Interpolation Tuple Literals|
 |[1039](./other/DIP1039.md)   |    Static Arrays with Inferred Length|
+|[1042](./other/DIP1042.md)   |                           ProtoObject|
