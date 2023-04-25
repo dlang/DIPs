@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1044](./DIP1044.md)|                            Enum Type Inference| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
 ## Accepted DIPs
@@ -37,6 +36,7 @@
 |[1017](./rejected/DIP1017.md)|                       Add Bottom Type|
 |[1027](./rejected/DIP1027.md)|                  String Interpolation|
 |[1028](./rejected/DIP1028.md)|                Make @safe the Default|
+|[1044](./rejected/DIP1044.md)|                   Enum Type Inference|
 
 ## Postponed DIPs
 |                           ID|                                 Title|
