@@ -1,4 +1,4 @@
-# (Your DIP title)
+# Editions: breaking changes to the language that don't break anything.
 
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
@@ -49,11 +49,10 @@ there.
 
 
 ## Description
-
 A D *edition* is a set of changes to the D programming language
-defined by its leadership. These changes are allowed to be breaking
-changes in the sense that they would, if applied, be able to cause
-existing D code that compiles to no longer do so, or change its
+defined by the D Language Foundation. These changes are allowed to be
+breaking changes in the sense that they would, if applied, be able to
+cause existing D code that compiles to no longer do so, or change its
 semantics should it still compile. In order to be able to try out
 individual changes that make up an edition, each one of them would be
 implemented already and gated behind a `-preview=` flag in the
@@ -99,8 +98,8 @@ What could editions do?
 
 This would be the easiest change that could be made in D editions,
 since it would forbid D code written in the future from using features
-considered to be deprecated and, besides keeping the frontend code
-for those features, has zero impact.
+considered to be deprecated. Besides keeping the frontend code for
+those features, there would be no impact.
 
 ### Adding new features
 
@@ -137,24 +136,46 @@ DIP is not arguing for or against any one of them.
 
 ### `@safe` by default
 
-There was an [attempt]() to make `@safe` the default that failed. It
-is likely that problems would have been found in its implementation
-had it succeeded, since all current D code assumes that `@system` is
-the default unless inferred. Making this change in an edition would
-side-step that issue.
+There was an
+[attempt](https://github.com/dlang/DIPs/blob/master/DIPs/rejected/DIP1028.md)
+to make `@safe` the default that failed. It is likely that problems
+would have been found in its implementation had it succeeded, since
+all current D code assumes that `@system` is the default unless
+inferred. Making this change in an edition would side-step that issue.
 
 ### `private` by default
 
+The default is currently `public`, which makes it easier to write
+short scripts and requires less typing. Experience has shown however
+that in larger codebases it encourages client code to depend on what
+should have been implementation details and makes refactoring more
+cumbersome. Defaults matter, and changing the default to `private`
+would result in less coupled, more maintainable code.
+
 ### No exceptions
+
+An edition could replace exception handling with an alternative way
+of dealing with errors such as sum types.
 
 ### No more `lazy`
 
+The `lazy` feature complicates the language and the compiler for
+little benefit: users can use an explicit lambda instead.
+
 ### No more `alias this`
+
+(Need help with issues with alias this).
 
 ### Change class ABI (monitor) and/or hierarchy
 
+An edition could change the ABI of classes in D, possibly removing the
+monitor. Alternatively, it could introduce a new base class of
+`Object` as has been proposed before.
 
-### Drawbacks
+
+## Drawbacks and possible issues
+
+### Compiler complexity
 
 While this feature will simplify D code yet to be written, it will
 make the compiler more complicated by having to be able to deal with
@@ -163,26 +184,42 @@ this complexity could be to only support the last N editions, for
 N < 5.
 
 
+### Would editions mean splitting the language into different dialects?
+
+In short, no. It can be argued that this is the current situation with
+preview switches, in that their existence has already divided the
+language into 2^N dialects, with N being the number of switches that
+can be turned on. Edition would actually improve the situation by
+presenting a monotonic sequence of language features and changes
+without providing the opportunity of cherry-picking which ones a user
+wants.
+
+
 ## Breaking Changes and Deprecations
 
 The editions feature is explicitly designed with the goal of not
 introducing any breaking changes or deprecations. Existing D code that
 does not opt-in will continue to compile as behave as before.
 
-Opting in however, can make the code no longer compile, and that is a
+Opting in, however, can make the code no longer compile, and that is a
 choice to be made by the programmer in question. It is hoped that tooling
 can be written to aid in this process.
 
 
 ## Reference
-Optional links to reference material such as existing discussions, research papers
-or any other supplementary materials.
+
+Optional links to reference material such as existing discussions,
+research papers or any other supplementary materials.
+
 
 ## Copyright & License
+
 Copyright (c) 2024 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
+
 ## Reviews
+
 The DIP Manager will supplement this section with a summary of each review stage
 of the DIP process beyond the Draft Review.
