@@ -84,6 +84,10 @@ Edition:
     Identifier
 ```
 
+To aid in transitioning existing code to a new edition, it will
+also be possible to change the edition being used with a compiler
+flags such as `-edition=D2024`.
+
 This DIP proposes that editions can only be officially released,
 i.e. finalised, when druntime and phobos can be transitioned to it.
 
