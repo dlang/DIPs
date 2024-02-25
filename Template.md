@@ -3,7 +3,6 @@
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
-| Review Count:   | 0 (edited by DIP Manager)                                       |
 | Author:         | (your name and contact email address)                           |
 | Implementation: | (links to implementation PR if any)                             |
 | Status:         | Draft                                                           |
@@ -34,7 +33,7 @@ chances of the DIP being understood and carefully evaluated.
 ## Prior Work
 Required.
 
-If the proposed feature exists, or has been proposed, in other languages, this is the place
+If the proposed feature exists or has been proposed in other languages, this is the place
 to provide the details of those implementations and proposals. Ditto for prior DIPs.
 
 If there is no prior work to be found, it must be explicitly noted here.
@@ -44,7 +43,7 @@ Required.
 
 Detailed technical description of the new semantics. Language grammar changes
 (per https://dlang.org/spec/grammar.html) needed to support the new syntax
-(or change) must be mentioned. Examples demonstrating the new semantics will
+(or change) must be listed. Examples demonstrating the new semantics will
 strengthen the proposal and should be considered mandatory.
 
 ## Breaking Changes and Deprecations
@@ -61,10 +60,9 @@ Optional links to reference material such as existing discussions, research pape
 or any other supplementary materials.
 
 ## Copyright & License
-Copyright (c) 2022 by the D Language Foundation
+Copyright (c) 2024 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
-## Reviews
-The DIP Manager will supplement this section with a summary of each review stage
-of the DIP process beyond the Draft Review.
+## History
+The DIP Manager will supplement this section with links to forum discsusionss and a summary of the formal assessment.
