@@ -79,7 +79,7 @@ Opting in to an edition is part of the module declaration:
 
 ```Grammar
 ModuleDeclaration:
-    ModuleAttributes(opt) module ModuleFullyQualifiedName Edition;
+    ModuleAttributes(opt) module ModuleFullyQualifiedName Edition(opt);
 Edition:
     Identifier
 ```
@@ -122,7 +122,7 @@ could change defaults such as `@system`/`@safe` and others.
 An edition could make it so that:
 
 ```d
-shared int it;
+shared int i;
 i += 5;
 ```
 
@@ -168,7 +168,9 @@ little benefit: users can use an explicit lambda instead.
 
 ### No more `alias this`
 
-(Need help with issues with alias this).
+`alias this` can be used with classes to implement multiple inheritance,
+which the language otherwise expressly forbids. A future edition could
+remove this feature.
 
 ### Change class ABI (monitor) and/or hierarchy
 
