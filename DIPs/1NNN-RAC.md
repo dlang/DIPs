@@ -9,7 +9,7 @@
 
 ## Abstract
 
-Symbols are the ultimate representation of any native programming language language features. When they are not represented correctly at either the compiler level or language level, things fail to link. This has some serious potential to cause frustration on a level that abandons all hope of a solution working. The purpose of this DIP is to remove common failings that will cause D to not link against and as a shared library on a multitude of platforms and targets.
+Symbols are the ultimate representation of native programming language features. Inaccurate representation of these symbols at the compiler or language level can lead to linkage failures. Such issues can be a significant source of frustration and may even lead to the perception that solutions are unattainable. The purpose of this DIP is to address and rectify common shared library linking errors across various platforms and targets.
 
 ## Contents
 * [Rationale](#rationale)
@@ -23,84 +23,74 @@ Symbols are the ultimate representation of any native programming language langu
 
 ## Rationale
 
-Common use cases not being supported nor workaroundable can be quite frustrating to D users.
-Linker errors for those who have not studied linkers can be quite challenging to attempt an understanding of.
-With frequent request for help from those that reach them.
+It can be frustrating for D users to encounter challenges arising from the lack of support for common use cases and the absence of viable workarounds, particularly in the context of linker errors. For those unfamiliar with linkers, understanding and resolving these errors can be daunting, often leading to requests for assistance.
 
-A lot of problems with symbol representation can be silently hidden to D users when you only support static libraries and an executable for constructing a process containing D.
-However this is not the only configuration that people want or need their binaries to be built as.
+A significant portion of symbol representation issues in D remains obscured when the language's use is confined to static libraries and standalone executables. However, such a configuration does not cater to the diverse needs and preferences of all users. There is a demand for more flexible binary configurations, such as those involving shared libraries.
 
-Plugins into D, D plugin into another language, replacable binaries are all examples of use cases for where someone may wish to use shared libraries that involve D.
+Use cases like integrating plugins into D, creating D plugins for other languages, or developing replaceable binaries exemplify the scenarios where shared libraries involving D are beneficial. To ensure D's consistency and ease of use, it is crucial to enhance the language's approach to symbol representation.
 
-To make D work consistently and easily with a clear story for the user to understand, how symbols are represented in the language must be improved.
-
-The main consideration is to start at the module.
-If we know if the module is in the current binary, or outside of it, we can resolve a number of linker issues by default without any further modification.
-All other changes can come from this knowledge.
+The primary focus should be on the module level. Understanding whether a module is within or external to the current binary is key to resolving many linker issues by default. This fundamental knowledge sets the stage for further improvements and modifications.
 
 ## Prior Work
 
-In 2016 Benjamin Thaut did a talk at DConf [D's Import and Export Business](https://www.youtube.com/watch?v=-vEmOc-WphY) which covered a proposal for improving the language and the implementation details of export and shared libraries.
+In 2016, Benjamin Thaut delivered a presentation at DConf titled "[D's Import and Export Business](https://www.youtube.com/watch?v=-vEmOc-WphY)" addressing a proposal to improve the D programming language, specifically focusing on the export and shared library functionalities.
 
-This DIP, while not directly based upon it and does not touch upon the implementation details, does come to similar conclusions that ``export`` must not be a visibility modifier to make D work when using positive annotation.
+While this DIP does not directly derive from Thaut's proposal and diverges from discussing specific implementation details, it arrives at a similar conclusion regarding the role of `export`. Specifically, it recognizes that, for effective use of positive annotation in D, `export` should not function merely as a visibility modifier.
 
-A key difference is that Benjamin's talk suggested that ``dllimport`` switch set to all was a good solution of specifying that a symbol is in DllImport mode.
-However after many years experience with D and shared libraries, it has been shown in the community usage that this is a source of constant linker errors and so a solution that is finer grained is required.
+A notable distinction from Thaut's approach is his suggestion to set the `dllimport` switch to 'all' as a method of indicating that a symbol is in DllImport mode. However, based on the D community's extensive experience with shared libraries in the ensuing years, it has become apparent that this approach frequently leads to linker errors. Therefore, a more nuanced and finer-grained solution is required to address these issues effectively.
 
 ## Description
 
 ### Cornerstone Changes
 
-This section introduces crucial changes for future updates and ensures error-free compilation.
+This section outlines crucial changes for future updates to ensure error-free compilation.
 
-1. External Import Path Switch: A new flag ``-extI`` is added, similar to the ``-I`` switch, marking modules as external to the currently compiling binary. This should be automated by build managers using the knowledge of dependencies being shared libraries to automatically apply it instead of ``-I``.
-2. Out-of-Binary Modules: For such modules, all non-templated scopes are interpreted to implicitly have ``extern`` attribute applied to them.
-3. Symbol Import: To import a symbol in DllImport mode, use both ``export`` and ``extern``. The function body's status is irrelevant.
+1. __External Import Path Switch__: A new compiler flag, `-extI`, is introduced. Functioning analogously to the `-I` switch, this flag designates modules as external to the binary currently being compiled. Ideally, build managers should automate this process, using knowledge of dependencies to substitute `-I` with `-extI` for modules associated with shared libraries.
+2. __Out-of-Binary Modules__: Modules identified as external (via the `-extI` switch) will have an implicit `extern` attribute applied to all non-templated scopes.
+3. __Symbol Import:__ To import a symbol in DllImport mode, annotation with both `export` and `extern` is required. The presence or absence of a function body in this context is inconsequential.
 
-In the following sections, the reliability of templates is considered for linking against shared libraries, the D interface generator, different export annotations and inlining.
+The following sections consider the reliability of templates when linking with shared libraries, the D interface generator, different export annotations, and inlining.
 
 ### Reliability of Templates
 
-Templates are a very easy way to make builds fail to link, due to assumed template instantiations existing.
+Templates can lead to linkage failures due to assumptions about template instantiations. Therefore, it is important to ensure that symbols derived from templates are not automatically eligible for export or placed into DllImport mode. Instead, these symbols should be re-instantiated when identified as external to the binary and placed into the target binary with the appropriate duplication flags set. This requires the application of the external import path switch on a per-module basis.
 
-It is important therefore, that symbols originating from templates are by default not able to be exported or put into dllimport mode.
-Instead they must be reinstantiated when they are seen to be outside the binary and placed into target binary with appropriate duplication flags set.
-To do this, use the external import path switch flagging per module.
+To optimize code generation, compilers may adopt a 'pinning' strategy. A template instantiation is considered 'pinned' if it is referenced by a non-templated symbol within the same module of its declaration. This pinning extends to variable declarations, including global variables, that are not encapsulated within a template, as well as to function parameters and return types.
 
-Any compiler that needs to minimize the amount of code generation it performs, may do so by applying a pinning approach.
-A template instantiation is said to be pinned, iff it has been referenced by a non-templated symbol in the same module it was declared in.
-This includes variable declarations (such as globals) that are not found under a template or function parameters and return types.
-
-Once a template and its symbols has been pinned, the compiler may elide the code generation for these symbols when out of binary, and respect the exportation/dllimport symbol modes.
+Once a template and its associated symbols are pinned, the compiler has the discretion to omit code generation for these symbols when they are external to the binary. In such cases, the compiler should honor the designated exportation and DllImport symbol modes, ensuring efficient and error-free linkage.
 
 ### D Interface Generator
 
-The D interface generator is an exportation tool provided by the D compiler to omit symbol bodies and output a D file with the ``di`` file extension. It can be used in conjunction with the C parser (``ImportC``) to generate bindings to C libraries.
+The D interface generator, an exportation tool provided by the D compiler, facilitates the creation of `.di` files by omitting symbol bodies from a D file. This tool is particularly useful when used alongside the C parser (ImportC) for generating bindings to C libraries.  However, a notable limitation of the current implementation is its inability to accurately respect symbol modes during exportation.
 
-One area of failure that it currrently has is the incapability to respect symbols modes for exportation. To resolve this the following changes are required:
+To address this, the following modifications are proposed:
 
-It must not introduce an ``extern`` attribute on a symbol, but may introduce ``export`` to all non-templated scopes iff the visibility override switch is set to export that module.
+1. The generator should not automatically add the `extern` attribute to symbols.
+2. The generator may add the `export` attribute to all non-templated scopes, but only if the visibility override switch is set to export the specific module.
 
-This change pairs with the cornerstone changes presented above so that:
+These adjustments are intended to work in conjunction with the cornerstone changes previously outlined. Consequently, they ensure that:
 
-1. Given a code base marked with export
-2. The ``.di`` generator will not add ``extern`` in addition to what was in the original source
-3. Can be passed to the import path switch ``-I`` for a static library or object file
-4. Or be passed to the external import path switch ``-extI`` for a shared library dependency
+* For a codebase marked with `export`, the `.di` generator refrains from introducing additional extern attributes.
+* The resulting `.di` file can be used with the standard import path switch `-I` for static libraries or object files.
+* Alternatively, the `.di` file can be applied with the external import path switch `-extI` when dealing with shared library dependencies.
 
 ### Symbol Exportation Mode Approaches
 
-Each symbol can be in different symbol modes. These are internal, DllExport and DllImport. An internal symbol is the default symbol mode, it may be accessed by other symbols in the same binary regardless of the module it is defined in. DllExport set that a symbol while compiling should also be accessible to other external binaries. DllImport will intruct the compiler to that a symbol is external to the binary and must have different code generated so that it may be accessed at runtime.
+Each symbol can exist in one of three different modes: Internal, DllExport, and DllImport.
 
-Different strategies for describing how to select DllImport and internal modes, along with DllExport are presented next. These are:
+1. __Internal Mode__: This is the default mode for symbols. An internal symbol can be accessed by other symbols within the same binary, regardless of the module in which it is defined.
+2. __DllExport Mode__: When set, this mode indicates that a symbol should be accessible not only within its own binary but also to external binaries. This is essential for compiling symbols intended for use across different binaries.
+3. __DllImport Mode__: This mode informs the compiler that the symbol is external to the current binary. The compiler, therefore, generates code to allow access to this symbol at runtime.
 
-- Positive notation using ``export``. This is the default behavior of a D compiler.
-- Negative notation using visibility override switch. By default all symbols are not exported. You can use the visibility override switch to force all symbols to be exported instead. This allows for libraries that are not currently marked with ``export`` to export their symbols.
-- Lastly a corner case notation for when you need to determine if a symbol is internal or DllImport depending on build step. Useful for multi-step builds where interesting or conflicting symbols modes are present.
+The strategies for determining the appropriate mode for a symbol are as follows:
+
+* __Positive Annotation Using `export`__: This method represents the default behavior of the D compiler, where the `export` keyword is used to explicitly mark symbols for exportation.
+* __Negative Annotation Using Visibility Override Switch__: By default, symbols not annotated with `export` are not exported. The visibility override switch can be employed to reverse this default behavior, forcing all symbols to be exported. This is particularly useful for libraries that have not been explicitly marked with `export` but need their symbols exported.
+* __Corner Case Annotation for Multi-step Builds__: This is a specialized notation for scenarios requiring a determination of whether a symbol is Internal or DllImport, depending on the build step. It is useful in multi-step build processes presenting intricate or conflicting symbol modes.
 
 #### Export Annotation
 
-The ``export`` attribute is given an identifier parameter which is interpreted to be a version.
+The `export` attribute is enhanced with the capability to take an identifier as a parameter. This identifier is interpreted as a version, requiring the following grammar change:
 
 ```diff
 VisibilityAttribute:
@@ -111,41 +101,37 @@ Attribute:
 +   export ( Identifier )
 ```
 
-This parameter when the identifier is active (specified by ``-version=ident``) places the symbol when not compiling into internal mode.
+The functionality of this parameter depends on whether the identifier is active (activated by `-version=ident`). When active, the symbol is placed in internal mode, unless it is being compiled. Conversely, when the identifier is inactive, the symbol is placed in DllImport mode, akin to having an `extern` annotation.
 
-When not active it places it into DllImport mode as if ``extern`` was also annotated.
-
-To standardise the identifiers in use, three new prefixes are added to the specification, each will have instances for libc, druntime and Phobos that will be provided by the compiler automatically.
+To standardize the use of identifiers, three new version prefixes are introduced into the D specification, with instances for libc, DRuntime, and Phobos provided automatically by the compiler:
 
 The prefixes are ``Have_``, ``InBinary_``, and ``Compiling_``. The suffixes for these three will be a logical package.
 
-- ``Have_`` is used when a given logical package is available as a dependency during linking.
-- ``InBinary_`` is used when a given logical package has its symbols in the currently compiling binary.
-- ``Compiling_`` is used when a given logical package is currently being compiled.
+1. **Have_ Prefix**: Indicates that a specific logical package is available as a dependency during the linking process.
+2. **InBinary_ Prefix**: Indicates that the symbols of a specific logical package are present in the binary currently being compiled.
+3. **Compiling_ Prefix**: Indicates that a specific logical package is in the process of being compiled.
 
-Between these three versions it is possible to cover any corner case where a symbol must be viewed internally instead of out of binary.
+These prefixes, coupled with logical package suffixes, enable the handling of any corner case where a symbol needs to be treated as internal instead of external.
 
-The D interface generator will need to support the insertion of the version argument ``InBinary_``. This will be needed to accurately represent C files by a D module. The mechanism to specify what the suffix is, is not determined here. It may depend upon C preprocessor capability.
+Additionally, the D interface generator will be updated to support the insertion of the `InBinary_` version argument. This update is needed to accurately represent C files through a D module. The specific mechanism for determining the suffix is not described here and may rely on C preprocessor capabilities.
 
 #### Positive Notation
 
-To assign a symbol that it is exported, use the ``export`` attribute to annotate a D symbol as DllExport.
+The `export` attribute in D is designated for annotating symbols as DllExport. To signify that a symbol is exported, this attribute should be applied directly to the D symbol.
 
-The export annotation must not be a visibility modifier.
-If it is a visibility modifier you are required to expose internal implementation details that could result in unsafe operation of a codebase by external parties at the language level.
+The `export` annotation must not function as a visibility modifier. Treating it as such could inadvertently expose internal implementation details, potentially leading to unsafe operation of a codebase by external entities at the language level.
 
-For a given encapsulation unit (struct, class, union, module), if any members are marked export, then all generated symbols (``TypeInfo``, ``__initZ``, ``opCmp`` ext.) but not ``ModuleInfo`` must also be exported. If generated symbols are not exported when an associated symbol is exported, it will result in linker errors that have no possible solution without the use of a linker script.
+In any encapsulation unit (such as a struct, class, union, or module), if any member is marked with `export`, all associated generated symbols (like `TypeInfo`, `__initZ`, `opCmp`, etc., but excluding `ModuleInfo`) must also be exported. Failure to export these generated symbols when an associated symbol is exported can lead to linker errors which cannot be resolved without resorting to a linker script.
 
-By default all symbols are hidden, if you need to explicitly annotate hidden use the UDA provided in ``core.attributes``.
-Without this attribute you would have to annotate export on _every_ symbol that you want exported instead of at the scope and then disallow only the ones that are not desired.
+By default, all symbols are hidden. To explicitly mark a symbol as hidden, use the User-Defined Attribute (UDA) provided in `core.attributes`. This approach is more efficient than having to annotate `export` on every individual symbol you wish to be exported. Instead, it allows you to annotate at the scope level and simply disallow those symbols that are not intended to be exported.
 
 #### Negative Notation
 
-The visibility override switch is in use, set to export everything.
+The visibility override switch, when set, causes all symbols to be exported by default.
 
-To annotate a symbol as hidden use the UDA provided in ``core.attributes``.
+To override this default setting and explicitly designate a symbol as hidden, one should utilize the UDA provided in `core.attributes`.
 
-Until druntime and Phobos can be fully annotated with export appropriately and tested, this approach will be in use for these libraries.
+Until the DRuntime and Phobos libraries are comprehensively annotated with `export` in an appropriate manner and thoroughly tested, they will rely on this method of symbol visibility management.
 
 ### Inlining
 
@@ -160,22 +146,17 @@ export extern void inlineable() {
 @hidden void noInline();
 ```
 
-In this case, ``noInline`` function is not accessible to ``inlineable`` if it was inlined across binary lines. The result of this would be a linker error.
+In this example, the `noInline` function is marked as hidden and is therefore not accessible to `inlineable`. If `inlineable` were to be inlined across binary boundaries, this would lead to a linker error due to the unavailability of `noInline`.
 
-The compiler must not inline a function from an out of binary module if it refers to non-exported symbols.
+To prevent such errors, the compiler must be instructed not to inline functions from an out-of-binary module when these functions reference non-exported symbols.
 
 ### Use Cases
 
-To demonstrate the different scenarios in which this DIP alters, a series of use cases are presented.
-First the positive annotation case, which is a scenario you may experience if you need complete control over which symbols get exported.
-The second use case demonstrates that you do not need to make any alterations related to the ``DllImport`` status of symbols to use druntime in binary.
+This section presents scenarios that illustrate the practical impact and application of the modifications proposed in this DIP. The first case is relevant for users requiring meticulous control over the exportation of symbols. The second focuses on the ease of integrating DRuntime into a binary without the need for adjustments concerning the DllImport status of symbols.
 
 #### Positive Annotation
 
-This use case demonstrates positive annotating of ``export`` along with the optional ``.di`` generator.
-
-It uses the Windows nomenclature of file extensions and what files are generated.
-They are required to accurately describe what the DIP will result in, and will translate over to other platforms.
+This use case outlines the process of positively annotating with `export` and optionally employing the `.di` generator. It's presented using Windows file naming conventions.
 
 Directory layout:
 
@@ -202,7 +183,7 @@ export void myLibraryFunction() {
 }
 ```
 
-Source of ``dependency/source/library.di`` once generated:
+Generated ``dependency/source/library.di``:
 
 ```d
 module library;
@@ -227,7 +208,7 @@ Using shared libraries:
 dmd -of=dependency/library.dll -shared -Hd=dependency/imports dependency/source/library.d
 cp dependency/library.dll executable/library.dll
 
-dmd -of=executable/app.exe -extI=dependency/imports executable/soruce/app.d dependency/library.lib
+dmd -of=executable/app.exe -extI=dependency/imports executable/source/app.d dependency/library.lib
 ```
 
 Using static libraries:
@@ -235,17 +216,17 @@ Using static libraries:
 ```sh
 dmd -of=dependency/library.lib -Hd=dependency/imports dependency/source/library.d
 
-dmd -of=executable/app.exe -I=dependency/imports executable/soruce/app.d dependency/library.lib
+dmd -of=executable/app.exe -I=dependency/imports executable/source/app.d dependency/library.lib
 ```
 
-Note that the only differences between these two dmd invocations is the missing of ``-shared`` and swapping ``-extI`` to ``-I``.
+The primary difference between using shared and static libraries lies in the inclusion of `-shared` when compiling the former, and the substitution of `-extI` with `-I` when linking the latter.
 
-#### Druntime in Binary
+#### DRuntime in Binary
 
-For this use case we consider what happens to place druntime into our resulting binary.
-Other libraries such as Phobos are not considered and the switch to pick if druntime is static or shared is compiler specific, it is therefore only a demonstration of what it could look like. 
+This use case focuses on the process of integrating DRuntime into a binary. This scenario does not consider other libraries like Phobos and is only an illustrative example, as the switch for choosing between static or shared DRuntime is compiler-specific.
 
-The use of the dependency while redundant in this particular example, is of real world interest and during the process of creating this DIP, this very scenario has been shown to be problematic currently.
+For this use case, we consider what happens to place DRuntime into our resulting binary.
+Other libraries such as Phobos are not considered and the switch to pick if Druntime is static or shared is compiler-specific, it is therefore only a demonstration of what it could look like. 
 
 Directory layout:
 
@@ -282,39 +263,36 @@ export void api() {
 }
 ```
 
-Commands to compile it into a shared library, with an intermediary static library step for a dependency:
+Commands for compilation:
 
 ```sh
 dmd -of=dependency/dependency.lib -lib -lib-druntime=static dependency/source/dependency.d
 dmd -of=mydll/mydll.dll -shared -I=dependency/source -lib-druntime=static mydll/source/api.d dependency/dependency.lib
 ```
 
-Of particular interest is what ``-lib-druntime=static`` is adding in addition to the provided arguments.
+Of particular interest is the behavior of `-lib-druntime=static`.
 
-Typically, when you compile D source code today, it will automatically add some import path switches (``-I``) and some additional static/import libraries.
-With this DIP, when you specify you want the shared version of druntime, instead of using ``-I`` and the static library version of druntime, it will provide the import paths via ``-extI``, druntime's import library, and add the ``-dllimport`` override switch set to ``externalOnly``.
+In typical D compilation, import paths and static/import libraries are automatically added. With this DIP, specifying a shared DRuntime version replaces the `-I` with `-extI`, static DRuntime library with the import library, and sets the `-dllimport` override to `externalOnly`.
 
-This is of particular note for this use case, because typically when you use D shared libraries you will be using a shared druntime not the static one.
-Because of the external import path switch, it is possible using the compiler configuration file to entirely hide the difference between a shared and static druntime. 
-Currently, druntime is not annotated with export, if it was the addition of ``-dllimport=externalOnly`` would not be required and would not proliferate user code potentially resulting in an attempt to access a non-exported symbol by the linker instead of erroring at the compiler with a nice message.
+This approach significantly simplifies the distinction between shared and static DRuntime, potentially allowing the compiler configuration file to obscure these differences.
 
-This use case with this DIP will not result in any linker warnings such as [LNK4217](https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4217?view=msvc-170) which is not currently the case.
+Currently, DRuntime is not annotated with `export`. If it were, the addition of `-dllimport=externalOnly` would become unnecessary, reducing the risk of the linker attempting to access non-exported symbols.
+
+This DIP aims to eliminate linker warnings like [LNK4217](https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4217?view=msvc-170), which are common in the current environment when using shared libraries with a shared DRuntime.
 
 ## Breaking Changes and Deprecations
 
-It is expected that any code that is currently marked with ``export`` could break the visibility of symbols, due to it no longer meaning super-public.
+With the proposed changes, `export` will no longer signify what can be termed as "super-public" visibility. This shift could affect the visibility and accessibility of symbols in existing code.
 
-This can be mitigated by placing ``public:`` on preceding line and will work with previous compilers as well as future ones if the new behavior is not desirable.
+To mitigate this potential issue, codebases can be adjusted by adding `public:` to the line preceding the use of `export`. This solution is backward compatible, ensuring that it functions correctly with both current and future compilers. This approach is recommended for those who prefer to retain the traditional behavior of `export`.
 
-Otherwise all changes are opt-in via the ``-extI`` compiler switch.
+All other modifications proposed in this DIP are essentially opt-in via the `extI` compiler switch.
 
 ## Reference
 
-In the C and C++ world, the choice to pick [DllExport](https://learn.microsoft.com/en-us/cpp/build/exporting-from-a-dll-using-declspec-dllexport?view=msvc-170) and [DllImport](https://learn.microsoft.com/en-us/cpp/build/importing-into-an-application-using-declspec-dllimport?view=msvc-170) is done via an attribute that gets swapped out by the macro preprocessor. This is tedious as it is something you must configure on a per library basis.
-
-Rust uses an attribute called [link](https://doc.rust-lang.org/reference/items/external-blocks.html#the-link-attribute) - this attribute also includes the library name. It may be configured on the command line to switch the default symbol mode to another during compiling. In this DIP we introduce the version name convention of ``InBinary_`` for specifying if a package is in or out of binary, which fits the existing convention of ``Have_`` by dub and takes advantage of existing mechanics.
-
-Ada (GNAT) supports [DllExport](https://gcc.gnu.org/onlinedocs/gcc-13.2.0/gnat_rm/Pragma-Export_005fFunction.html) via the use of a pragma to explicitly state that a symbol (with different ones per type) is exported. Same situation for [DllImport](https://gcc.gnu.org/onlinedocs/gcc-13.2.0/gnat_rm/Pragma-Import_005fFunction.html). It does not provide any mechanism for Ada only libraries to determine which pragma is in use. The creation of [bindings](https://docs.adacore.com/gnat_ugn-docs/html/gnat_ugn/gnat_ugn/platform_specific_information.html#using-dlls-with-gnat) is a complex endeavor in comparison to D. At the build tool level these appear to be mostly automatable for Ada projects.
+1. In C and C++, the selection between [DllExport](https://learn.microsoft.com/en-us/cpp/build/exporting-from-a-dll-using-declspec-dllexport?view=msvc-170) and [DllImport](https://learn.microsoft.com/en-us/cpp/build/importing-into-an-application-using-declspec-dllimport?view=msvc-170) is typically managed through attributes swapped by the macro preprocessor. This approach, while functional, can be seen as cumbersome, requiring per-library configuration.
+2. Rust [utilizes a link](https://doc.rust-lang.org/reference/items/external-blocks.html#the-link-attribute) attribute, which includes the library name and can be adjusted via command-line arguments to switch the default symbol mode during compilation. This DIP introduces the version naming convention `InBinary_` for specifying whether a package is inside or outside of the binary. This aligns with the existing `Have_` convention used by dub and leverages existing mechanics in D.
+3. Ada (GNAT) supports [DllExport](https://gcc.gnu.org/onlinedocs/gcc-13.2.0/gnat_rm/Pragma-Export_005fFunction.html) through the use of pragmas to explicitly declare exported symbols, with different pragmas for various types. A similar approach is used for [DllImport](https://gcc.gnu.org/onlinedocs/gcc-13.2.0/gnat_rm/Pragma-Import_005fFunction.html). However, Ada does not provide an intrinsic mechanism for Ada-only libraries to determine the appropriate pragma. While [the creation of bindings](https://docs.adacore.com/gnat_ugn-docs/html/gnat_ugn/gnat_ugn/platform_specific_information.html#using-dlls-with-gnat) in Ada is relatively complex, these seem mostly automatable at the build tool level for Ada projects.
 
 # Glossary
 
@@ -322,7 +300,7 @@ Binary: An executable or shared library.
 
 Object file: An intermediary file that contains compiled code that will be later used by a linker to produce a binary.
 
-Out of binary: A symbol that is not located in the currently compiling binary. If set in DllExport mode and accessed via DllImport, it may be accessed the currently compiling binary at runtime.
+Out of binary: A symbol that is not located in the currently compiling binary. If set in DllExport mode and accessed via DllImport, it may be accessed by the currently compiling binary at runtime.
 
 ## Copyright & License
 Copyright (c) 2024 by the D Language Foundation
@@ -330,4 +308,4 @@ Copyright (c) 2024 by the D Language Foundation
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
 
 ## History
-The DIP Manager will supplement this section with links to forum discsusionss and a summary of the formal assessment.
+The DIP Manager will supplement this section with links to forum discussions and a summary of the formal assessment.
