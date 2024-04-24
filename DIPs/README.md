@@ -3,9 +3,8 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1040](./DIP1043.md)|                            Enum Type Inference| Community Round 1|
+|[1045](./DIP1045.md)|                          Symbol Representation| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
-|[1042](./DIP1042.md)|                                    ProtoObject|  Post-Community 1|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
@@ -18,13 +17,15 @@
 |[1014](./accepted/DIP1014.md)|     Hooking D's struct move semantics| &mdash;      |
 |[1018](./accepted/DIP1018.md)|                  The Copy Constructor| 2.086.0      |
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls| 2.092.0      |
-|[1024](./accepted/DIP1024.md)|                        Shared Atomics|              |
+|[1024](./accepted/DIP1024.md)|                        Shared Atomics| 2.080.1      |
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute|              |
-|[1030](./accepted/DIP1030.md)|                       Named Arguments|              |
-|[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)|              |
-|[1035](./accepted/DIP1035.md)|                   `@system` Variables|              |
+|[1030](./accepted/DIP1030.md)|                       Named Arguments| 2.103.0      |
+|[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)| 2.096.1      |
+|[1035](./accepted/DIP1035.md)|                   `@system` Variables| 2.102.0*     |
 |[1038](./accepted/DIP1038.md)|                              @mustuse|              |
-|[1043](./accepted/DIP1043.md)|               Shortened Method Syntax|              |
+|[1043](./accepted/DIP1043.md)|               Shortened Method Syntax| 2.100.0      |
+
+(* The feature is not enabled by default, but can be enabled by a preview switch.)
 
 ## Rejected DIPs
 |                           ID|                                 Title|
@@ -36,6 +37,7 @@
 |[1017](./rejected/DIP1017.md)|                       Add Bottom Type|
 |[1027](./rejected/DIP1027.md)|                  String Interpolation|
 |[1028](./rejected/DIP1028.md)|                Make @safe the Default|
+|[1044](./rejected/DIP1044.md)|                   Enum Type Inference|
 
 ## Postponed DIPs
 |                           ID|                                 Title|
@@ -72,3 +74,4 @@
 |[1032](./other/DIP1032.md)   |Function Pointer and Delegate Parameters Inherit Attributes from Function|
 |[1036](./other/DIP1036.md)   |   String Interpolation Tuple Literals|
 |[1039](./other/DIP1039.md)   |    Static Arrays with Inferred Length|
+|[1042](./other/DIP1042.md)   |                           ProtoObject|
