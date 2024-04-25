@@ -69,7 +69,18 @@ One could define `opIndex` as follows:
 Today, even if `Tuple` would recognize the compatibility of its types so that dynamic indexing makes sense, it cannot have `opIndex`,
 because any `opIndex` shadows the much more important indexing supplied via `alias elements this`.
 
-Even `SumType` could use `opIndex` to extract the current value: If supplied and interal index match returns the value, otherwise throw an exception.
+Another case where compile-time known indices are valuable is indexing a forward range.
+While it makes sense that forward ranges cannot be run-time indexed, indexing with a compile-time constant is equivalent to:
+1. Copying the range,
+2. iterating the copy the given number of steps, and
+3. returning `front`.
+
+Conceptually, doing this with a run-time value *n* is of O(*n*) complexity, which is why an explicit function call is desirable,
+but for a compile-time constant *n*, it is O(1).
+The number of steps does not depend on anything at run-time.
+Especially when the index is small (`1` or `2`), it is valuable.
+In fact, slicing (with `$` at the end) is the more basic operation:
+`range[n]` should be the same as `range[n .. $].front`.
 
 The implementation of a function template with an `enum` parameter might not depend on the value of that parameter.
 If it does, it is necessary to generate multuple instances of the function differing only by the value of the `enum` parameter,
