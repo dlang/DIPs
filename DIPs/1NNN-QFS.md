@@ -161,11 +161,12 @@ with the only difference that the calling syntax is `obj.method(args)` instead o
 
 In the function body (including contracts and constraints), an `enum` parameter’s value is a compile-time constant as if it were template value parameter.
 The same is true for `this` in an `enum` non-`static` member function body.
-The difference between `enum` parameters and template value parameters is only in calling syntax:
+The main difference between `enum` parameters and template value parameters is only in calling syntax:
 `f!ct_value(args)` versus `f(ct_value, args)`.
+Another difference is that the type of an `enum` parameter can be inferred, while a template value parameter must have its type specified.
 
-The `enum` storage class is incompatible with any other storage classes currently in the language except type constructors.
-Using them together is a compile error.
+Apart from type constructors, the `enum` storage class is incompatible with any other storage classes currently in the language,
+and using them together is a compile error.
 This proposal does not define `enum` to be incompatible with potential future storage classes;
 it just so happens that all the current parameter storage classes have semnatics that do not apply to compile-time constants.
 <!--
