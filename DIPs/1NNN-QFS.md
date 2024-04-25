@@ -99,10 +99,13 @@ Category 2 is solvable as an optimization: A compiler might recognize the lack o
 and not generate instances differing only by values of the parameters of this category.  
 Category 3 is the sad case because it is not clear if the user inteded different instances or not.
 
-¹ DbI is to be understood loosely.
-Here, use of “Design by Introspection” refers to any use that results in a different implementation,
+¹ Here, use of “Design by Introspection” refers to any use that results in a different implementation,
 not counting validity checks (i.e. contracts and asserts) because they produce the same implementation
 unless they fail and produce no implementation at all.
+
+The author propses to treat Category 3 like Category 1.
+However, a future DIP may propose syntax so that programmers can explicitly point out a Category 3 parameter,
+which would lead to errors when the value is used for “Design by Introspection”.
 
 ## Prior Work
 
