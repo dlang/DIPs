@@ -159,11 +159,11 @@ With the changes proposed by this DIP, this is how it’s done:
 (ref int function() @safe) fp = null;
 ```
 Here, `fp` is variable of function pointer type.
-The function returns its result by `ref`.
+The function returns its result by reference.
 Omitting parentheses is an error.
 While at this place, `ref` cannot refer to the variable,
 it is still invalid without clarifying parentheses,
-as it would look like `ref` referred to the return type and not the variable.
+as it would look like `ref` referred to the variable and not the return type.
 It also keeps `ref` variables open for the future.
 Note that, as of writing this, Walter Bright has a `ref` variables proposal draft [here](https://github.com/WalterBright/documents/blob/master/varRef.md).
 
@@ -173,11 +173,16 @@ What if we want to return a function pointer like `fp` by reference from a funct
 ```d
 ref (ref int function() @safe) returnsFP() @safe => fp;
 ```
-The function `returnsFP` returns a function pointer by `ref`.
-The function pointer returns an `int` by `ref`.
+The function `returnsFP` returns a function pointer by reference.
+The function pointer returns an `int` by reference.
 The first `ref` refers to `returnsFP` and signifies that it returns its result by reference.
 The second `ref` (in parentheses) is part of the function pointer type that is,
 the return type of `returnsFP`.
+
+While one might think the parentheses are optional, they are not.
+Without the parentheses around the return type,
+the second `ref` would also be parsed as a second `ref`,
+and the redundant `ref` is an error.
 
 #### Declaring a function that takes a function pointer parameter
 
@@ -185,13 +190,13 @@ What if we want to take a function pointer like `fp` as a parameter passed by re
 ```d
 void takesFP(ref (ref int function() @safe) f) @safe { f() = 3; f = fp; }
 ```
-The function `takesFP` takes a parameter of function pointer type by `ref`.
-The function pointer parameter returns its result by `ref`.
+The function `takesFP` takes a parameter of function pointer type by reference.
+The function pointer parameter returns its result by reference.
 The first `ref` refers to the parameter `f` making it pass-by-reference.
 The second `ref` refers to the type of `f`, a function pointer type, and
 signifies that `f` returns its result by reference.
 
-Here, while one might think the parentheses are optional, they are not.
+While one might think the parentheses are optional, they are not.
 Without the parentheses around the type of `f`,
 the second `ref` would also be parsed as part of the parameter storage classes of `f`,
 and the redundant `ref` is an error.
@@ -199,7 +204,7 @@ and the redundant `ref` is an error.
 ### Corner Cases
 
 Form the outset, in nested function pointer return types,
-it is not clear which of the function pointer types a `ref` should refer to.
+it is not clear to which of the function pointer types a `ref` should refer.
 I.e. given `ref int function() function()`, to which of the folliwing should it be equivalent?
 * ` ref (int function()) function()` or
 * `(ref  int function()) function()` or
@@ -229,11 +234,11 @@ Otherwise, the follwing would change meaning:
 ```d
 void f(const(int)[]);
 ```
-Before, the `const` in the parser parameter list would be tried to be parsed as a storage class,
+In current-day D, the `const` in the parser parameter list would be tried to be parsed as a storage class,
 but that fails because the opening parenthesis cannot be another storage class or a basic type.
 Therefore, the parser backtracks and attempts to parse `const` as part of a basic type, which succeeds.  
-With the grammar change, the failure on the parenthesis doesn’t happen anymore,
-and `(int)` parses as a basic type.
+With the grammar change, the failure on the parenthesis doesn’t happen anymore
+because `(int)` parses as a basic type.
 That would render the parameter type equivalent to `const(int[])`.
 
 That would break a lot of code.
@@ -254,10 +259,12 @@ but in `const(int)[]` it only applies to `int`.
 
 A notable side-effect is that `(const int)` is now a basic type.
 The author expects this to be somewhat controversial.
+Some programmers will prefer the more consistent new style to the old style,
+leading to something like the `const T` vs `T const` style discussions in C++.
 
 ### Drawbacks
 
-A naïve programmer might assume that `const (shared int)*` is equivalent to `(const shared int*)`, but it really is equivalent to `(const shared int)*`.
+A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
 
 ## Breaking Changes and Deprecations
 
