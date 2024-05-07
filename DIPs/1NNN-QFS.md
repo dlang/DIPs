@@ -224,7 +224,7 @@ If it is really intended, separate overloads can achieve the same.
 #### Trait
 
 To effectively test if an `auto enum` parameter is `enum` or not in a particular template instance,
-the `isEnum` new trait is added.
+the new trait `isEnum` is added.
 The expression `__traits(isEnum, symbol)` returns wether
 * the `symbol` refers to a value of an `enum` — or
 * the `symbol` refers to an `enum` parameter.
@@ -233,7 +233,7 @@ Note that for a type `T`, we already have `is(T == enum)` to test if it is an en
 which is a rather distinct question from a value being a compile-time-only constant.
 Still, being a compile-time constant is differnt from being an `enum` value,
 because although all `enum` values are compile-time constants,
-not all compile-time constants are `enum` (e.g. `static immutable` variables),
+not all compile-time constants are `enum` (e.g. `immutable` variables can be compile-time constants as well),
 and thus `__traits(isEnum, symbol)` returns `false` on them.
 
 ### Grammar
