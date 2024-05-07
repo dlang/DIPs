@@ -11,8 +11,8 @@
 
 ## Abstract
 
-The goal of this proposal is that every type construction expressible by D’s type system also has a representation as a sequence of D tokens.
-The type constructs that lack this are function pointer and delegate types that return by reference and/or have a non-trivial linkage.
+The goal of this proposal is that every type expressible by D’s type system also has a representation as a sequence of D tokens.
+The type constructs that lack a representation are function pointer and delegate types that return by reference and/or have a non-default linkage.
 
 ## Contents
 * [Rationale](#rationale)
@@ -53,14 +53,10 @@ Of course, there are type constructors other than `const`,
 but the grammar rule requires one.
 If it didn’t, D would have primary types already.
 
-The difference between a general type and a basic type is easier shown than explained:
-Inutitively, a `BasicType` is something that’s *very much* a type.
-A general type can have leading type constructors and suffixes:
-For example, `const(int*)` is a basic type, while `const int*` is not.
-
 ## Prior Work
 
-This is very much specific to D’s syntax.
+None.
+This DIP addresses specific shortcomings of D’s syntax.
 
 ## Description
 
@@ -89,8 +85,8 @@ Subscript `(opt)` for optional grammar entities is represented by `?` here.
         TraitsExpression
         MixinType
 
-TypeSuffixes:
-    TypeSuffix TypeSuffixes?
+    TypeSuffixes:
+        TypeSuffix TypeSuffixes?
 
     TypeSuffix:
 +       NonCallableSuffix
@@ -153,7 +149,7 @@ It solves everything.
 
 #### Declaring a function pointer variable
 
-In present-day D, one cannot even declare a variable of `ref` returning function pointer type, except using an alias.
+In present-day D, one cannot even spell out a `ref` returning function pointer type, except using an alias.
 With the changes proposed by this DIP, this is how it’s done:
 ```d
 (ref int function() @safe) fp = null;
@@ -161,11 +157,9 @@ With the changes proposed by this DIP, this is how it’s done:
 Here, `fp` is variable of function pointer type.
 The function returns its result by reference.
 Omitting parentheses is an error.
-While at this place, `ref` cannot refer to the variable,
-it is still invalid without clarifying parentheses,
-as it would look like `ref` referred to the variable and not the return type.
-It also keeps `ref` variables open for the future.
-Note that, as of writing this, Walter Bright has a `ref` variables proposal draft [here](https://github.com/WalterBright/documents/blob/master/varRef.md).
+Not allowing `ref` without parentheses not only clarifies intent,
+it keeps `ref` variables open for the future.
+As of writing this, Walter Bright has a proposal draft for `ref` variables [here](https://github.com/WalterBright/documents/blob/master/varRef.md).
 
 #### Declaring a function that returns a function pointer
 
@@ -181,7 +175,7 @@ the return type of `returnsFP`.
 
 While one might think the parentheses are optional, they are not.
 Without the parentheses around the return type,
-the second `ref` would also be parsed as a second `ref`,
+the second `ref` would also be parsed as another storage class attribute to `returnsFP`,
 and the redundant `ref` is an error.
 
 #### Declaring a function that takes a function pointer parameter
@@ -206,13 +200,12 @@ and the redundant `ref` is an error.
 Form the outset, in nested function pointer return types,
 it is not clear to which of the function pointer types a `ref` should refer.
 I.e. given `ref int function() function()`, to which of the folliwing should it be equivalent?
-* ` ref (int function()) function()` or
-* `(ref  int function()) function()` or
-* disallow it.
+* ` ref (int function()) function()`
+* `(ref  int function()) function()`
 
 The author feels that the second option is odd.
 The max munch rule would clearly suggest the first option.
-Disallowing it is harsh.
+Disallowing it is harsh and also non-trivial to implement.
 In the author’s opinion, the syntax is not too misleading to be disallowed,
 but community discussion might bring more insight.
 
@@ -255,12 +248,34 @@ In `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
 but in `const(int)[]` it only applies to `int`.
 
+### Linkage
+
+The discussion about `ref` is much more relevant than that of linkage as pass-by-reference is commonplace,
+whereas linkage is niche in comparison.
+
+However, a function pointer type with non-default linkage
+(depending on context, the default is usually `extern(D)`, but can be `extern(C)` e.g. in `betterC` mode),
+can likewise not be expressed by the grammar.
+
+The proposed grammar rules allow linkage as the first tokens of a function pointer or delegate type.
+Most of the parenthesis rules apply the same, except for parameters:
+```d
+void takesCppFunction(extern(C++) ref int function() fp) { }
+```
+As `extern` is not a parameter storage class, no parentheses are needed.
+Also, if the linkage is followed up by a `ref`,
+it is clear that this `ref` is part of the function pointer type syntax.
+
+> [!NOTE]
+> While the current implementation can parse linkages as part of function pointer and delegate types,
+it does not actually apply them to the type semantically.
+
 ### Side-effects
 
 A notable side-effect is that `(const int)` is now a basic type.
 The author expects this to be somewhat controversial.
 Some programmers will prefer the more consistent new style to the old style,
-leading to something like the `const T` vs `T const` style discussions in C++.
+leading to something like the head-const (`const T`) vs tail-const (`T const`) style discussions in C++.
 
 ### Drawbacks
 
