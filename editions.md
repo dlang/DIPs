@@ -86,6 +86,11 @@ be possible to change the default edition being used with a compiler
 flag such as `-edition=2024`. This would only affect modules that have
 a module declaration but no edition.
 
+Another compiler switch to aid transitioning that this DIP recommends
+is a `-E` switch which would function like `-I` for imports but would
+allow the user to specify what the edition should be for those
+imports.
+
 This DIP proposes that editions can only be officially released,
 i.e. finalised, when druntime and phobos can be transitioned to it.
 
