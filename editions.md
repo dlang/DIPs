@@ -60,18 +60,33 @@ compiler. After giving these changes time to mature, an edition would
 be defined as a set of approved preview flags that have proven
 themselves to be useful.
 
-An edition will be selected with the `-edition` compiler
-switch. Editions will be identified by the year of their release,
-e.g. `-edition=2024`. If no `-edition` flag is passed to the compiler,
-then the most recent edition is used. Although this would mean that
-older code might no longer compile using a new compiler, a simple
-workaround is to explicitly request the first D edition, the version
-before editions are introduced. This would be done by passing
-`-edition=pre` to the compiler. Since most D projects use dub, and to
-make transitioning easier for the users, `dub init` would
-automatically add `edition "2024"` (SDL) or `"edition": "2024"` to the
-package recipe. Recipes with no `edition` key would imply
-`-preview=pre`.
+Editions would be opt-in, which would guarantee that no existing code
+can break unless a programmer explicitly attempts to migrate it to a
+new edition. The mechanism proposed to do so would be when declaring
+a module; this way existing codebases can be migrated one module at
+at time.
+
+This DIP proposes that D modules be able to optionally declare a D
+edition that they target. Existing modules without this optional
+declaration are considered to target the current original edition.
+That is: they will be compiled as if the editions feature did not
+exist.
+
+Modules that opt-in to an edition will be compiled as if the compiler
+had been invoked with the set of preview flags of the edition.
+
+Opting in to an edition is part of the module declaration:
+
+```Grammar
+ModuleDeclaration:
+    ModuleAttributes(opt) module ModuleFullyQualifiedName Edition(opt);
+Edition:
+    Identifier
+```
+
+To aid in transitioning existing code to a new edition, it will
+also be possible to change the edition being used with a compiler
+flags such as `-edition=D2024`.
 
 This DIP proposes that editions can only be officially released,
 i.e. finalised, when druntime and phobos can be transitioned to it.
@@ -196,11 +211,19 @@ Opting in, however, can make the code no longer compile, and that is a
 choice to be made by the programmer in question. It is hoped that tooling
 can be written to aid in this process.
 
+
+## Reference
+
+Optional links to reference material such as existing discussions,
+research papers or any other supplementary materials.
+
+
 ## Copyright & License
 
 Copyright (c) 2024 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+
 
 ## Reviews
 
