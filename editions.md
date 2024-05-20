@@ -60,17 +60,14 @@ compiler. After giving these changes time to mature, an edition would
 be defined as a set of approved preview flags that have proven
 themselves to be useful.
 
-Editions would be opt-in, which would guarantee that no existing code
-can break unless a programmer explicitly attempts to migrate it to a
-new edition. The mechanism proposed to do so would be when declaring
-a module; this way existing codebases can be migrated one module at
-at time.
-
 This DIP proposes that D modules be able to optionally declare a D
 edition that they target. Existing modules without this optional
-declaration are considered to target the current original edition.
-That is: they will be compiled as if the editions feature did not
-exist.
+declaration but that have a module declaration are considered to
+target the current original edition. That is: they will be compiled as
+if the editions feature did not exist. Modules without a module
+declaration would be considered to be using the latest edition unless
+the default edition is specified explicitly with a command line
+argument.
 
 Modules that opt-in to an edition will be compiled as if the compiler
 had been invoked with the set of preview flags of the edition.
@@ -81,12 +78,13 @@ Opting in to an edition is part of the module declaration:
 ModuleDeclaration:
     ModuleAttributes(opt) module ModuleFullyQualifiedName Edition(opt);
 Edition:
-    Identifier
-```
+    DecimalInteger
+    ```
 
-To aid in transitioning existing code to a new edition, it will
-also be possible to change the edition being used with a compiler
-flags such as `-edition=D2024`.
+To aid in transitioning existing code to a new edition, it will also
+be possible to change the default edition being used with a compiler
+flag such as `-edition=2024`. This would only affect modules that have
+a module declaration but no edition.
 
 This DIP proposes that editions can only be officially released,
 i.e. finalised, when druntime and phobos can be transitioned to it.
