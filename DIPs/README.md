@@ -4,6 +4,7 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1045](./DIP1045.md)|                          Symbol Representation| Formal Assessment|
+|[1046](./DIP1046.md)|                  ref For Variable Declarations| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
 ## Accepted DIPs
