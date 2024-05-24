@@ -215,30 +215,29 @@ would be followed up by another `CallableSuffix` – which is expressly not allo
 
 ### Max Munch Exception
 
-Parsing follows the “max munch rule” (with one excpetion that’s not relevant for this DIP):
-If the imaginary parsing cursor can meaningfully parse the next tokens as part of what it tries to parse, it will,
-and only if it can’t will it try to close the current entity and go to the previous level.
+Parsing for the most part follows max munch.
+Max munch is the following general rule:
+> If the imaginary parsing cursor can meaningfully parse the next tokens as part of what it tries to parse, it will,
+> and only if it can’t will it, depending on context, either try to close the current entity and go to the previous level or issue a parse failure.
 
-For backwards compatibility, this DIP proposes to add an exception to max munch:
+For backwards compatibility, this DIP proposes to add another exception to max munch:
 Whenever a type constructor (`TypeCtor` in the grammar) is followed by an opening parenthesis,
 this is considered effectively one token and refers to the `BasicType` rule.
 
-Otherwise, the follwing would change meaning:
+The excpetion is required so that e.g. the follwing declaration keeps the meaning it currently has:
 ```d
 void f(const(int)[]);
 ```
 In current-day D, the `const` in the parser parameter list would be tried to be parsed as a storage class,
-but that fails because the opening parenthesis cannot be another storage class or a basic type.
+but that fails because the opening parenthesis can neither belong to another storage class or a basic type.
 Therefore, the parser backtracks and attempts to parse `const` as part of a basic type, which succeeds.  
 With the grammar change, the failure on the parenthesis doesn’t happen anymore
 because `(int)` parses as a basic type.
 That would render the parameter type equivalent to `const(int[])`.
 
-That would break a lot of code.
-
 Intuitively, however, unless misleading spaces are inserted between the type constructor and the operning parenthesis,
 this exception follows mathematical conventions:
-Normally, mathematicians write “sin 2*k*π”
+Normally, mathematicians write “sin&nbsp;2*k*π”
 with the clear understanding that what the sine function applies to is the whole 2*k*π.
 However, were it written sin(2)*k*π, it is rather clear that the sine function applies only to 2.
 (Notably, WolframAlpha agrees with this notion: [sin 2π](https://www.wolframalpha.com/input/?i=sin+2%CF%80) vs. [sin(2)π](https://www.wolframalpha.com/input/?i=sin%282%29%CF%80))
@@ -246,7 +245,7 @@ However, were it written sin(2)*k*π, it is rather clear that the sine function 
 D’s type constructors will work like that:
 In `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
-but in `const(int)[]` it only applies to `int`.
+but in `const(int)[]`, the `const` only applies to `int`.
 
 ### Linkage
 
@@ -280,6 +279,7 @@ leading to something like the head-const (`const T`) vs tail-const (`T const`) s
 ### Drawbacks
 
 A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
+This is intentional due to the requirement that the changes in syntax be backwards compatible.
 
 ## Breaking Changes and Deprecations
 
