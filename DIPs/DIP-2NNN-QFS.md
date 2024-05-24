@@ -26,36 +26,34 @@ The type constructs that lack a representation are function pointer and delegate
 ## Rationale
 
 Not every type that the compiler can represent internally is expressible using present-day D syntax.
-For example, when `pragma(msg)` or an error messages displays a type,
-the programmer should be able to copy and paste this type and not get parsing errors.
+For example, when `pragma(msg)`, `.stringof`, or an diagnostics display a type,
+the programmer should e.g. be able to copy and paste this type and not get parsing errors.
 (Semantic problems with using the type may exist, such as visibility.)
 
-The primary offender is function pointers and delegates returning by reference.
-To use those, programmers are forced to use separate alias declarations,
-because they support such types by special-casing them.
+The primary offender is function pointers and delegates that return by reference.
+To use those e.g. as function parameter or return types,
+programmers are forced to use a separate alias declaration.
+Notably, alias declarations only support them by special-casing them.
 
-This kind of workaround is not possible in an error message
-and is undesireable at other places.
+Another friction point is an asymmetry between types and expressions:
+For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is for all intents and purposes the same.
+For a type <code>*T*</code>, the token sequence <code>(*T*)</code> in general is not a type.
 
-A separate issue is an asymmetry between types and expressions:
-For an expression `e`, also `(e)` is an expression and is for all intents and purposes the same.
-For a type `t`, the token sequence `(t)` in general is not a type.
-
-For expressions, the grammar rule saying that if `e` is an expression, so is `(e)`,
+For expressions, the grammar rule saying that if <code>*e*</code> is an expression, so is <code>(*e*)</code>,
 is called *primary expression.*
 This DIP proposes the same mechanism for types, therefore the name *primary types.*
 
+While the two issues seem unrelated.
+
 Present-day D almost has primary type syntax:
 There is a grammar rule that says:
-If `t` is a type, so is `const(t)`.
-In fact, `const(t)` is even a *basic type.*
-Of course, there are type constructors other than `const`,
-but the grammar rule requires one.
-If it didn’t, D would have primary types already.
+If <code>*T*</code> denotes a type and <code>*c*</code> is a type constructor, then <code>*c*(*T*)</code> denotes a type.
+In fact, <code>*c*(*T*)</code> is even a *basic type.*
+If in that rule, the type constructor were optional,
+D would have primary types already.
 
 ## Prior Work
 
-None.
 This DIP addresses specific shortcomings of D’s syntax.
 
 ## Description
@@ -66,12 +64,12 @@ Because this DIP is aimed at the grammar only,
 contrary as is usual in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
-Subscript `(opt)` for optional grammar entities is represented by `?` here.
+> [!NOTE]
+> Subscript `(opt)` for optional grammar entities is represented by `?` here.
 ```diff
   Type:
-      TypeCtors? BasicType TypeSuffixes?
-+     ref TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
-+     LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
+        TypeCtors? BasicType TypeSuffixes?
++       ref TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
 
     BasicType:
         FundamentalType
@@ -81,6 +79,7 @@ Subscript `(opt)` for optional grammar entities is represented by `?` here.
         Typeof . QualifiedIdentifier
 -       TypeCtor ( Type )
 +       TypeCtor? ( Type )
++       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
         Vector
         TraitsExpression
         MixinType
@@ -101,23 +100,23 @@ Subscript `(opt)` for optional grammar entities is represented by `?` here.
         [ AssignExpression ]
         [ AssignExpression .. AssignExpression ]
         [ Type ]
-
++
 +   CallableSuffix:
         delegate Parameters MemberFunctionAttributes?
         function Parameters FunctionAttributes?
 ```
 
 * The first two additions add grammar rules so that `ref` and linkage can be part of a function pointer or delegate type.
-  This necessitates that after the `BasicType` that will be the return type of the function pointer or delegate type,
-  the `function` or `delegate` keyword and a parameter list follow.
-  The fuzz about `NonCallableSuffixes` is to emphasize that the `ref` refers to the outermost `function` or `delegate`.
-* The next change makes the type constructor optional in the rule that introduces primary type syntax.
+  This necessitates that after the `BasicType` (which will be the return type of the function pointer or delegate type)
+  indeed the `function` or `delegate` keyword and a parameter list follow.
+  The reason for explicit `NonCallableSuffixes` is to emphasize that the `ref` refers to the outermost `function` or `delegate`.
+* The next change makes the type constructor optional in the rule that now introduces primary type syntax.
 * What remains is mere restructuring so that `NonCallableSuffixes` and `CallableSuffix` are defined.
 
 ### Basic Types and General Types
 
-There are places where a `BasicType` plus `TypeSuffixes?` is required;
-for example, function return types or function parameter types are basic types followed by type suffixes.
+There are places where the grammar requires a basic type plus zero or more type suffixes,
+e.g. in function return types or function parameter types.
 As far as the grammar is concerned, in the following, none of the `const` is part of a basic type:
 ```d
 const int f(const int*);
@@ -127,23 +126,14 @@ and it’s a well-known rookie error to put it in front and misinterpret it as p
 The second `const` is a parameter storage class;
 as far as the grammar is concerned,
 it has nothing to do with the parameter’s type.
-Only the semantics of `const` as a parameter storage class is:
-Wrap it around the whole parameter’s (basic) type.
+Only the semantics of type constructors as a parameter storage classes is:
+Wrap it around the whole parameter’s type.
 This means that the parameter type is equivalent to `const(int*)` and not `const(int)*`,
 another well-known rookie error.
 
 Adding only the linkage and `ref` to the grammar would not help much.
 If we want to use a non-basic type where a basic type is required,
-we need some way to express the same type, but as a basic type.
-
-For parameters and return type/function attributes, there is also a clash with `ref`.
-It indicates the parameter is bound by reference or the funcrion returns by reference,
-and a parameter or return type of function pointer or delegate that returns by reference must be different.
-And it must be clear what is what.
-
-This is why there is the grammar rule that, essentially, says:
-“Put parentheses arount it and you’re good to go.”
-It solves everything.
+we need some way to express the same type, but grammatically as a basic type.
 
 ### Basic Examples
 
@@ -156,8 +146,8 @@ With the changes proposed by this DIP, this is how it’s done:
 ```
 Here, `fp` is variable of function pointer type.
 The function returns its result by reference.
-Omitting parentheses is an error.
-Not allowing `ref` without parentheses not only clarifies intent,
+Omitting parentheses is an error:
+Not allowing `ref` without parentheses here not only clarifies intent,
 it keeps `ref` variables open for the future.
 As of writing this, Walter Bright has a proposal draft for `ref` variables [here](https://github.com/WalterBright/documents/blob/master/varRef.md).
 
@@ -170,10 +160,10 @@ ref (ref int function() @safe) returnsFP() @safe => fp;
 The function `returnsFP` returns a function pointer by reference.
 The function pointer returns an `int` by reference.
 The first `ref` refers to `returnsFP` and signifies that it returns its result by reference.
-The second `ref` (in parentheses) is part of the function pointer type that is,
-the return type of `returnsFP`.
+The second `ref` (inside parentheses) is part of the function pointer type,
+i.e. the return type of `returnsFP`.
 
-While one might think the parentheses are optional, they are not.
+While one might think the parentheses are or should be optional, they are not, and shouldn’t be:
 Without the parentheses around the return type,
 the second `ref` would also be parsed as another storage class attribute to `returnsFP`,
 and the redundant `ref` is an error.
@@ -204,7 +194,7 @@ I.e. given `ref int function() function()`, to which of the folliwing should it 
 * `(ref  int function()) function()`
 
 The author feels that the second option is odd.
-The max munch rule would clearly suggest the first option.
+The spirit of max munch in parsing clearly suggests the first option.
 Disallowing it is harsh and also non-trivial to implement.
 In the author’s opinion, the syntax is not too misleading to be disallowed,
 but community discussion might bring more insight.
@@ -213,16 +203,23 @@ As per the grammar above, it is the first.
 That is because if it were the second, the first `function()`, a `CallableSuffix`,
 would be followed up by another `CallableSuffix` – which is expressly not allowed.
 
+To avoid confusion,
+implementations are encouraged, but not required, to use parentheses around function pointer and delegate types
+that return by reference and/or have non-default linkage.
+
 ### Max Munch Exception
 
 Parsing for the most part follows max munch.
+(On exception is lexing floating point numbers.)
 Max munch is the following general rule:
 > If the imaginary parsing cursor can meaningfully parse the next tokens as part of what it tries to parse, it will,
 > and only if it can’t will it, depending on context, either try to close the current entity and go to the previous level or issue a parse failure.
 
-For backwards compatibility, this DIP proposes to add another exception to max munch:
-Whenever a type constructor (`TypeCtor` in the grammar) is followed by an opening parenthesis,
-this is considered effectively one token and refers to the `BasicType` rule.
+The motto is: What can be parsed, will be parsed.
+
+For backwards compatibility, this DIP proposes to add (an/another) exception to max munch:
+Whenever an opening parenthesis follows a type constructor,
+this is considered effectively one token and refers to the basic type rule.
 
 The excpetion is required so that e.g. the follwing declaration keeps the meaning it currently has:
 ```d
@@ -262,6 +259,7 @@ Most of the parenthesis rules apply the same, except for parameters:
 void takesCppFunction(extern(C++) ref int function() fp) { }
 ```
 As `extern` is not a parameter storage class, no parentheses are needed.
+The `extern` token can only be part of a 
 Also, if the linkage is followed up by a `ref`,
 it is clear that this `ref` is part of the function pointer type syntax.
 
@@ -283,8 +281,8 @@ This is intentional due to the requirement that the changes in syntax be backwar
 
 ## Breaking Changes and Deprecations
 
-For a symbol `s`,
-in present-day D, the token sequence `(s)` only parses as an expression.
+For a symbol <code>*s*</code>,
+in present-day D, the token sequence <code>(*s*)</code> only parses as an expression.
 With the changes proposed by this DIP,
 it also parses as a type,
 which is a meaningful difference in niche constructs such as `__traits(isSame)`.
