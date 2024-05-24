@@ -70,6 +70,7 @@ the grammar changes are given primary focus.
   Type:
         TypeCtors? BasicType TypeSuffixes?
 +       ref TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
++       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
 
     BasicType:
         FundamentalType
@@ -79,7 +80,6 @@ the grammar changes are given primary focus.
         Typeof . QualifiedIdentifier
 -       TypeCtor ( Type )
 +       TypeCtor? ( Type )
-+       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
         Vector
         TraitsExpression
         MixinType
@@ -253,19 +253,28 @@ However, a function pointer type with non-default linkage
 (depending on context, the default is usually `extern(D)`, but can be `extern(C)` e.g. in `betterC` mode),
 can likewise not be expressed by the grammar.
 
-The proposed grammar rules allow linkage as the first tokens of a function pointer or delegate type.
-Most of the parenthesis rules apply the same, except for parameters:
+The proposed grammar rules formally do not allow linkage as the first tokens of a function pointer or delegate type,
+however, the provided implementation allows omitting parentheses for function pointer or delegate types with linkage,
+so that e.g. the first of the two following declarations is accepted and equivalent to the second:
 ```d
-void takesCppFunction(extern(C++) ref int function() fp) { }
+void takesCppFunction( extern(C++) ref int function()  fp) { }
+void takesCppFunction((extern(C++) ref int function()) fp) { }
 ```
-As `extern` is not a parameter storage class, no parentheses are needed.
-The `extern` token can only be part of a 
-Also, if the linkage is followed up by a `ref`,
-it is clear that this `ref` is part of the function pointer type syntax.
+This is because linkage is not a parameter storage class and in all likelihood,
+isn’t ever meaningful as one.
+If the linkage is followed up by a `ref`,
+because linkage starts a type,
+it’s clear that `ref` must be part of the function pointer type syntax,
+and isn’t a parameter storage class.
+
+Whether this “unbureaucratic” handling of linkage in parameters of function pointer or delegate type with explicit linkage is desirable
+should be discussed by the community.
 
 > [!NOTE]
-> While the current implementation can parse linkages as part of function pointer and delegate types,
-it does not actually apply them to the type semantically.
+> While the current implementation can *parse* linkages as part of function pointer and delegate types,
+> it does not semantically apply them to the type yet.
+>
+> Help is needed on this.
 
 ### Side-effects
 
@@ -285,8 +294,8 @@ For a symbol <code>*s*</code>,
 in present-day D, the token sequence <code>(*s*)</code> only parses as an expression.
 With the changes proposed by this DIP,
 it also parses as a type,
-which is a meaningful difference in niche constructs such as `__traits(isSame)`.
-These can be remedied using a cast expression instead of just parentheses.
+which is a meaningful difference in `__traits(isSame)`.
+These can be remedied using a cast instead of (mis-)using parentheses to force parsing as an expression.
 
 ## Copyright & License
 Copyright © 2024 by Quirin F. Schroll
