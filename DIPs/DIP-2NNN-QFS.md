@@ -247,7 +247,7 @@ Max munch is the following general rule:
 > If the parser can meaningfully parse the next tokens as part of what it tries to parse, it will;
 > only if it can’t, depending on context, it either tries to close the current entity and go to the previous level or issue a parse failure.
 
-For backwards compatibility, this DIP proposes to add (an/another) exception to max munch:
+For backwards compatibility, this DIP proposes to add an/another exception to max munch:
 Whenever an opening parenthesis follows a type qualifier,
 this is considered effectively one token and refers to the basic type rule.
 
