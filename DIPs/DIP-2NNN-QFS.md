@@ -220,8 +220,10 @@ and the redundant `ref` is an error.
 Form the outset, in nested function pointer return types,
 it is not clear to which of the function pointer or delegate types a `ref` should refer.
 I.e. given `ref int function() function()`, to which of the folliwing should it be equivalent?
-* ` ref (int function()) function()`
-* `(ref  int function()) function()`
+```d
+ ref (int function()) function() // 1
+(ref  int function()) function() // 2
+```
 
 The author feels that the second option is odd.
 In the current state of the language, the following function declaration is valid:
@@ -235,9 +237,10 @@ A third option would be to disallow it and require the user to insert disambigua
 In the author’s opinion, the syntax is not too misleading to be disallowed,
 but community discussion might bring more insight.
 
-To avoid confusion,
-implementations are encouraged, but not required, to use parentheses around function pointer and delegate types
-that return by reference and/or have non-default linkage.
+> [!NOTE]
+> To avoid confusion,
+> implementations are encouraged, but not required, to use parentheses around function pointer and delegate types
+> that return by reference and/or have non-default linkage.
 
 ### Max Munch Exception
 
