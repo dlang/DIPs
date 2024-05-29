@@ -49,13 +49,14 @@ solving the asymmetry makes solving [Issue 2753](https://issues.dlang.org/show_b
 
 Present-day D almost has primary type syntax:
 There is a grammar rule that says:
-If <code>*T*</code> denotes a type and <code>*c*</code> is a type constructor, then <code>*c*(*T*)</code> denotes a type.
-In fact, <code>*c*(*T*)</code> is even a *basic type.*
-If in that rule, the type constructor were optional,
+If <code>*T*</code> denotes a type and <code>*q*</code> is a type qualifier, then <code>*q*(*T*)</code> denotes a type.
+In fact, <code>*q*(*T*)</code> is even a *basic type.*
+If in that rule, the type qualifier were optional,
 D would have primary types already.
 
 Another related issue is [24007](https://issues.dlang.org/show_bug.cgi?id=24007) *Function/delegate literals cannot specify linkage.*
-It can be solved with a simple addition to the grammar.
+It can be solved with a simple addition to the grammar,
+which is in the same spirit as the primary proposal.
 
 ## Prior Work
 
@@ -69,19 +70,25 @@ Because this DIP is aimed at the grammar only,
 contrary as is usual in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
+The following addresses the function literal syntax.
+
 > [!NOTE]
-> Subscript `opt` for optional grammar entities is represented by `?` here.
+> Optional grammar entities are represented by `?` here.
 ```diff
     FunctionLiteral:
 -       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
 -       delegate RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
 +       function LinkageAttribute? RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
 +       delegate LinkageAttribute? RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
+```
 
+The following addresses the type grammar.
+
+```diff
   Type:
         TypeCtors? BasicType TypeSuffixes?
-+       ref TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
-+       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
++       ref TypeCtors? BasicType TypeSuffixes
++       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes
 
     BasicType:
         FundamentalType
@@ -99,20 +106,11 @@ the grammar changes are given primary focus.
         TypeSuffix TypeSuffixes?
 
     TypeSuffix:
-+       NonCallableSuffix
-+       CallableSuffix
-+
-+   NonCallableSuffixes:
-+       NonCallableSuffix NonCallableSuffixes?
-+
-+   NonCallableSuffix:
         *
         [ ]
         [ AssignExpression ]
         [ AssignExpression .. AssignExpression ]
         [ Type ]
-+
-+   CallableSuffix:
         delegate Parameters MemberFunctionAttributes?
         function Parameters FunctionAttributes?
 ```
@@ -121,8 +119,20 @@ the grammar changes are given primary focus.
   This necessitates that after the `BasicType` (which will be the return type of the function pointer or delegate type)
   indeed the `function` or `delegate` keyword and a parameter list follow.
   The reason for explicit `NonCallableSuffixes` is to emphasize that the `ref` refers to the outermost `function` or `delegate`.
-* The next change makes the type constructor optional in the rule that now introduces primary type syntax.
-* What remains is mere restructuring so that `NonCallableSuffixes` and `CallableSuffix` are defined.
+* The next change makes the type qualifier (`TypeCtor` in the grammar) optional in the rule that now introduces primary type syntax.
+
+To become a well-formed type,
+not only must there be at least one `TypeSuffix` (expressed by a non-optional `TypeSuffixes`) after a `ref` or `LinkageAttribute`,
+(at least) one of those must be a `function` or `delegate` one.
+
+Expressing this in the grammar is possible,
+but makes it much harder to understand.
+
+> [!NOTE]
+> The language specification (on dlang.org) should state explicitly that
+> the `ref` and/or linkage attribute refers to the *last* `function`- or `delegate`-kind `TypeSuffix`.
+> While that follows from the max munch principle that D follows for the most part,
+> it should be pointed out explicitly.
 
 ### Basic Types and General Types
 
@@ -137,7 +147,7 @@ and it’s a well-known rookie error to put it in front and misinterpret it as p
 The second `const` is a parameter storage class;
 as far as the grammar is concerned,
 it has nothing to do with the parameter’s type.
-Only the semantics of type constructors as a parameter storage classes is:
+Only the semantics of type qualifiers as a parameter storage classes is:
 Wrap it around the whole parameter’s type.
 This means that the parameter type is equivalent to `const(int*)` and not `const(int)*`,
 another well-known rookie error.
@@ -199,20 +209,22 @@ and the redundant `ref` is an error.
 ### Corner Cases
 
 Form the outset, in nested function pointer return types,
-it is not clear to which of the function pointer types a `ref` should refer.
+it is not clear to which of the function pointer or delegate types a `ref` should refer.
 I.e. given `ref int function() function()`, to which of the folliwing should it be equivalent?
 * ` ref (int function()) function()`
 * `(ref  int function()) function()`
 
 The author feels that the second option is odd.
-The spirit of max munch in parsing clearly suggests the first option.
-Disallowing it is harsh and also non-trivial to implement.
+In the current state of the language, the following function declaration is valid:
+```d
+ref int function() f();
+```
+There, `ref` does not refer to the function pointer
+(and changing that would breaking code and serve no purpose).
+
+A third option would be to disallow it and require the user to insert disambiguating parentheses.
 In the author’s opinion, the syntax is not too misleading to be disallowed,
 but community discussion might bring more insight.
-
-As per the grammar above, it is the first.
-That is because if it were the second, the first `function()`, a `CallableSuffix`,
-would be followed up by another `CallableSuffix` – which is expressly not allowed.
 
 To avoid confusion,
 implementations are encouraged, but not required, to use parentheses around function pointer and delegate types
@@ -229,7 +241,7 @@ Max munch is the following general rule:
 The motto is: What can be parsed, will be parsed.
 
 For backwards compatibility, this DIP proposes to add (an/another) exception to max munch:
-Whenever an opening parenthesis follows a type constructor,
+Whenever an opening parenthesis follows a type qualifier,
 this is considered effectively one token and refers to the basic type rule.
 
 The excpetion is required so that e.g. the follwing declaration keeps the meaning it currently has:
@@ -243,14 +255,14 @@ With the grammar change, the failure on the parenthesis doesn’t happen anymore
 because `(int)` parses as a basic type.
 That would render the parameter type equivalent to `const(int[])`.
 
-Intuitively, however, unless misleading spaces are inserted between the type constructor and the operning parenthesis,
+Intuitively, however, unless misleading spaces are inserted between the type qualifier and the operning parenthesis,
 this exception follows mathematical conventions:
 Normally, mathematicians write “sin&nbsp;2*k*π”
 with the clear understanding that what the sine function applies to is the whole 2*k*π.
 However, were it written sin(2)*k*π, it is rather clear that the sine function applies only to 2.
 (Notably, WolframAlpha agrees with this notion: [sin 2π](https://www.wolframalpha.com/input/?i=sin+2%CF%80) vs. [sin(2)π](https://www.wolframalpha.com/input/?i=sin%282%29%CF%80))
 
-D’s type constructors will work like that:
+D’s type qualifiers will work like that:
 In `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
 but in `const(int)[]`, the `const` only applies to `int`.
