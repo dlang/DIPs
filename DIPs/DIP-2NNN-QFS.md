@@ -19,10 +19,18 @@ The type constructs that lack a representation are function pointer and delegate
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
 * [Description](#description)
+    * [Grammar Changes](#grammar-changes)
+    * [Basic Types and General Types](#basic-types-and-general-types)
+    * [Basic Examples](#basic-examples)
+    * [Corner Cases](#corner-cases)
+    * [Max Munch Exception](#max-munch-exception)
+    * [Alternative Preserving Max Munch](#alternative-preserving-max-munch)
+    * [Linkage](#linkage)
+    * [Side-effects](#side-effects)
+    * [Drawbacks](#drawbacks)
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
-* [Reference](#reference)
 * [Copyright & License](#copyright--license)
-* [Reviews](#reviews)
+* [Reviews](#history)
 
 ## Rationale
 
@@ -70,10 +78,11 @@ Because this DIP is aimed at the grammar only,
 contrary as is usual in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
-The following addresses the function literal syntax.
+The following addresses the [function literal](https://dlang.org/spec/expression.html#FunctionLiteral) syntax.
 
 > [!NOTE]
 > Optional grammar entities are represented by `?` here.
+
 ```diff
     FunctionLiteral:
 -       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
@@ -82,10 +91,10 @@ The following addresses the function literal syntax.
 +       delegate LinkageAttribute? RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
 ```
 
-The following addresses the type grammar.
+The following addresses the [type grammar](https://dlang.org/spec/type.html#Type).
 
 ```diff
-  Type:
+    Type:
         TypeCtors? BasicType TypeSuffixes?
 +       ref TypeCtors? BasicType TypeSuffixes
 +       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes
@@ -130,7 +139,7 @@ but makes it much harder to understand.
 
 > [!NOTE]
 > The language specification (on dlang.org) should state explicitly that
-> the `ref` and/or linkage attribute refers to the *last* `function`- or `delegate`-kind `TypeSuffix`.
+> the `ref` and/or linkage attribute refers to the *last* `TypeSuffix` starting with `function` or `delegate`.
 > While that follows from the max munch principle that D follows for the most part,
 > it should be pointed out explicitly.
 
@@ -232,13 +241,11 @@ that return by reference and/or have non-default linkage.
 
 ### Max Munch Exception
 
-Parsing for the most part follows max munch.
-(On exception is lexing floating point numbers.)
+Lexing and parsing, for the most part, follow the max munch pinciple.
+(The only exception the author is aware of is lexing floating point numbers.)
 Max munch is the following general rule:
-> If the imaginary parsing cursor can meaningfully parse the next tokens as part of what it tries to parse, it will,
-> and only if it can’t will it, depending on context, either try to close the current entity and go to the previous level or issue a parse failure.
-
-The motto is: What can be parsed, will be parsed.
+> If the parser can meaningfully parse the next tokens as part of what it tries to parse, it will;
+> only if it can’t, depending on context, it either tries to close the current entity and go to the previous level or issue a parse failure.
 
 For backwards compatibility, this DIP proposes to add (an/another) exception to max munch:
 Whenever an opening parenthesis follows a type qualifier,
@@ -266,6 +273,26 @@ D’s type qualifiers will work like that:
 In `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
 but in `const(int)[]`, the `const` only applies to `int`.
+
+### Alternative Preserving Max Munch
+
+There is a proposal to deprecate and remove the currently existing exception regarding floating-point number literals,
+so that parsing is truly max munch.
+Adding a different exception to max munch is undesireable.
+
+To avoid the aforementioned exception to max munch,
+an option would be, for every type qualifier <code>*q*</code>,
+to make <code>*q*(</code> a separate token.
+
+One consequence would be that the aforementioned misleading space becomes meaningful instead:
+In this alternative, `const (int)` and `const(int)` would be parsed differently,
+and, depending on context, can make an entity have a different type.
+
+The viability of this alternative depends on how prevalent the misleading space is in current code.
+
+The author believes that the exception to the max munch principle is not inherently a flaw,
+but a necessary rule to keep the change backwards compatible.
+The rationale for deprecating the max munch exception 
 
 ### Linkage
 
