@@ -324,7 +324,7 @@ However, a function pointer type with non-default linkage
 can likewise not be expressed by the grammar,
 and contrary to `ref` return, cannot even be specified for a literal.
 
-> [!NOTE]
+> [!WARNING]
 > While the current implementation can *parse* linkages as part of function pointer and delegate types,
 > it does not semantically apply them to the type yet.
 >
