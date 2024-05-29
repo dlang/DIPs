@@ -255,22 +255,22 @@ The excpetion is required so that e.g. the follwing declaration keeps the meanin
 ```d
 void f(const(int)[]);
 ```
-In current-day D, the `const` in the parser parameter list would be tried to be parsed as a storage class,
+In current-day D, the `const` in the parameter list would be first parsed as a storage class,
 but that fails because the opening parenthesis can neither belong to another storage class or a basic type.
-Therefore, the parser backtracks and attempts to parse `const` as part of a basic type, which succeeds.  
-With the grammar change, the failure on the parenthesis doesn’t happen anymore
-because `(int)` parses as a basic type.
-That would render the parameter type equivalent to `const(int[])`.
+Therefore, the parser backtracks and succeeds to parse `const` as part of a basic type.
+With the proposed grammar changes, the failure on the opening parenthesis doesn’t happen anymore
+because `(int)` denotes a basic type.
+In total, that would render the parameter type equivalent to `const(int[])`.
 
-Intuitively, however, unless misleading spaces are inserted between the type qualifier and the operning parenthesis,
-this exception follows mathematical conventions:
+However, unless misleading spaces are inserted between the type qualifier and the operning parenthesis,
+this exception follows mathematical conventions and programmers’ intuition:
 Normally, mathematicians write “sin&nbsp;2*k*π”
-with the clear understanding that what the sine function applies to is the whole 2*k*π.
-However, were it written sin(2)*k*π, it is rather clear that the sine function applies only to 2.
-(Notably, WolframAlpha agrees with this notion: [sin 2π](https://www.wolframalpha.com/input/?i=sin+2%CF%80) vs. [sin(2)π](https://www.wolframalpha.com/input/?i=sin%282%29%CF%80))
+with the clear understanding that the sine function applies to the whole 2*k*π.
+However, were it written sin(2)*k*π, it is clear that the sine function applies only to 2.
+(Notably, WolframAlpha agrees with this notion: [sin 2π](https://www.wolframalpha.com/input/?i=sin+2%CF%80) vs. [sin(2)π](https://www.wolframalpha.com/input/?i=sin%282%29%CF%80).)
 
 D’s type qualifiers will work like that:
-In `const int[]`, the `const` applies to everything that comes after it,
+In a type denoted as `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
 but in `const(int)[]`, the `const` only applies to `int`.
 
@@ -278,15 +278,17 @@ but in `const(int)[]`, the `const` only applies to `int`.
 
 There is a proposal to deprecate and remove the currently existing exception regarding floating-point number literals,
 so that parsing is truly max munch.
-In this spirit, adding a different exception to max munch might be undesireable.
+In this spirit, adding a different exception to max munch might seem undesireable.
 
 To avoid the aforementioned exception to max munch,
 an option would be, for every type qualifier <code>*q*</code>,
-to make <code>*q*(</code> a single token which nests with closing <code>)</code>,
-but distinct from a <code>*q*</code> followed by an opening parenthesis with some kind of token separation.
+to make <code>*q*(</code> a single token not conceptually, but *formally.*
+It nests with closing <code>)</code>,
+but is distinct from a <code>*q*</code> followed by an opening parenthesis
+with some kind of token separation between them.
 
 One consequence would be that the aforementioned misleading space becomes meaningful instead:
-In this alternative, `const (int)` and `const(int)` would be parsed differently,
+With this alternative, `const (int)` and `const(int)` would be parsed differently,
 and, depending on context, can make an entity have a different type.
 
 The viability of this alternative depends on how prevalent the misleading space is in current code.
@@ -306,7 +308,7 @@ It either must look forward one character and “see” the opening parenthesis,
 or implement `const(` as a single token,
 which in case of a *simple* syntax highlighter cannot be styled heterogeneously, i.e. the `const` part differently from the parenthesis.
 
-In total, the argument for changing the language removing one max munch exception
+In total, the argument for changing the language removing the max munch exception on floating-point literals
 directly leads to an exception in this case.
 
 ### Linkage
