@@ -15,6 +15,7 @@ The goal of this proposal is that every type expressible by D’s type system al
 The type constructs that lack a representation are function pointer and delegate types that return by reference and/or have a non-default linkage.
 
 ## Contents
+
 * [Rationale](#rationale)
 * [Prior Work](#prior-work)
 * [Description](#description)
@@ -43,7 +44,8 @@ For expressions, the grammar rule saying that if <code>*e*</code> is an expressi
 is called *primary expression.*
 This DIP proposes the same mechanism for types, therefore the name *primary types.*
 
-While the two issues seem unrelated.
+While they seem unrelated,
+solving the asymmetry makes solving [Issue 2753](https://issues.dlang.org/show_bug.cgi?id=2753) *Cannot declare pointer to function returning `ref`* considerably easier.
 
 Present-day D almost has primary type syntax:
 There is a grammar rule that says:
@@ -51,6 +53,9 @@ If <code>*T*</code> denotes a type and <code>*c*</code> is a type constructor, t
 In fact, <code>*c*(*T*)</code> is even a *basic type.*
 If in that rule, the type constructor were optional,
 D would have primary types already.
+
+Another related issue is [24007](https://issues.dlang.org/show_bug.cgi?id=24007) *Function/delegate literals cannot specify linkage.*
+It can be solved with a simple addition to the grammar.
 
 ## Prior Work
 
@@ -65,8 +70,14 @@ contrary as is usual in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
 > [!NOTE]
-> Subscript `(opt)` for optional grammar entities is represented by `?` here.
+> Subscript `opt` for optional grammar entities is represented by `?` here.
 ```diff
+    FunctionLiteral:
+-       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
+-       delegate RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
++       function LinkageAttribute? RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
++       delegate LinkageAttribute? RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
+
   Type:
         TypeCtors? BasicType TypeSuffixes?
 +       ref TypeCtors? BasicType TypeSuffixes? CallableSuffix NonCallableSuffixes?
@@ -251,7 +262,16 @@ whereas linkage is niche in comparison.
 
 However, a function pointer type with non-default linkage
 (depending on context, the default is usually `extern(D)`, but can be `extern(C)` e.g. in `betterC` mode),
-can likewise not be expressed by the grammar.
+can likewise not be expressed by the grammar,
+and contrary to `ref` return, cannot even be specified for a literal.
+
+> [!NOTE]
+> While the current implementation can *parse* linkages as part of function pointer and delegate types,
+> it does not semantically apply them to the type yet.
+>
+> The function pointer and delegate literal syntax with `LinkageAttribute` aren’t currently implemented yet.
+>
+> Help is needed on this.
 
 The proposed grammar rules formally do not allow linkage as the first tokens of a function pointer or delegate type,
 however, the provided implementation allows omitting parentheses for function pointer or delegate types with linkage,
@@ -269,12 +289,6 @@ and isn’t a parameter storage class.
 
 Whether this “unbureaucratic” handling of linkage in parameters of function pointer or delegate type with explicit linkage is desirable
 should be discussed by the community.
-
-> [!NOTE]
-> While the current implementation can *parse* linkages as part of function pointer and delegate types,
-> it does not semantically apply them to the type yet.
->
-> Help is needed on this.
 
 ### Side-effects
 
