@@ -79,7 +79,7 @@ ModuleDeclaration:
     ModuleAttributes(opt) module ModuleFullyQualifiedName Edition(opt);
 Edition:
     DecimalInteger
-    ```
+```
 
 To aid in transitioning existing code to a new edition, it will also
 be possible to change the default edition being used with a compiler
