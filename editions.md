@@ -100,7 +100,8 @@ Templates would obey the rules of the edition of the module they are
 defined in, not the module where they are instantiated. The
 compatibility is meant at the source code level; no promises of ABI
 compatibility are made. All code, old and new, must be compiled with
-the same version of the compiler.
+the same version of the compiler. Only one version will be supplied of
+druntime which must support all existing editions.
 
 What could editions do?
 
