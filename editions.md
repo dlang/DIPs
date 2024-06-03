@@ -89,7 +89,11 @@ a module declaration but no edition.
 Another compiler switch to aid transitioning that this DIP recommends
 is a `-E` switch which would function like `-I` for imports but would
 allow the user to specify what the edition should be for those
-imports.
+imports. An example:
+
+```
+dmd -E2024/path/to/imported/modules
+```
 
 This DIP proposes that editions can only be officially released,
 i.e. finalised, when druntime and phobos can be transitioned to it.
