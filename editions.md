@@ -96,8 +96,11 @@ i.e. finalised, when druntime and phobos can be transitioned to it.
 
 The feature is meant to be backwards and forwards compatible: D
 modules of different editions should be able to import each other.
-Templates would obey the rules of the edition of the module they
-are defined in, not the module where they are instantiated.
+Templates would obey the rules of the edition of the module they are
+defined in, not the module where they are instantiated. The
+compatibility is meant at the source code level; no promises of ABI
+compatibility are made. All code, old and new, must be compiled with
+the same version of the compiler.
 
 What could editions do?
 
