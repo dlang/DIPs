@@ -100,6 +100,8 @@ or `@gc` (this DIP).
 
 Code that uses `@gc` as a user-defined attribute potentially breaks.
 However, such breakage is unlikely because the addition of `@gc` as the opposite of `@nogc` is likely anticipated.
+In the unlikely scenario where code breaks,
+renaming `gc` to `gc_` as is customary with other keywords fixes the issue.
 
 ## Copyright & License
 Copyright © 2024 by Quirin F. Schroll
