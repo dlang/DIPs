@@ -279,7 +279,7 @@ but in `const(int)[]`, the `const` only applies to `int`.
 
 ### Alternative Preserving Max Munch
 
-There is a proposal to deprecate and remove the currently existing exception regarding floating-point number literals,
+There is a [proposal](https://github.com/dlang/DIPs/pull/233) to deprecate and remove the currently existing exception regarding floating-point number literals,
 so that parsing is truly max munch.
 In this spirit, adding a different exception to max munch might seem undesireable.
 
