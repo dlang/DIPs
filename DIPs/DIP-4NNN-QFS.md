@@ -99,7 +99,7 @@ or `@gc` (this DIP).
 ## Breaking Changes and Deprecations
 
 Code that uses `@gc` as a user-defined attribute potentially breaks.
-However, such breakage is unlikely the addition of `@gc` as the opposite of `@nogc` is likely anticipated.
+However, such breakage is unlikely because the addition of `@gc` as the opposite of `@nogc` is likely anticipated.
 
 ## Copyright & License
 Copyright © 2024 by Quirin F. Schroll
