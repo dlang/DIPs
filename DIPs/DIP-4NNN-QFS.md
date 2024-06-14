@@ -3,7 +3,7 @@
 | Field           | Value                                                           |
 |-----------------|-----------------------------------------------------------------|
 | DIP:            | (number/id -- assigned by DIP Manager)                          |
-| Author:         | (your name and contact email address)                           |
+| Author:         | Quirin F. Schroll ([@Bolpat](github.com/Bolpat))                |
 | Implementation: | (links to implementation PR if any)                             |
 | Status:         | Draft                                                           |
 
