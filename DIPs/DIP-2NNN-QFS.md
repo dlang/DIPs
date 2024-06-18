@@ -35,7 +35,7 @@ The type constructs that lack a representation are function pointer and delegate
 ## Rationale
 
 Not every type that the compiler can represent internally is expressible using present-day D syntax.
-For example, when `pragma(msg)`, `.stringof`, or an diagnostics display a type,
+For example, when `pragma(msg)`, `.stringof`, or diagnostics display a type,
 the programmer should e.g. be able to copy and paste this type and not get parsing errors.
 (Semantic problems with using the type may exist, such as visibility.)
 
