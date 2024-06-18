@@ -11,8 +11,10 @@
 
 ## Abstract
 
-The goal of this proposal is that every type expressible by D’s type system also has a representation as a sequence of D tokens.
-The type constructs that lack a representation are function pointer and delegate types that return by reference and/or have a non-default linkage.
+The objective of this proposal is to ensure that every type,
+which can be expressed within the D programming language’s type system,
+has a corresponding representation as a sequence of D tokens.
+Currently, the type constructs that lack such a representation are function pointer types and delegate types that return by reference or possess non-default linkage.
 
 ## Contents
 
@@ -34,35 +36,35 @@ The type constructs that lack a representation are function pointer and delegate
 
 ## Rationale
 
-Not every type that the compiler can represent internally is expressible using present-day D syntax.
-For example, when `pragma(msg)`, `.stringof`, or diagnostics display a type,
-the programmer should e.g. be able to copy and paste this type and not get parsing errors.
-(Semantic problems with using the type may exist, such as visibility.)
+Not every type that the compiler can represent internally is expressible using exisiting D syntax.
+For instance, when `pragma(msg)`, `.stringof`, or diagnostics display a type,
+the programmer should be able to copy and paste this type and not get parsing errors.
+(Semantic problems with using aggregate types may still arise due to visibility.)
 
-The primary offender is function pointers and delegates that return by reference.
-To use those e.g. as function parameter or return types,
-programmers are forced to use a separate alias declaration.
-Notably, alias declarations only support them by special-casing them.
+The main culprits are function pointers and delegates that return by reference.
+To use those as function parameter or return types,
+programmers are compelled to use a separate alias declaration.
+Alias declarations only support them by special-casing them.
 
-Another friction point is an asymmetry between types and expressions:
-For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is for all intents and purposes the same.
-For a type <code>*T*</code>, the token sequence <code>(*T*)</code> in general is not a type.
+Another point of contention is an asymmetry between types and expressions:
+For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is functionally identical,
+but for a type <code>*T*</code>, the token sequence <code>(*T*)</code> does not denote a type.
 
 For expressions, the grammar rule saying that if <code>*e*</code> is an expression, so is <code>(*e*)</code>,
-is called *primary expression.*
-This DIP proposes the same mechanism for types, therefore the name *primary types.*
+is referred to as *primary expression.*
+This DIP proposes the same mechanism for types, hence the term *primary types.*
 
-While they seem unrelated,
-solving the asymmetry makes solving [Issue 2753](https://issues.dlang.org/show_bug.cgi?id=2753) *Cannot declare pointer to function returning `ref`* considerably easier.
+While these issues may seem unrelated, resolving the asymmetry significantly simplifies the resolution of
+[Issue 2753](https://issues.dlang.org/show_bug.cgi?id=2753) *(Cannot declare pointer to function returning `ref`).*
 
-Present-day D almost has primary type syntax:
-There is a grammar rule that says:
+The current D syntax almost supports primary type syntax:
+There exists a grammar rule that says:
 If <code>*T*</code> denotes a type and <code>*q*</code> is a type qualifier, then <code>*q*(*T*)</code> denotes a type.
 In fact, <code>*q*(*T*)</code> is even a *basic type.*
-If in that rule, the type qualifier were optional,
-D would have primary types already.
+If the type qualifier in this rule were optional,
+D would already support primary types.
 
-Another related issue is [24007](https://issues.dlang.org/show_bug.cgi?id=24007) *Function/delegate literals cannot specify linkage.*
+Another related issue is [24007](https://issues.dlang.org/show_bug.cgi?id=24007) *(Function/delegate literals cannot specify linkage).*
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
@@ -124,24 +126,25 @@ The following addresses the [type grammar](https://dlang.org/spec/type.html#Type
         function Parameters FunctionAttributes?
 ```
 
-* The first two additions add grammar rules so that `ref` and linkage can be part of a function pointer or delegate type.
-  This necessitates that after the `BasicType` (which will be the return type of the function pointer or delegate type)
-  indeed the `function` or `delegate` keyword and a parameter list follow.
-  The reason for explicit `NonCallableSuffixes` is to emphasize that the `ref` refers to the outermost `function` or `delegate`.
+* The first two additions introduce grammar rules that allow `ref` and linkage to be part of a function pointer or delegate type.
 * The next change makes the type qualifier (`TypeCtor` in the grammar) optional in the rule that now introduces primary type syntax.
 
 To become a well-formed type,
-not only must there be at least one `TypeSuffix` (expressed by a non-optional `TypeSuffixes`) after a `ref` or `LinkageAttribute`,
-(at least) one of those must be a `function` or `delegate` one.
-
+after a `ref` or `LinkageAttribute`,
+exactly one of the `TypeSuffixes` must be a `function` or `delegate` one.
 Expressing this in the grammar is possible,
 but makes it much harder to understand.
 
 > [!NOTE]
-> The language specification (on dlang.org) should state explicitly that
-> the `ref` and/or linkage attribute refers to the *last* `TypeSuffix` starting with `function` or `delegate`.
-> While that follows from the max munch principle that D follows for the most part,
-> it should be pointed out explicitly.
+> Implementations are encouraged, but not required,
+> to offer all possible ways add clarifying parentheses.
+> For example:
+> ```
+> Error: `ref` is ambiguous in `ref int function() function() function()`. Use clarifying parentheses:
+>        either `(ref int function()) function() function()`
+>        or     `(ref (int function()) function()) function()`
+>        or     `(ref (int function() function()) function()`
+> ```
 
 ### Basic Types and General Types
 
@@ -215,33 +218,6 @@ Without the parentheses around the type of `f`,
 the second `ref` would also be parsed as part of the parameter storage classes of `f`,
 and the redundant `ref` is an error.
 
-### Corner Cases
-
-Form the outset, in nested function pointer return types,
-it is not clear to which of the function pointer or delegate types a `ref` should refer.
-I.e. given `ref int function() function()`, to which of the folliwing should it be equivalent?
-```d
- ref (int function()) function() // 1
-(ref  int function()) function() // 2
-```
-
-The author feels that the second option is odd.
-In the current state of the language, the following function declaration is valid:
-```d
-ref int function() f();
-```
-There, `ref` does not refer to the function pointer
-(and changing that would breaking code and serve no purpose).
-
-A third option would be to disallow it and require the user to insert disambiguating parentheses.
-In the author’s opinion, the syntax is not too misleading to be disallowed,
-but community discussion might bring more insight.
-
-> [!NOTE]
-> To avoid confusion,
-> implementations are encouraged, but not required, to use parentheses around function pointer and delegate types
-> that return by reference and/or have non-default linkage.
-
 ### Max Munch Exception
 
 Lexing and parsing, for the most part, follow the max munch pinciple.
@@ -295,6 +271,7 @@ With this alternative, `const (int)` and `const(int)` would be parsed differentl
 and, depending on context, can make an entity have a different type.
 
 The viability of this alternative depends on how prevalent the misleading space is in current code.
+The author hopes that community discussion will reveal that.
 
 The author believes that the exception to the max munch principle is not inherently bad,
 but a necessary rule to keep the change backwards compatible.
