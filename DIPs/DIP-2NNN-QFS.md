@@ -6,7 +6,7 @@
 | DIP:            | (number/id -- assigned by DIP Manager)                  |
 | Review Count:   | 0 (edited by DIP Manager)                               |
 | Author:         | Quirin F. Schroll ([@Bolpat](github.com/Bolpat))        |
-| Implementation: | [dlang.org PR 3616](https://github.com/dlang/dlang.org/pull/3616) • [DMD PR 15269](https://github.com/dlang/dmd/pull/15269) |
+| Implementation: | [dlang.org PR 3616][spec-pr] • [DMD PR 15269](impl-pr)  |
 | Status:         | Draft                                                   |
 
 ## Abstract
@@ -55,7 +55,7 @@ is referred to as *primary expression.*
 This DIP proposes the same mechanism for types, hence the term *primary types.*
 
 While these issues may seem unrelated, resolving the asymmetry significantly simplifies the resolution of
-[Issue 2753](https://issues.dlang.org/show_bug.cgi?id=2753) *(Cannot declare pointer to function returning `ref`).*
+[Issue 2753][issue-2753] *(Cannot declare pointer to function returning `ref`).*
 
 The current D syntax almost supports primary type syntax:
 There exists a grammar rule that says:
@@ -64,7 +64,7 @@ In fact, <code>*q*(*T*)</code> is even a *basic type.*
 If the type qualifier in this rule were optional,
 D would already support primary types.
 
-Another related issue is [24007](https://issues.dlang.org/show_bug.cgi?id=24007) *(Function/delegate literals cannot specify linkage).*
+Another related issue is [24007][issue-24007] *(Function/delegate literals cannot specify linkage).*
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
@@ -182,7 +182,7 @@ The function returns its result by reference.
 Omitting parentheses is an error:
 Not allowing `ref` without parentheses here not only clarifies intent,
 it keeps `ref` variables open for the future.
-As of writing this, Walter Bright has a proposal draft for `ref` variables [here](https://github.com/WalterBright/documents/blob/master/varRef.md).
+As of writing this, Walter Bright has a proposal draft for `ref` variables [here][ref-var-draft].
 
 #### Declaring a function that returns a function pointer
 
@@ -246,7 +246,7 @@ this exception follows mathematical conventions and programmers’ intuition:
 Normally, mathematicians write “sin&nbsp;2*k*π”
 with the clear understanding that the sine function applies to the whole 2*k*π.
 However, were it written sin(2)*k*π, it is clear that the sine function applies only to 2.
-(Notably, WolframAlpha agrees with this notion: [sin 2π](https://www.wolframalpha.com/input/?i=sin+2%CF%80) vs. [sin(2)π](https://www.wolframalpha.com/input/?i=sin%282%29%CF%80).)
+(Notably, WolframAlpha agrees with this notion: [sin 2π][sin-2pi] vs. [sin(2)π][sin-2-pi].)
 
 D’s type qualifiers will work like that:
 In a type denoted as `const int[]`, the `const` applies to everything that comes after it,
@@ -255,7 +255,7 @@ but in `const(int)[]`, the `const` only applies to `int`.
 
 ### Alternative Preserving Max Munch
 
-There is a [proposal](https://github.com/dlang/DIPs/pull/233) to deprecate and remove the currently existing exception regarding floating-point number literals,
+There is a [proposal][deprecate-trailing-dot] to deprecate and remove the currently existing exception regarding floating-point number literals,
 so that parsing is truly max munch.
 In this spirit, adding a different exception to max munch might seem undesireable.
 
@@ -350,7 +350,22 @@ These can be remedied using a cast instead of (mis-)using parentheses to force p
 ## Copyright & License
 Copyright © 2024 by Quirin F. Schroll
 
-Licensed under [Creative Commons Zero 1.0](https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt)
+Licensed under [Creative Commons Zero 1.0][cc-0]
 
 ## History
 The DIP Manager will supplement this section with links to forum discsusionss and a summary of the formal assessment.
+
+
+[spec-pr]: https://github.com/dlang/dlang.org/pull/3616
+[impl-pr]: https://github.com/dlang/dmd/pull/15269
+
+[issue-2753]: https://issues.dlang.org/show_bug.cgi?id=2753
+[issue-24007]: https://issues.dlang.org/show_bug.cgi?id=24007
+
+[ref-var-draft]: https://github.com/WalterBright/documents/blob/master/varRef.md
+[deprecate-trailing-dot]: https://github.com/dlang/DIPs/pull/233
+
+[sin-2pi]: https://www.wolframalpha.com/input/?i=sin+2%CF%80
+[sin-2-pi]: https://www.wolframalpha.com/input/?i=sin%282%29%CF%80
+
+[cc-0]: https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt
