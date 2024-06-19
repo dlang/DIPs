@@ -22,7 +22,6 @@ Currently, the type constructs that lack such a representation are function poin
 * [Prior Work](#prior-work)
 * [Description](#description)
     * [Grammar Changes](#grammar-changes)
-    * [Basic Types and General Types](#basic-types-and-general-types)
     * [Basic Examples](#basic-examples)
     * [Corner Cases](#corner-cases)
     * [Max Munch Exception](#max-munch-exception)
@@ -145,28 +144,6 @@ but makes it much harder to understand.
 >        or     `(ref (int function()) function()) function()`
 >        or     `(ref (int function() function()) function()`
 > ```
-
-### Basic Types and General Types
-
-There are places where the grammar requires a basic type plus zero or more type suffixes,
-e.g. in function return types or function parameter types.
-As far as the grammar is concerned, in the following, none of the `const` is part of a basic type:
-```d
-const int f(const int*);
-```
-The first `const` isn’t even affecting the return type – it’s a member function attribute and affects the implicit `this` parameter,
-and it’s a well-known rookie error to put it in front and misinterpret it as part of the return type.  
-The second `const` is a parameter storage class;
-as far as the grammar is concerned,
-it has nothing to do with the parameter’s type.
-Only the semantics of type qualifiers as a parameter storage classes is:
-Wrap it around the whole parameter’s type.
-This means that the parameter type is equivalent to `const(int*)` and not `const(int)*`,
-another well-known rookie error.
-
-Adding only the linkage and `ref` to the grammar would not help much.
-If we want to use a non-basic type where a basic type is required,
-we need some way to express the same type, but grammatically as a basic type.
 
 ### Basic Examples
 
