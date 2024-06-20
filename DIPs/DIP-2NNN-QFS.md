@@ -139,11 +139,13 @@ but makes it much harder to understand.
 > to offer all possible ways add clarifying parentheses.
 > For example:
 > ```
-> Error: `ref` is ambiguous in `ref int function() function() function()`. Use clarifying parentheses:
->        either `(ref int function()) function() function()`
->        or     `(ref (int function()) function()) function()`
->        or     `(ref (int function() function()) function()`
+> Error: `ref` could refer to more than one `function` or `delegate` here.
+>        Suggested clarifying parentheses:
+>           `ref (int function()) function()`
+>        or `(ref int function()) function()`
 > ```
+> The implementation in [DMD PR 15269][impl-pr] produces this error message
+> on `ref int function() function()`.
 
 ### Basic Examples
 
@@ -323,6 +325,16 @@ With the changes proposed by this DIP,
 it also parses as a type,
 which is a meaningful difference in `__traits(isSame)`.
 These can be remedied using a cast instead of (mis-)using parentheses to force parsing as an expression.
+
+A possibly breaking change of [the provided implementation][impl-pr] specifically is
+that the serialization of nested function types uses parentheses around the return type,
+even in cases where no `ref` or linkage is involved that would require parentheses:
+```d
+static assert(int function() function().stringof == "int function() function()");
+```
+This passes with the current implementation,
+but fails with the new implemenation,
+as it serializes the type as `"(int function()) function()"`.
 
 ## Copyright & License
 Copyright © 2024 by Quirin F. Schroll
