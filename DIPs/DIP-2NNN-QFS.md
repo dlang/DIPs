@@ -36,9 +36,9 @@ Currently, the type constructs that lack such a representation are function poin
 ## Rationale
 
 Not every type that the compiler can represent internally is expressible using exisiting D syntax.
-For instance, when `pragma(msg)`, `.stringof`, or diagnostics display a type,
+For instance, when `pragma(msg)`, `.stringof`, or diagnostics serialize a type,
 the programmer should be able to copy and paste this type and not get parsing errors.
-(Semantic problems with using aggregate types may still arise due to visibility.)
+Semantic problems may still arise due to visibility.
 
 The main culprits are function pointers and delegates that return by reference.
 To use those as function parameter or return types,
