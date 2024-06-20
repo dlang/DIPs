@@ -3,8 +3,8 @@
 
 | Field           | Value                                                   |
 |-----------------|---------------------------------------------------------|
-| DIP:            | (number/id -- assigned by DIP Manager)                  |
-| Review Count:   | 0 (edited by DIP Manager)                               |
+| DIP:            | *TBD*                                                   |
+| Review Count:   | 0                                                       |
 | Author:         | Quirin F. Schroll ([@Bolpat](github.com/Bolpat))        |
 | Implementation: | [dlang.org PR 3616][spec-pr] • [DMD PR 15269](impl-pr)  |
 | Status:         | Draft                                                   |
