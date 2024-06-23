@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1045](./DIP1045.md)|                          Symbol Representation| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
 ## Accepted DIPs
@@ -48,6 +47,7 @@
 |[1023](./other/DIP1023.md)   |Resolution of Template Alias Formal Parameters in Template Functions|
 |[1033](./other/DIP1033.md)   |Implicit Conversion of Expressions to Delegates|
 |[1041](./other/DIP1041.md)   | Attributes for Higher-Order Functions|
+|[1045](./other/DIP1045.md)   |                 Symbol Representation|
 
 ## Superseded DIPs
 |                           ID|                                 Title|
