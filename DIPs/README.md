@@ -4,7 +4,6 @@
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
 |[1045](./DIP1045.md)|                          Symbol Representation| Formal Assessment|
-|[1046](./DIP1046.md)|                  ref For Variable Declarations| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
 ## Accepted DIPs
@@ -25,6 +24,7 @@
 |[1035](./accepted/DIP1035.md)|                   `@system` Variables| 2.102.0*     |
 |[1038](./accepted/DIP1038.md)|                              @mustuse|              |
 |[1043](./accepted/DIP1043.md)|               Shortened Method Syntax| 2.100.0      |
+|[1046](./accepted/DIP1046.md)|         ref For Variable Declarations|              |
 
 (* The feature is not enabled by default, but can be enabled by a preview switch.)
 
