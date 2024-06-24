@@ -75,14 +75,14 @@ This DIP addresses specific shortcomings of D’s syntax.
 
 ### Grammar Changes
 
+> [!NOTE]
+> Optional grammar entities are represented by `?` here.
+
 Because this DIP is aimed at the grammar only,
 contrary as is usual in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
 The following addresses the [function literal](https://dlang.org/spec/expression.html#FunctionLiteral) syntax.
-
-> [!NOTE]
-> Optional grammar entities are represented by `?` here.
 
 ```diff
     FunctionLiteral:
