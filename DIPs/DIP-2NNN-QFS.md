@@ -284,10 +284,8 @@ can likewise not be expressed by the grammar,
 and contrary to `ref` return, cannot even be specified for a literal.
 
 > [!WARNING]
-> While the current implementation can *parse* linkages as part of function pointer and delegate types,
+> While the current implementation can *parse* linkages as part of function pointer and delegate types and literals,
 > it does not semantically apply them to the type yet.
->
-> The function pointer and delegate literal syntax with `LinkageAttribute` aren’t currently implemented yet.
 >
 > Help is needed on this.
 
