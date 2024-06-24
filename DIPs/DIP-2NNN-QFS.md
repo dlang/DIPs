@@ -97,8 +97,8 @@ The following addresses the [type grammar](https://dlang.org/spec/type.html#Type
 ```diff
     Type:
         TypeCtors? BasicType TypeSuffixes?
-+       ref TypeCtors? BasicType TypeSuffixes
-+       LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes
++       TypeCtors? ref TypeCtors? BasicType TypeSuffixes
++       TypeCtors? LinkageAttribute ref? TypeCtors? BasicType TypeSuffixes
 
     BasicType:
         FundamentalType
@@ -128,9 +128,8 @@ The following addresses the [type grammar](https://dlang.org/spec/type.html#Type
 * The first two additions introduce grammar rules that allow `ref` and linkage to be part of a function pointer or delegate type.
 * The next change makes the type qualifier (`TypeCtor` in the grammar) optional in the rule that now introduces primary type syntax.
 
-To become a well-formed type,
-after a `ref` or `LinkageAttribute`,
-exactly one of the `TypeSuffixes` must be a `function` or `delegate` one.
+After a `ref` or a `LinkageAttribute`,
+exactly one of the `TypeSuffixes` must start with `function` or `delegate`.
 Expressing this in the grammar is possible,
 but makes it much harder to understand.
 
@@ -146,6 +145,10 @@ but makes it much harder to understand.
 > ```
 > The implementation in [DMD PR 15269][impl-pr] produces this error message
 > on `ref int function() function()`.
+
+Initial type qualifiers refer to the whole type produced,
+whereas type qualifiers after linkage or `ref` refer to the return type only:
+`const ref immutable int[] function()[]` is the same as `const(ref immutable(int[]) function()[])`.
 
 ### Basic Examples
 
@@ -311,6 +314,12 @@ A notable side-effect is that `(const int)` is now a basic type.
 The author expects this to be somewhat controversial.
 Some programmers will prefer the more consistent new style to the old style,
 leading to something like the head-const (`const T`) vs tail-const (`T const`) style discussions in C++.
+
+Another side-effect is that there will be a discrapancy between function pointer and delegate type declarations and member function declarations.
+On a member function declaration, type qualifiers and `ref` commute and qualifiers refer to the implicit `this` parameter,
+whereas on function pointer and delegate types,
+any qualifiers before `ref` refer to the whole type
+and any qualifiers after `ref` refer to the return type of the function pointer or delegate type.
 
 ### Drawbacks
 
