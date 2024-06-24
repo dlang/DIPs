@@ -332,8 +332,9 @@ For a symbol <code>*s*</code>,
 in present-day D, the token sequence <code>(*s*)</code> only parses as an expression.
 With the changes proposed by this DIP,
 it also parses as a type,
-which is a meaningful difference in `__traits(isSame)`.
-These can be remedied using a cast instead of (mis-)using parentheses to force parsing as an expression.
+which is a meaningful difference in <code>__traits(isSame, (*s*))</code>.
+These can be remedied using a cast instead of (mis-)using parentheses to force parsing as an expression:
+<code>cast(typeof(*s*))(*s*)</code>.
 
 A possibly breaking change of [the provided implementation][impl-pr] specifically is
 that the serialization of nested function types uses parentheses around the return type,
