@@ -311,6 +311,28 @@ and isn’t a parameter storage class.
 Whether this “unbureaucratic” handling of linkage in parameters of function pointer or delegate type with explicit linkage is desirable
 should be discussed by the community.
 
+Expressing parameters of function pointer or delegate type with non-default linkage without parentheses requires this grammar addition
+to the [*`Parameter`*](https://dlang.org/spec/function.html#Parameter) grammar:
+```diff
+    Parameter:
+        ParameterDeclaration
+        ParameterDeclaration ...
+        ParameterDeclaration = AssignExpression
+
+    ParameterDeclaration:
+        ParameterAttributes? BasicType Declarator
++       ParameterAttributes? LinkageAttribute ref? TypeCtors? BasicType Declarator
+        ParameterAttributes? Type
+
+    Declarator: 
+        TypeSuffixes? Identifier
+```
+
+In the *`Declarator`* of the added clause,
+*`TypeSuffixes`* would be required (not optional)
+and exactly one of them would have to be starting with `function` or `delegate`.
+The case without a parameter name is already handled by *`Type`*.
+
 ### Side-effects
 
 A notable side-effect is that `(const int)` is now a basic type.
