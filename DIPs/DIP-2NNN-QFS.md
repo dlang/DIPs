@@ -222,7 +222,7 @@ The excpetion is required so that e.g. the follwing declaration keeps the meanin
 void f(const(int)[]);
 ```
 In current-day D, the `const` in the parameter list would be first parsed as a storage class,
-but that fails because the opening parenthesis can neither belong to another storage class or a basic type.
+but that fails because the opening parenthesis can neither belong to another storage class nor a basic type.
 Therefore, the parser backtracks and succeeds to parse `const` as part of a basic type.
 With the proposed grammar changes, the failure on the opening parenthesis doesn’t happen anymore
 because `(int)` denotes a basic type.
@@ -263,14 +263,15 @@ The author hopes that community discussion will reveal that.
 The author believes that the exception to the max munch principle is not inherently bad,
 but a necessary rule to keep the change backwards compatible.
 
-The rationale for deprecating the max munch exception comes from issues with simple syntax highlighters
-which trip on `a[1..2]` because they lex it as `a` `[` `1.` `.2` `]` instead of `a` `[` `1` `..` `2` `]`.
+The rationale for deprecating the max munch exception comes from issues with simple syntax highlighters,
+which trip on `a[1..2]`,
+because they lex it as `a` `[` `1.` `.2` `]` instead of `a` `[` `1` `..` `2` `]`.
 However, no matter whether a simple syntax highlighter lexes `const(int)` as `const` `(` `int` `)` or `const(` `int` `)`,
 it would want to style `const` as a keyword and handle the parentheses separately.
 On the other hand, if `const(int)` means something different than `const (int)`,
 programmers could even want a syntax highlighter to point out the difference
 and style `const` differently depending on whether a parenthesis immediately follows it,
-something a *simple* syntax highlighter cannot do:
+something a *simple* syntax highlighter based on keywords and operators cannot do:
 It either must look forward one character and “see” the opening parenthesis, rendering the `const` different to ordinary `const`,
 or implement `const(` as a single token,
 which in case of a *simple* syntax highlighter cannot be styled heterogeneously, i.e. the `const` part differently from the parenthesis.
@@ -283,26 +284,24 @@ directly leads to an exception in this case.
 The discussion about `ref` is much more relevant than that of linkage as pass-by-reference is commonplace,
 whereas linkage is niche in comparison.
 
-However, a function pointer type with non-default linkage
-(depending on context, the default is usually `extern(D)`, but can be `extern(C)` e.g. in `betterC` mode),
+A function pointer type with non-default linkage
 can likewise not be expressed by the grammar,
 and contrary to `ref` return, cannot even be specified for a literal.
 
 > [!WARNING]
-> While the current implementation can *parse* linkages as part of function pointer and delegate types and literals,
+> While the [provided implementation][impl-pr] can *parse* linkages as part of function pointer and delegate types and literals,
 > it does not semantically apply them to the type yet.
 >
 > Help is needed on this.
 
 The proposed grammar rules formally do not allow linkage as the first tokens of a function pointer or delegate type,
 however, the provided implementation allows omitting parentheses for function pointer or delegate types with linkage,
-so that e.g. the first of the two following declarations is accepted and equivalent to the second:
+so that e.g. the first of the two following declarations is accepted, too, and equivalent to the second:
 ```d
 void takesCppFunction( extern(C++) ref int function()  fp) { }
 void takesCppFunction((extern(C++) ref int function()) fp) { }
 ```
-This is because linkage is not a parameter storage class and in all likelihood,
-isn’t ever meaningful as one.
+Unlike with `ref`, this possible for linkage because linkages are not a parameter storage classes and in all likelihood never will be.
 If the linkage is followed up by a `ref`,
 because linkage starts a type,
 it’s clear that `ref` must be part of the function pointer type syntax,
