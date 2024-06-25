@@ -242,6 +242,10 @@ but in `const(int)[]`, the `const` only applies to `int`.
 
 ### Alternative Preserving Max Munch
 
+> [!NOTE]
+> This section explores an alternative in the hypothetical and proposes nothing.
+> Its purpose is to justify the possibly contentious exception in the previous section.
+
 There is a [proposal][deprecate-trailing-dot] to deprecate and remove the currently existing exception regarding floating-point number literals,
 so that parsing is truly max munch.
 In this spirit, adding a different exception to max munch might seem undesireable.
@@ -256,9 +260,6 @@ with some kind of token separation between them.
 One consequence would be that the aforementioned misleading space becomes meaningful instead:
 With this alternative, `const (int)` and `const(int)` would be parsed differently,
 and, depending on context, can make an entity have a different type.
-
-The viability of this alternative depends on how prevalent the misleading space is in current code.
-The author hopes that community discussion will reveal that.
 
 The author believes that the exception to the max munch principle is not inherently bad,
 but a necessary rule to keep the change backwards compatible.
