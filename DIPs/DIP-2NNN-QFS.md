@@ -81,7 +81,7 @@ This DIP addresses specific shortcomings of D’s syntax.
 > Optional grammar entities are represented by `?` here.
 
 Because this DIP is aimed at the grammar only,
-contrary as is usual in DIPs that propose grammar changes,
+contrary to as is customary in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
 The following addresses the [function literal](https://dlang.org/spec/expression.html#FunctionLiteral) syntax.
@@ -128,12 +128,13 @@ The following addresses the [type grammar](https://dlang.org/spec/type.html#Type
 ```
 
 * The first two additions introduce grammar rules that allow `ref` and linkage to be part of a function pointer or delegate type.
-* The next change makes the type qualifier (`TypeCtor` in the grammar) optional in the rule that now introduces primary type syntax.
+* The next change makes the type qualifier (*`TypeCtor`* in the grammar) optional in the rule that now introduces primary type syntax.
 
-After a `ref` or a `LinkageAttribute`,
-exactly one of the `TypeSuffixes` must start with `function` or `delegate`.
+After a *`LinkageAttribute`* and/or a `ref`,
+exactly one of the *`TypeSuffixes`* must start with `function` or `delegate`.
 Expressing this in the grammar is possible,
-but makes it much harder to understand.
+but makes it harder to understand with little benefit,
+as such a provision can be expected.
 
 > [!NOTE]
 > Implementations are encouraged, but not required,
