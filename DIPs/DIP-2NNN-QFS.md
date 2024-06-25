@@ -73,6 +73,8 @@ which is in the same spirit as the primary proposal.
 
 This DIP addresses specific shortcomings of D’s syntax.
 
+Possibly, something like this solution was conceputalized in-passing by Jonathan M. Davis in [a forum post](https://forum.dlang.org/post/mailman.287.1336121273.24740.digitalmars-d@puremagic.com) from 2012.
+
 ## Description
 
 ### Grammar Changes
