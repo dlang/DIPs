@@ -23,7 +23,7 @@ Currently, the type constructs that lack such a representation are function poin
 * [Description](#description)
     * [Grammar Changes](#grammar-changes)
     * [Basic Examples](#basic-examples)
-    * [Max Munch Exception](#max-munch-exception)
+    * [Maximal Munch Exception](#maximal-munch-exception)
     * [Linkage](#linkage)
     * [Side-effects](#side-effects)
     * [Drawbacks](#drawbacks)
@@ -236,15 +236,15 @@ Without the parentheses around the type of `f`,
 the second `ref` would also be parsed as part of the parameter storage classes of `f`,
 and the redundant `ref` is an error.
 
-### Max Munch Exception
+### Maximal Munch Exception
 
-Lexing and parsing, for the most part, follow the max munch pinciple.
+Lexing and parsing, for the most part, follow the maximal munch pinciple.
 (The only exception the author is aware of is lexing floating point numbers.)
-Max munch is the following general rule:
+Maximal munch is the following general rule:
 > If the parser can meaningfully parse the next tokens as part of what it tries to parse, it will;
 > only if it can’t, depending on context, it either tries to close the current entity and go to the previous level or issue a parse failure.
 
-For backwards compatibility, this DIP proposes to add an/another exception to max munch:
+For backwards compatibility, this DIP proposes to add an/another exception to maximal munch:
 Whenever an opening parenthesis follows a type qualifier,
 this is considered effectively one token and refers to the basic type rule.
 
