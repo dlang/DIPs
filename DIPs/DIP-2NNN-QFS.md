@@ -344,6 +344,8 @@ whereas on function pointer and delegate types,
 any qualifiers before `ref` refer to the whole type
 and any qualifiers after `ref` refer to the return type of the function pointer or delegate type.
 
+A third side-effect is that `extern` will not be available as a parameter storage class.
+
 ### Drawbacks
 
 A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
