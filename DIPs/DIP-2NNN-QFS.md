@@ -264,7 +264,7 @@ this exception follows mathematical conventions and programmers’ intuition:
 Normally, mathematicians write “sin&nbsp;2*k*π”
 with the clear understanding that the sine function applies to the whole 2*k*π.
 However, were it written sin(2)*k*π, it is clear that the sine function applies only to 2.
-(Notably, WolframAlpha agrees with this notion: [sin 2π][sin-2pi] vs. [sin(2)π][sin-2-pi].)
+(Notably, WolframAlpha agrees with this notion: cf. [sin 2*k*π][sin-2kpi] vs. [sin(2)*k*π][sin-2-kpi].)
 
 D’s type qualifiers will work like that:
 In a type denoted as `const int[]`, the `const` applies to everything that comes after it,
@@ -382,7 +382,7 @@ The DIP Manager will supplement this section with links to forum discsusionss an
 [ref-var-draft]: https://github.com/WalterBright/documents/blob/master/varRef.md
 [deprecate-trailing-dot]: https://github.com/dlang/DIPs/pull/233
 
-[sin-2pi]: https://www.wolframalpha.com/input/?i=sin+2%CF%80
-[sin-2-pi]: https://www.wolframalpha.com/input/?i=sin%282%29%CF%80
+[sin-2kpi]: https://www.wolframalpha.com/input/?i=sin+2k%CF%80
+[sin-2-kpi]: https://www.wolframalpha.com/input/?i=sin%282%29k%CF%80
 
 [cc-0]: https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt
