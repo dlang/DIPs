@@ -363,11 +363,13 @@ but fails with the new implemenation,
 as it serializes the type as `"(int function()) function()"`.
 
 ## Copyright & License
+
 Copyright © 2024 by Quirin F. Schroll
 
 Licensed under [Creative Commons Zero 1.0][cc-0]
 
 ## History
+
 The DIP Manager will supplement this section with links to forum discsusionss and a summary of the formal assessment.
 
 
