@@ -23,7 +23,6 @@ Currently, the type constructs that lack such a representation are function poin
 * [Description](#description)
     * [Grammar Changes](#grammar-changes)
     * [Basic Examples](#basic-examples)
-    * [Corner Cases](#corner-cases)
     * [Max Munch Exception](#max-munch-exception)
     * [Alternative Preserving Max Munch](#alternative-preserving-max-munch)
     * [Linkage](#linkage)
