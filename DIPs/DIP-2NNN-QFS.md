@@ -24,7 +24,7 @@ Currently, the type constructs that lack such a representation are function poin
     * [Grammar Changes](#grammar-changes)
     * [Basic Examples](#basic-examples)
     * [Max Munch Exception](#max-munch-exception)
-    * [Alternative Preserving Max Munch](#alternative-preserving-max-munch)
+    * [Can’t Max Munch Be Preserved?](#cant-max-munch-be-preserved)
     * [Linkage](#linkage)
     * [Side-effects](#side-effects)
     * [Drawbacks](#drawbacks)
@@ -272,7 +272,7 @@ In a type denoted as `const int[]`, the `const` applies to everything that comes
 extending as far to the right as possible,
 but in `const(int)[]`, the `const` only applies to `int`.
 
-### Alternative Preserving Max Munch
+### Can’t Max Munch Be Preserved?
 
 > [!NOTE]
 > This section explores an alternative in the hypothetical and proposes nothing.
