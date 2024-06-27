@@ -52,6 +52,15 @@ This DIP proposes the same mechanism for types, hence the title includes *primar
 In the D grammar and this document, the term *basic type* is used.
 In short, part of the proposed changes is making basic types be primary types.
 
+The current D syntax almost supports primary type syntax:
+There exists a grammar rule that says:
+If <code>*T*</code> denotes a type and <code>*q*</code> is a type qualifier, then <code>*q*(*T*)</code> denotes a type.
+In fact, <code>*q*(*T*)</code> is even a *basic type,*
+which, simply put, means that unlike <code>*q* *T*</code>,
+it can be used everywhere where a type is expected.
+If the type qualifier in this rule were optional,
+D would already have primary types.
+
 While these issues may seem unrelated, resolving the asymmetry significantly simplifies the resolution of
 [Issue 2753][issue-2753]:
 If <code>(*T*)</code> were a basic type for every type *`T`*
@@ -65,15 +74,6 @@ Additionally, in places where a general type is expected
 Of course, everything said about `function` types also applies to `delegate` types.
 Also, everything said about `ref` here also applies to linkage,
 except that linkage has no ambiguity problem for function parameters.
-
-The current D syntax almost supports primary type syntax:
-There exists a grammar rule that says:
-If <code>*T*</code> denotes a type and <code>*q*</code> is a type qualifier, then <code>*q*(*T*)</code> denotes a type.
-In fact, <code>*q*(*T*)</code> is even a *basic type,*
-which, simply put, means that unlike <code>*q* *T*</code>,
-it can be used everywhere where a type is expected.
-If the type qualifier in this rule were optional,
-D would already have primary types.
 
 Another related issue is [24007][issue-24007] *(Function/&ZeroWidthSpace;delegate literals cannot specify linkage).*
 It can be solved with a simple addition to the grammar,
