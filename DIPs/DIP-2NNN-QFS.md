@@ -137,6 +137,39 @@ Expressing this in the grammar is possible,
 but makes it harder to understand with little benefit,
 as such a provision can be expected.
 
+> <details>
+> <summary>Show/Hide grammar which formally expresses that exactly one of the <i><code>TypeSuffixes</code></i> must start with <code>function</code> or <code>delegate</code>.</summary>
+>
+> ```diff
+>     Type:
+>         TypeCtors? BasicType TypeSuffixes?
+> +       TypeCtors? ref TypeCtors? BasicType NonCallableSuffixes? CallableSuffix NonCallableSuffixes?
+> +       TypeCtors? LinkageAttribute ref? TypeCtors? BasicType NonCallableSuffixes? CallableSuffix NonCallableSuffixes?
+> 
+>     TypeSuffixes:
+>         TypeSuffix TypeSuffixes?
+> 
+> +   NonCallableSuffixes:
+> +       NonCallableSuffix NonCallableSuffixes?
+> +
+>     TypeSuffix:
+> +       NonCallableSuffix
+> +       CallableSuffix
+> +
+> +   NonCallableSuffix:
+>         *
+>         [ ]
+>         [ AssignExpression ]
+>         [ AssignExpression .. AssignExpression ]
+>         [ Type ]
+> +
+> +   CallableSuffix:
+>         delegate Parameters MemberFunctionAttributes?
+>         function Parameters FunctionAttributes?
+> ```
+> That is a lot of noise for little gain.
+> </details>
+
 > [!NOTE]
 > Implementations are encouraged, but not required,
 > to offer all possible ways add clarifying parentheses.
