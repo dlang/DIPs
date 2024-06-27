@@ -24,7 +24,6 @@ Currently, the type constructs that lack such a representation are function poin
     * [Grammar Changes](#grammar-changes)
     * [Basic Examples](#basic-examples)
     * [Max Munch Exception](#max-munch-exception)
-    * [Can’t Max Munch Be Preserved?](#cant-max-munch-be-preserved)
     * [Linkage](#linkage)
     * [Side-effects](#side-effects)
     * [Drawbacks](#drawbacks)
@@ -271,46 +270,6 @@ D’s type qualifiers will work like that:
 In a type denoted as `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
 but in `const(int)[]`, the `const` only applies to `int`.
-
-### Can’t Max Munch Be Preserved?
-
-> [!NOTE]
-> This section explores an alternative in the hypothetical and proposes nothing.
-> Its purpose is to justify the possibly contentious exception in the previous section.
-
-There is a [proposal][deprecate-trailing-dot] to deprecate and remove the currently existing exception regarding floating-point number literals,
-so that parsing is truly max munch.
-In this spirit, adding a different exception to max munch might seem undesireable.
-
-To avoid the aforementioned exception to max munch,
-an option would be, for every type qualifier <code>*q*</code>,
-to make <code>*q*(</code> a single token not conceptually, but *formally.*
-It nests with closing <code>)</code>,
-but is distinct from a <code>*q*</code> followed by an opening parenthesis
-with some kind of token separation between them.
-
-One consequence would be that the aforementioned misleading space becomes meaningful instead:
-With this alternative, `const (int)` and `const(int)` would be parsed differently,
-and, depending on context, can make an entity have a different type.
-
-The author believes that the exception to the max munch principle is not inherently bad,
-but a necessary rule to keep the change backwards compatible.
-
-The rationale for deprecating the max munch exception comes from issues with simple syntax highlighters,
-which trip on `a[1..2]`,
-because they lex it as `a` `[` `1.` `.2` `]` instead of `a` `[` `1` `..` `2` `]`.
-However, no matter whether a simple syntax highlighter lexes `const(int)` as `const` `(` `int` `)` or `const(` `int` `)`,
-it would want to style `const` as a keyword and handle the parentheses separately.
-On the other hand, if `const(int)` means something different than `const (int)`,
-programmers could even want a syntax highlighter to point out the difference
-and style `const` differently depending on whether a parenthesis immediately follows it,
-something a *simple* syntax highlighter based on keywords and operators cannot do:
-It either must look forward one character and “see” the opening parenthesis, rendering the `const` different to ordinary `const`,
-or implement `const(` as a single token,
-which in case of a *simple* syntax highlighter cannot be styled heterogeneously, i.e. the `const` part differently from the parenthesis.
-
-In total, the argument for changing the language removing the max munch exception on floating-point literals
-directly leads to an exception in this case.
 
 ### Linkage
 
