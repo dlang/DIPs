@@ -241,12 +241,18 @@ and the redundant `ref` is an error.
 Lexing and parsing, for the most part, follow the maximal munch pinciple.
 (The only exception the author is aware of is lexing floating point numbers.)
 Maximal munch is the following general rule:
-> If the parser can meaningfully parse the next tokens as part of what it tries to parse, it will;
-> only if it can’t, depending on context, it either tries to close the current entity and go to the previous level or issue a parse failure.
+> If the lexer or parser can meaningfully interpret the next entity as part of what it tries to match,
+> it will.
+> Only if it can’t,
+> it considers that the end of the current match if possible,
+> or issues an error.
 
-For backwards compatibility, this DIP proposes to add an/another exception to maximal munch:
+The only currently-existing exception the author is aware of is [lexing floating point numbers][max-munch-exception].
+As of this writing, there is [an open Pull Request][deprecate-trailing-dot] to deprecate this exception.
+
+For backwards compatibility, this DIP proposes to add another exception to maximal munch:
 Whenever an opening parenthesis follows a type qualifier,
-this is considered effectively one token and refers to the basic type rule.
+this is considered effectively one token and refers to the *`BasicType`* rule.
 
 The excpetion is required so that e.g. the follwing declaration keeps the meaning it currently has:
 ```d
@@ -269,7 +275,8 @@ However, were it written sin(2)*k*π, it is clear that the sine function applies
 D’s type qualifiers will work like that:
 In a type denoted as `const int[]`, the `const` applies to everything that comes after it,
 extending as far to the right as possible,
-but in `const(int)[]`, the `const` only applies to `int`.
+but in `const(int)[]`, because an opening parenthesis immediately follows,
+the `const` only applies to `int`.
 
 ### Linkage
 
@@ -358,8 +365,8 @@ even in cases where no `ref` or linkage is involved that would require parenthes
 ```d
 static assert(int function() function().stringof == "int function() function()");
 ```
-This passes with the current implementation,
-but fails with the new implemenation,
+This passes with the present-day implementation,
+but fails with the provided implemenation,
 as it serializes the type as `"(int function()) function()"`.
 
 ## Copyright & License
@@ -380,6 +387,7 @@ The DIP Manager will supplement this section with links to forum discsusionss an
 [issue-24007]: https://issues.dlang.org/show_bug.cgi?id=24007
 
 [ref-var-draft]: https://github.com/WalterBright/documents/blob/master/varRef.md
+[max-munch-exception]: https://dlang.org/spec/lex.html#source_text
 [deprecate-trailing-dot]: https://github.com/dlang/DIPs/pull/233
 
 [sin-2kpi]: https://www.wolframalpha.com/input/?i=sin+2k%CF%80
