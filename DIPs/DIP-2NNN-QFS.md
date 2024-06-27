@@ -61,13 +61,14 @@ it can be used everywhere where a type is expected.
 If the type qualifier in this rule were optional,
 D would already have primary types.
 
-While these issues may seem unrelated, resolving the asymmetry significantly simplifies the resolution of
-[Issue 2753][issue-2753]:
+While these issues may seem unrelated,
+adding primary types to the D grammar allows a particularly pleasant resolution of [Issue 2753][issue-2753]:
 If <code>(*T*)</code> were a basic type for every type *`T`*
 and <code>ref *R* function(…)</code> were a type (albeit no basic type),
-<code>(ref *R* function(…))</code> could be used anywhere a basic type is required.
-That is, in particular, as a function return type or a parameter type,
-and there would be no ambiguity what `ref` refers to.
+<code>(ref *R* function(…))</code> could be used anywhere a basic type is required;
+that is, in particular, as a function return type or a parameter type,
+and there would be no ambiguity what `ref` refers to,
+and the `ref` is at a place where programmers expect it to be.
 Additionally, in places where a general type is expected
 (e.g. <code>is(*T*)</code> tests, template parameters/&ZeroWidthSpace;arguments/&ZeroWidthSpace;constraints/&ZeroWidthSpace;defaults, and `pragma(msg)`),
 <code>ref *R* function(…)</code> can be used even without parentheses.  
