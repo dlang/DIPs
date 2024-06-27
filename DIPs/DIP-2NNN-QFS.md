@@ -34,25 +34,37 @@ Currently, the type constructs that lack such a representation are function poin
 ## Rationale
 
 Not every type that the compiler can represent internally is expressible using exisiting D syntax.
-For instance, when `pragma(msg)`, `.stringof`, or diagnostics serialize a type,
+For instance, when `pragma(msg)`, `stringof`, or diagnostics serialize a type,
 the programmer should be able to copy and paste this type and not get parsing errors.
 Semantic problems may still arise due to visibility.
-
 The main culprits are function pointers and delegates that return by reference.
 To use those as function parameter or return types,
 programmers are compelled to use a separate alias declaration.
 Alias declarations only support them by special-casing them.
+This has been filed as [Issue 2753][issue-2753] *(Cannot declare pointer to function returning `ref`).*
 
 Another point of contention is an asymmetry between types and expressions:
 For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is functionally identical,
 but for a type <code>*T*</code>, the token sequence <code>(*T*)</code> does not denote a type.
-
 For expressions, the grammar rule saying that if <code>*e*</code> is an expression, so is <code>(*e*)</code>,
 is referred to as *primary expression.*
-This DIP proposes the same mechanism for types, hence the term *primary types.*
+This DIP proposes the same mechanism for types, hence the title includes *primary types.*
+In the D grammar and this document, the term *basic type* is used.
+In short, part of the proposed changes is making basic types be primary types.
 
 While these issues may seem unrelated, resolving the asymmetry significantly simplifies the resolution of
-[Issue 2753][issue-2753] *(Cannot declare pointer to function returning `ref`).*
+[Issue 2753][issue-2753]:
+If <code>(*T*)</code> were a basic type for every type *`T`*
+and <code>ref *R* function(…)</code> were a type (albeit no basic type),
+<code>(ref *R* function(…))</code> could be used anywhere a basic type is required.
+That is, in particular, as a function return type or a parameter type,
+and there would be no ambiguity what `ref` refers to.
+Additionally, in places where a general type is expected
+(e.g. <code>is(*T*)</code> tests, template parameters/&ZeroWidthSpace;arguments/&ZeroWidthSpace;constraints/&ZeroWidthSpace;defaults, and `pragma(msg)`),
+<code>ref *R* function(…)</code> can be used even without parentheses.  
+Of course, everything said about `function` types also applies to `delegate` types.
+Also, everything said about `ref` here also applies to linkage,
+except that linkage has no ambiguity problem for function parameters.
 
 The current D syntax almost supports primary type syntax:
 There exists a grammar rule that says:
@@ -61,9 +73,9 @@ In fact, <code>*q*(*T*)</code> is even a *basic type,*
 which, simply put, means that unlike <code>*q* *T*</code>,
 it can be used everywhere where a type is expected.
 If the type qualifier in this rule were optional,
-D would already support primary types.
+D would already have primary types.
 
-Another related issue is [24007][issue-24007] *(Function/delegate literals cannot specify linkage).*
+Another related issue is [24007][issue-24007] *(Function/&ZeroWidthSpace;delegate literals cannot specify linkage).*
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
