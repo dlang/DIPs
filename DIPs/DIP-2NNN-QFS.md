@@ -101,10 +101,10 @@ The following addresses the [function literal](https://dlang.org/spec/expression
 
 ```diff
     FunctionLiteral:
--       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
--       delegate RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
-+       function LinkageAttribute? RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody2
-+       delegate LinkageAttribute? RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody2
+-       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody
+-       delegate RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody
++       function LinkageAttribute? RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody
++       delegate LinkageAttribute? RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody
 ```
 
 The following addresses the [type grammar](https://dlang.org/spec/type.html#Type).
