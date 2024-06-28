@@ -210,10 +210,12 @@ With the changes proposed by this DIP, this is how it’s done:
 ```
 Here, `fp` is variable of function pointer type.
 The function returns its result by reference.
-Omitting parentheses is an error:
-Not allowing `ref` without parentheses here not only clarifies intent,
-it keeps `ref` variables open for the future.
-As of writing this, Walter Bright has a proposal draft for `ref` variables [here][ref-var-draft].
+Omitting parentheses would render `fp` to be a [reference variable][ref-var-dip]
+of type `int function() @safe`.
+A reference variable of type `ref int function() @safe` would be declared like this:
+```d
+ref (ref int function() @safe) fp = *null;
+```
 
 #### Declaring a function that returns a function pointer
 
@@ -401,7 +403,7 @@ The DIP Manager will supplement this section with links to forum discsusionss an
 [issue-2753]: https://issues.dlang.org/show_bug.cgi?id=2753
 [issue-24007]: https://issues.dlang.org/show_bug.cgi?id=24007
 
-[ref-var-draft]: https://github.com/WalterBright/documents/blob/master/varRef.md
+[ref-var-dip]: https://github.com/dlang/DIPs/blob/master/DIPs/accepted/DIP1046.md
 [max-munch-exception]: https://dlang.org/spec/lex.html#source_text
 [deprecate-trailing-dot]: https://github.com/dlang/DIPs/pull/233
 
