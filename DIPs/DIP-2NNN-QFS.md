@@ -203,23 +203,22 @@ whereas type qualifiers after linkage or `ref` refer to the return type only:
 
 #### Declaring a function pointer variable
 
-In present-day D, one cannot even spell out a `ref` returning function pointer type,
-except using an alias or indirect methods such as using `typeof` on an appropriate expression.
+In present-day D, one cannot spell out a function pointer type when the function returns by reference.
+As a workaround, one can use an alias or indirect methods such as using `typeof` on an appropriate expression.
 With the changes proposed by this DIP, this is how it’s done:
 ```d
 (ref int function() @safe) fp = null;
 ```
 Here, `fp` is variable of function pointer type.
 The function returns its result by reference.
-Omitting parentheses would render `fp` to be a [reference variable][ref-var-dip]
-of type `int function() @safe`.
+Omitting parentheses would render `fp` a [reference variable][ref-var-dip] of type `int function() @safe`.
 A reference variable of type `ref int function() @safe` would be declared like this:
 ```d
 ref (ref int function() @safe) fp = *null;
 ```
 
 The parentheses are required in this case as well;
-otherwise, the second `ref` would be considered for the variable as well (not the type),
+otherwise, the second `ref` would be considered referring to the variable like the first,
 and redundant storage classes are an error in D.
 
 #### Declaring a function that returns a function pointer
