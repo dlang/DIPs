@@ -22,6 +22,7 @@ Currently, the type constructs that lack such a representation are function poin
 * [Prior Work](#prior-work)
 * [Description](#description)
     * [Grammar Changes](#grammar-changes)
+    * [String Representation](#string-representation)
     * [Basic Examples](#basic-examples)
     * [Maximal Munch Exception](#maximal-munch-exception)
     * [Linkage](#linkage)
@@ -198,6 +199,23 @@ as such a provision can be expected.
 Initial type qualifiers refer to the whole type produced,
 whereas type qualifiers after linkage or `ref` refer to the return type only:
 `const ref immutable int[] function()[]` is the same as `const(ref immutable(int[]) function()[])`.
+
+### String Representation
+
+To align string representations with code,
+`ref` must be prefixed in the output of `pragma(msg)`, `stringof`, and error messages.
+If a function pointer or delegate type that returns by reference is a function parameter or return type,
+that type must be in parentheses.
+
+While linkage is already prefixed in string representations of function pointer and delegate types with non-default linkage,
+parentheses have to be used when a function pointer or delegate type with non-default linkage is a function return type.
+When a function pointer or delegate type with non-default linkage is a function parameter type,
+no parentheses are needed.
+This is outlined in [§ Linkage](#linkage) below.
+
+> [!NOTE]
+> The [provided implementation][impl-pr] does this correctly,
+> however, it also inserts parentheses in some places where they are optional.
 
 ### Basic Examples
 
@@ -380,8 +398,14 @@ which is a meaningful difference in <code>__traits(isSame, (*s*))</code>.
 These can be remedied using a cast instead of (mis-)using parentheses to force parsing as an expression:
 <code>cast(typeof(*s*))(*s*)</code>.
 
-A possibly breaking change of [the provided implementation][impl-pr] specifically is
-that the serialization of nested function types uses parentheses around the return type,
+Another breaking change is with the string representation of function pointer and delegate types
+that return by reference.
+Those will be rendered the same as they would be written in code,
+but currently, the `ref` is suffixed with other attributes,
+whereas with this DIP, `ref` will of course be prefixed.
+
+A breaking change of [the provided implementation][impl-pr] specifically is
+that the serialization of nested function pointer and/or delegate types uses parentheses around the return type,
 even in cases where no `ref` or linkage is involved that would require parentheses:
 ```d
 static assert(int function() function().stringof == "int function() function()");
@@ -389,6 +413,9 @@ static assert(int function() function().stringof == "int function() function()")
 This passes with the present-day implementation,
 but fails with the provided implemenation,
 as it serializes the type as `"(int function()) function()"`.
+
+However, the D Language Specification does not mandate specific string representations of types:
+[“The string representation for a type or expression can vary.”](https://dlang.org/spec/property.html#stringof)
 
 ## Copyright & License
 
