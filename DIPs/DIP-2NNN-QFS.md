@@ -94,7 +94,7 @@ Possibly, something like this solution was conceputalized in-passing by Jonathan
 > [!NOTE]
 > Optional grammar entities are represented by `?` here.
 
-Because this DIP is aimed at the grammar only,
+Because this DIP is aimed at the grammar primarily,
 contrary to as is customary in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
