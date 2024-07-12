@@ -436,7 +436,6 @@ static assert(int function() function().stringof == "int function() function()")
 This passes with the present-day implementation,
 but fails with the provided implemenation,
 as it serializes the type as `"(int function()) function()"`.
-
 However, the D Language Specification does not mandate specific string representations of types:
 [“The string representation for a type or expression can vary.”](https://dlang.org/spec/property.html#stringof)
 
