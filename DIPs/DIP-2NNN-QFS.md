@@ -320,6 +320,8 @@ the `const` only applies to `int`.
 The discussion about `ref` is much more relevant than that of linkage as pass-by-reference is commonplace,
 whereas linkage is niche in comparison.
 
+#### Parameters
+
 A function pointer type with non-default linkage
 can likewise not be expressed by the grammar,
 and contrary to `ref` return, cannot even be specified for a literal.
@@ -367,6 +369,27 @@ In the *`Declarator`* of the added clause,
 *`TypeSuffixes`* would be required (not optional)
 and exactly one of them would have to be starting with `function` or `delegate`.
 The case without a parameter name is already handled by *`Type`*.
+
+> [!NOTE]
+> The [provided implementation][impl-pr] already handles this.
+
+#### Conditions
+
+Similar to linkage in function parameter declarations,
+conditions of `if`, `while`, and `switch` can declare variables.
+There, `ref` can’t be the first token of a function or delegate type because of reference variables,
+but linkage is unambiguous.
+
+Therefore, add to the [*`IfCondition`*](https://dlang.org/spec/statement.html#IfConddition) grammar:
+```diff
+    IfCondition:
+        IfConditionStorageClasses Identifier = Expression
+        IfConditionStorageClasses? BasicType Declarator = Expression
++       IfConditionStorageClasses? LinkageAttribute ref? TypeCtors? BasicType Declarator = Expression
+```
+
+> [!NOTE]
+> The [provided implementation][impl-pr] cannot parse those conditions yet.
 
 ### Side-effects
 
