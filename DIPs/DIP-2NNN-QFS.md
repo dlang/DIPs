@@ -26,9 +26,11 @@ Currently, the type constructs that lack such a representation are function poin
     * [Basic Examples](#basic-examples)
     * [Maximal Munch Exception](#maximal-munch-exception)
     * [Linkage](#linkage)
+* [Possible Problems](#possible-problems)
     * [Side-effects](#side-effects)
     * [Drawbacks](#drawbacks)
-* [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
+    * [Breaking Changes](#breaking-changes)
+    * [Deprecations](#deprecations)
 * [Copyright & License](#copyright--license)
 * [Reviews](#history)
 
@@ -393,6 +395,8 @@ Therefore, add to the [*`IfCondition`*](https://dlang.org/spec/statement.html#If
 > [!NOTE]
 > The [provided implementation][impl-pr] cannot parse those conditions yet.
 
+## Possible Problems
+
 ### Side-effects
 
 A notable side-effect is that `(const int)` is now a basic type.
@@ -413,7 +417,7 @@ A third side-effect is that `extern` will not be available as a parameter storag
 A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
 This is intentional due to the requirement that the changes in syntax be backwards compatible.
 
-## Breaking Changes and Deprecations
+### Breaking Changes
 
 For a symbol <code>*s*</code>,
 in present-day D, the token sequence <code>(*s*)</code> only parses as an expression.
@@ -440,6 +444,12 @@ but fails with the provided implementation,
 as it serializes the type as `"(int function()) function()"`.
 However, the D Language Specification does not mandate specific string representations of types:
 [“The string representation for a type or expression can vary.”](https://dlang.org/spec/property.html#stringof)
+
+### Deprecations
+
+Even if there is breakage possible,
+that is deemed so niche and generally unlikely,
+that no deprecation is proposed.
 
 ## Copyright & License
 
