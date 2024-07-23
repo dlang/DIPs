@@ -278,7 +278,7 @@ and the redundant `ref` is an error.
 Lexing and parsing, for the most part, follow the maximal munch principle.
 (The only exception the author is aware of is lexing floating point numbers.)
 Maximal munch is the following general rule:
-> If the lexer or parser can meaningfully interpret the next entity as part of what it tries to match,
+> If the lexer or parser can meaningfully interpret the next character or token, respectively, as part of what it tries to match,
 > it will.
 > Only if it can’t,
 > it considers that the end of the current match if possible,
@@ -319,11 +319,13 @@ the `const` only applies to `int`.
 
 The discussion about `ref` is much more relevant than that of linkage as pass-by-reference is commonplace,
 whereas linkage is niche in comparison.
+While many problems regard `ref` return and linkage equally,
+some changes proposed by this DIP are for linkage only.
 
 #### Parameters
 
 A function pointer type with non-default linkage
-can likewise not be expressed by the grammar,
+can not be expressed by the type grammar,
 and contrary to `ref` return, cannot even be specified for a literal.
 
 > [!WARNING]
@@ -345,8 +347,7 @@ because linkage starts a type,
 it’s clear that `ref` must be part of the function pointer type syntax,
 and isn’t a parameter storage class.
 
-Whether this “unbureaucratic” handling of linkage in parameters of function pointer or delegate type with explicit linkage is desirable
-should be discussed by the community.
+This kind of handling of linkage is derived from how linkage is serialized in the current state of the language.
 
 Expressing parameters of function pointer or delegate type with non-default linkage without parentheses requires this grammar addition
 to the [*`Parameter`*](https://dlang.org/spec/function.html#Parameter) grammar:
@@ -371,7 +372,8 @@ and exactly one of them would have to be starting with `function` or `delegate`.
 The case without a parameter name is already handled by *`Type`*.
 
 > [!NOTE]
-> The [provided implementation][impl-pr] already handles this.
+> The [provided implementation][impl-pr] already parses this.
+> However, it does not semantically apply the linkage to the function pointer or delegate type.
 
 #### Conditions
 
@@ -418,7 +420,7 @@ in present-day D, the token sequence <code>(*s*)</code> only parses as an expres
 With the changes proposed by this DIP,
 it also parses as a type,
 which is a meaningful difference in <code>__traits(isSame, (*s*))</code>.
-These can be remedied using a cast instead of (mis-)using parentheses to force parsing as an expression:
+These can be remedied using a cast to unambiguously force parsing as an expression:
 <code>cast(typeof(*s*))(*s*)</code>.
 
 Another breaking change is with the string representation of function pointer and delegate types
