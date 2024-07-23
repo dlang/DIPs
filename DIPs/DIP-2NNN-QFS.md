@@ -34,7 +34,7 @@ Currently, the type constructs that lack such a representation are function poin
 
 ## Rationale
 
-Not every type that the compiler can represent internally is expressible using exisiting D syntax.
+Not every type that the compiler can represent internally is expressible using existing D syntax.
 For instance, when `pragma(msg)`, `stringof`, or diagnostics serialize a type,
 the programmer should be able to copy and paste this type and not get parsing errors.
 Semantic problems may still arise due to visibility.
@@ -85,7 +85,7 @@ which is in the same spirit as the primary proposal.
 
 This DIP addresses specific shortcomings of D’s syntax.
 
-Possibly, something like this solution was conceputalized in-passing by Jonathan M. Davis in [a forum post](https://forum.dlang.org/post/mailman.287.1336121273.24740.digitalmars-d@puremagic.com) from 2012.
+Possibly, something like this solution was conceptualized in-passing by Jonathan M. Davis in [a forum post](https://forum.dlang.org/post/mailman.287.1336121273.24740.digitalmars-d@puremagic.com) from 2012.
 
 ## Description
 
@@ -275,7 +275,7 @@ and the redundant `ref` is an error.
 
 ### Maximal Munch Exception
 
-Lexing and parsing, for the most part, follow the maximal munch pinciple.
+Lexing and parsing, for the most part, follow the maximal munch principle.
 (The only exception the author is aware of is lexing floating point numbers.)
 Maximal munch is the following general rule:
 > If the lexer or parser can meaningfully interpret the next entity as part of what it tries to match,
@@ -291,7 +291,7 @@ For backwards compatibility, this DIP proposes to add another exception to maxim
 Whenever an opening parenthesis follows a type qualifier,
 this is considered effectively one token and refers to the *`BasicType`* rule.
 
-The excpetion is required so that e.g. the follwing declaration keeps the meaning it currently has:
+The exception is required so that e.g. the following declaration keeps the meaning it currently has:
 ```d
 void f(const(int)[]);
 ```
@@ -302,7 +302,7 @@ With the proposed grammar changes, the failure on the opening parenthesis doesn�
 because `(int)` denotes a basic type.
 In total, that would render the parameter type equivalent to `const(int[])`.
 
-However, unless misleading spaces are inserted between the type qualifier and the operning parenthesis,
+However, unless misleading spaces are inserted between the type qualifier and the opening parenthesis,
 this exception follows mathematical conventions and programmers’ intuition:
 Normally, mathematicians write “sin&nbsp;2*k*π”
 with the clear understanding that the sine function applies to the whole 2*k*π.
@@ -398,7 +398,7 @@ The author expects this to be somewhat controversial.
 Some programmers will prefer the more consistent new style to the old style,
 leading to something like the head-const (`const T`) vs tail-const (`T const`) style discussions in C++.
 
-Another side-effect is that there will be a discrapancy between function pointer and delegate type declarations and member function declarations.
+Another side-effect is that there will be a discrepancy between function pointer and delegate type declarations and member function declarations.
 On a member function declaration, type qualifiers and `ref` commute and qualifiers refer to the implicit `this` parameter,
 whereas on function pointer and delegate types,
 any qualifiers before `ref` refer to the whole type
@@ -434,7 +434,7 @@ even in cases where no `ref` or linkage is involved that would require parenthes
 static assert(int function() function().stringof == "int function() function()");
 ```
 This passes with the present-day implementation,
-but fails with the provided implemenation,
+but fails with the provided implementation,
 as it serializes the type as `"(int function()) function()"`.
 However, the D Language Specification does not mandate specific string representations of types:
 [“The string representation for a type or expression can vary.”](https://dlang.org/spec/property.html#stringof)
@@ -447,7 +447,7 @@ Licensed under [Creative Commons Zero 1.0][cc-0]
 
 ## History
 
-The DIP Manager will supplement this section with links to forum discsusionss and a summary of the formal assessment.
+The DIP Manager will supplement this section with links to forum discussions and a summary of the formal assessment.
 
 
 [spec-pr]: https://github.com/dlang/dlang.org/pull/3616
