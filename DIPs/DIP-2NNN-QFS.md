@@ -343,7 +343,7 @@ so that e.g. the first of the two following declarations is accepted, too, and e
 void takesCppFunction( extern(C++) ref int function()  fp) { }
 void takesCppFunction((extern(C++) ref int function()) fp) { }
 ```
-Unlike with `ref`, this possible for linkage because linkages are not a parameter storage classes and in all likelihood never will be.
+Unlike with `ref`, this possible for linkage because linkages are not parameter storage classes and in all likelihood never will be.
 If the linkage is followed up by a `ref`,
 because linkage starts a type,
 it’s clear that `ref` must be part of the function pointer type syntax,
