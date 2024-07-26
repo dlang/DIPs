@@ -412,6 +412,18 @@ and any qualifiers after `ref` refer to the return type of the function pointer 
 
 A third side-effect is that `extern` will not be available as a parameter storage class.
 
+Lambdas with unnamed parameters are easier to write:
+```d
+struct S {}
+auto fp = (S) => 0; // Error: […] type `void` is inferred from initializer […]
+// With this proposal:
+auto fp = ((S)) => 0;
+// typeof(fp) == int function(S __param_0) pure nothrow @nogc @safe
+```
+This is because in `(S)`, `S` does not refer to the struct type, but is a fresh variable name,
+but in `((S))` the part `(S)` cannot be a variable name, thus it’s treated as a parameter type,
+and as such, refers to the struct `S`.
+
 ### Drawbacks
 
 A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
