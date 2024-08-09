@@ -11,8 +11,8 @@
 
 ## Abstract
 
-The objective of this proposal is to ensure that every type,
-which can be expressed within the D programming language’s type system,
+The objective of this proposal is to ensure that every type
+that can be expressed within the D programming language’s type system
 has a corresponding representation as a sequence of D tokens.
 Currently, the type constructs that lack such a representation are function pointer types and delegate types that return by reference or possess non-default linkage.
 
@@ -39,7 +39,8 @@ Currently, the type constructs that lack such a representation are function poin
 Not every type that the compiler can represent internally is expressible using existing D syntax.
 For instance, when `pragma(msg)`, `stringof`, or diagnostics serialize a type,
 the programmer should be able to copy and paste this type and not get parsing errors.
-Semantic problems may still arise due to visibility.
+Semantic problems may still arise, e.g. due to visibility.
+
 The main culprits are function pointers and delegates that return by reference.
 To use those as function parameter or return types,
 programmers are compelled to use a separate alias declaration.
@@ -49,14 +50,14 @@ This has been filed as [Issue 2753][issue-2753] *(Cannot declare pointer to func
 Another point of contention is an asymmetry between types and expressions:
 For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is functionally identical,
 but for a type <code>*T*</code>, the token sequence <code>(*T*)</code> does not denote a type.
-For expressions, the grammar rule saying that if <code>*e*</code> is an expression, so is <code>(*e*)</code>,
+For expressions, the grammar rule stating that if <code>*e*</code> is an expression, so is <code>(*e*)</code>,
 is referred to as *primary expression.*
 This DIP proposes the same mechanism for types, hence the title includes *primary types.*
 In the D grammar and this document, the term *basic type* is used.
 In short, part of the proposed changes is making basic types be primary types.
 
 The current D syntax almost supports primary type syntax:
-There exists a grammar rule that says:
+There exists a grammar rule that states:
 If <code>*T*</code> denotes a type and <code>*q*</code> is a type qualifier, then <code>*q*(*T*)</code> denotes a type.
 In fact, <code>*q*(*T*)</code> is even a *basic type,*
 which, simply put, means that unlike <code>*q* *T*</code>,
@@ -73,7 +74,12 @@ that is, in particular, as a function return type or a parameter type,
 and there would be no ambiguity what `ref` refers to,
 and the `ref` is at a place where programmers expect it to be.
 Additionally, in places where a general type is expected
-(e.g. <code>is(*T*)</code> tests, template parameters/&ZeroWidthSpace;arguments/&ZeroWidthSpace;constraints/&ZeroWidthSpace;defaults, and `pragma(msg)`),
+(e.g.
+<code>is(*T*)</code> tests,
+the <code>cast(*T*)</code> operator,
+template type parameters/&ZeroWidthSpace;arguments/&ZeroWidthSpace;constraints/&ZeroWidthSpace;defaults,
+template value parameter types,
+and `pragma(msg)`),
 <code>ref *R* function(…)</code> can be used even without parentheses.  
 Of course, everything said about `function` types also applies to `delegate` types.
 Also, everything said about `ref` here also applies to linkage,
