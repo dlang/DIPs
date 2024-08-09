@@ -399,18 +399,28 @@ Therefore, add to the [*`IfCondition`*](https://dlang.org/spec/statement.html#If
 
 ### Side-effects
 
-A notable side-effect is that `(const int)` is now a basic type.
+This is a list of otherwise unrelated observations that the author made when developing this DIP.
+
+#### New kind of basic type
+
+With the changes proposed by this DIP, `(const int)` denotes a basic type.
 The author expects this to be somewhat controversial.
 Some programmers will prefer the more consistent new style to the old style,
-leading to something like the head-const (`const T`) vs tail-const (`T const`) style discussions in C++.
+leading to something like the [east-const vs west-const style](https://hackingcpp.com/cpp/design/east_vs_west_const.html) discussions in C++.
 
-Another side-effect is that there will be a discrepancy between function pointer and delegate type declarations and member function declarations.
+#### Function pointer and member function declaration discrapancy
+
+There will be a discrepancy between function pointer and delegate type declarations and member function declarations.
 On a member function declaration, type qualifiers and `ref` commute and qualifiers refer to the implicit `this` parameter,
 whereas on function pointer and delegate types,
 any qualifiers before `ref` refer to the whole type
 and any qualifiers after `ref` refer to the return type of the function pointer or delegate type.
 
-A third side-effect is that `extern` will not be available as a parameter storage class.
+#### Parameter storage class `extern`
+
+The keyword `extern` will not be available as a parameter storage class.
+
+#### Lambdas with unnamed parameters
 
 Lambdas with unnamed parameters are easier to write:
 ```d
@@ -426,7 +436,7 @@ and as such, refers to the struct `S`.
 
 ### Drawbacks
 
-A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
+A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
 This is intentional due to the requirement that the changes in syntax be backwards compatible.
 
 ### Breaking Changes
