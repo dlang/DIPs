@@ -21,7 +21,7 @@ Short and concise description of the idea in a few lines.
 * [Breaking Changes and Deprecations](#breaking-changes-and-deprecations)
 * [Reference](#reference)
 * [Copyright & License](#copyright--license)
-* [Reviews](#reviews)
+* [History](#history)
 
 ## Rationale
 Required.
