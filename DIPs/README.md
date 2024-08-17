@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1047](./DIP1047.md)|              Add `@gc` as a Function Attribute| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
 ## Accepted DIPs
