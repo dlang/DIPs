@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
-|[1040](./DIP1048.md)|                   Callbacks For Matching Types| Formal Assessment|
+|[1048](./DIP1048.md)|                   Callbacks For Matching Types| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
 ## Accepted DIPs
