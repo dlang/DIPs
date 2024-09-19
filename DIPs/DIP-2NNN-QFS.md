@@ -447,13 +447,23 @@ This is intentional due to the requirement that the changes in syntax be backwar
 
 ### Breaking Changes
 
-For a symbol <code>*s*</code>,
+For a symbol <code>*s*</code> that holds a value of some type,
 in present-day D, the token sequence <code>(*s*)</code> only parses as an expression.
 With the changes proposed by this DIP,
 it also parses as a type,
-which is a meaningful difference in <code>__traits(isSame, (*s*))</code>.
-These can be remedied using a cast to unambiguously force parsing as an expression:
-<code>cast(typeof(*s*))(*s*)</code>.
+which is a meaningful difference in <code>__traits(isSame, (*s*), …)</code>
+because the `isSame` trait preferentially parses its arguments as types.
+This can be remedied using a cast to unambiguously force parsing as an expression:
+<code>cast(typeof(*s*)) *s*</code>.
+
+The same does not apply to template alias and squence parameters bound to <code>(*s*)</code>
+with <code>*s*</code> a symbol that holds a value of some type.
+That is because there, <code>(*s*)</code> is treated identical to <code>*s*</code>.
+It is noteworthy, though, that for template alias and squence parameters,
+the expression <code>cast(typeof(*s*)) *s*</code> is identical to the symbol <code>*s*</code>,
+and that non-symbol expressions do not bind to template sequence parameters,
+and the only reliable way to force binding a template alias parameter to the value of a symbol,
+and not the symbol itself, is using an expression that produces a new value.
 
 Another breaking change is with the string representation of function pointer and delegate types
 that return by reference.
