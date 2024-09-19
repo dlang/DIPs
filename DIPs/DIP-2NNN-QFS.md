@@ -370,7 +370,7 @@ to the [*`Parameter`*](https://dlang.org/spec/function.html#Parameter) grammar:
 +       ParameterAttributes? LinkageAttribute ref? TypeCtors? BasicType Declarator
         ParameterAttributes? Type
 
-    Declarator: 
+    Declarator:
         TypeSuffixes? Identifier
 ```
 
