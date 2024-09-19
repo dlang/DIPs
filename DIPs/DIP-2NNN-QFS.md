@@ -398,9 +398,6 @@ Therefore, add to the [*`IfCondition`*](https://dlang.org/spec/statement.html#If
 +       IfConditionStorageClasses? LinkageAttribute ref? TypeCtors? BasicType Declarator = Expression
 ```
 
-> [!NOTE]
-> The [provided implementation][impl-pr] cannot parse those conditions yet.
-
 ## Possible Problems
 
 ### Side-effects
