@@ -285,7 +285,6 @@ and the redundant `ref` is an error.
 ### Maximal Munch Exception
 
 Lexing and parsing, for the most part, follow the maximal munch principle.
-(The only exception the author is aware of is lexing floating point numbers.)
 Maximal munch is the following general rule:
 > If the lexer or parser can meaningfully interpret the next character or token, respectively, as part of what it tries to match,
 > it will.
