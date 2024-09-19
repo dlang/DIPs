@@ -408,7 +408,38 @@ Therefore, add to the [*`IfCondition`*](https://dlang.org/spec/statement.html#If
         IfConditionStorageClasses Identifier = Expression
         IfConditionStorageClasses? BasicType Declarator = Expression
 +       IfConditionStorageClasses? LinkageAttribute ref? TypeCtors? BasicType Declarator = Expression
+
+    Declarator:
+        TypeSuffixes? Identifier
 ```
+
+As before, in the *`Declarator`* of the added clause,
+*`TypeSuffixes`* would be required (not optional)
+and exactly one of them would have to be starting with `function` or `delegate`.
+
+#### Loop Variables
+
+Similar to linkage in conditions,
+loop variables for `foreach` and `foreach_reverse` can declare variables.
+There, too, requiring parentheses to form a basic type is not really necessary,
+so allowing to omit them is warranted.
+
+Therefore, add to the [*`ForeachType`*](https://dlang.org/spec/statement.html#ForeachType) grammar:
+
+```diff
+    ForeachType:
+        ForeachTypeAttributes? BasicType Declarator
++       ForeachTypeAttributes? LinkageAttribute ref? TypeCtors? BasicType Declarator
+        ForeachTypeAttributes? Identifier
+        ForeachTypeAttributes? alias Identifier
+
+    Declarator:
+        TypeSuffixes? Identifier
+```
+
+As always, in the *`Declarator`* of the added clause,
+*`TypeSuffixes`* would be required (not optional)
+and exactly one of them would have to be starting with `function` or `delegate`.
 
 ## Possible Problems
 
