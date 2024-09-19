@@ -465,6 +465,7 @@ and any qualifiers after `ref` refer to the return type of the function pointer 
 #### Parameter storage class `extern`
 
 The keyword `extern` will not be available as a parameter storage class.
+Introducing it will likely require another excpetion to Maximum Munch to distinguish linkage from sole `extern`.
 
 #### Lambdas with unnamed parameters
 
