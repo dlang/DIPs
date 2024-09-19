@@ -447,6 +447,8 @@ This is intentional due to the requirement that the changes in syntax be backwar
 
 ### Breaking Changes
 
+#### Symbols
+
 For a symbol <code>*s*</code> that holds a value of some type,
 in present-day D, the token sequence <code>(*s*)</code> only parses as an expression.
 With the changes proposed by this DIP,
@@ -464,6 +466,8 @@ the expression <code>cast(typeof(*s*)) *s*</code> is identical to the symbol <co
 and that non-symbol expressions do not bind to template sequence parameters,
 and the only reliable way to force binding a template alias parameter to the value of a symbol,
 and not the symbol itself, is using an expression that produces a new value.
+
+#### String Representations
 
 Another breaking change is with the string representation of function pointer and delegate types
 that return by reference.
