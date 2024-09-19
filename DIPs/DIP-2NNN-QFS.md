@@ -77,6 +77,7 @@ Additionally, in places where a general type is expected
 (e.g.
 <code>is(*T*)</code> tests,
 the <code>cast(*T*)</code> operator,
+the <code>typeid(*T*)</code> operator,
 template type parameters/&ZeroWidthSpace;arguments/&ZeroWidthSpace;constraints/&ZeroWidthSpace;defaults,
 template value parameter types,
 and `pragma(msg)`),
