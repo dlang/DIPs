@@ -90,6 +90,12 @@ Another related issue is [24007][issue-24007] *(Function/&ZeroWidthSpace;delegat
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
+> [!WARNING]
+> While the [provided implementation][impl-pr] can *parse* linkages as part of lambda expressions,
+> it does not semantically apply them to the type yet.
+>
+> Help is needed on this.
+
 ## Prior Work
 
 This DIP addresses specific shortcomings of D’s syntax.
@@ -343,12 +349,6 @@ These proposed changes are not needed for the primary goal of the DIP,
 which is to make these types canonically expressible,
 and can instead be considered as convenience and, in fact, consistency features.
 
-> [!WARNING]
-> While the [provided implementation][impl-pr] can *parse* linkages as part of function pointer and delegate types and lambda expressions,
-> it does not semantically apply them to the type yet.
->
-> Help is needed on this.
-
 #### Parameters
 
 The proposed grammar up to this point does not allow linkage as the first tokens of a function pointer or delegate type parameter,
@@ -390,10 +390,6 @@ and exactly one of them would have to be starting with `function` or `delegate`.
 The case without a parameter name is already handled by *`Type`*.
 If this change were rejected, leaving the *`Type`* rule as-is would lead to an inconsistency:
 Unnamed parameters would be allowed to omit parentheses, but not named ones.
-
-> [!NOTE]
-> The [provided implementation][impl-pr] already parses this.
-> However, it does not semantically apply the linkage to the function pointer or delegate type.
 
 #### Conditions
 
