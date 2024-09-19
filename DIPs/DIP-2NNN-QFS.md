@@ -351,9 +351,10 @@ and can instead be considered as convenience and, in fact, consistency features.
 
 #### Parameters
 
-The proposed grammar rules up to this point do not allow linkage as the first tokens of a function pointer or delegate type,
-however, the provided implementation allows omitting parentheses for function pointer or delegate types with linkage,
-so that e.g. the first of the two following declarations is accepted, too, and equivalent to the second:
+The proposed grammar up to this point does not allow linkage as the first tokens of a function pointer or delegate type parameter,
+and requires explicit parentheses to form a basic type,
+however, the provided implementation allows omitting those parentheses,
+so that the first of the two following declarations is accepted, too, and equivalent to the second:
 ```d
 void takesCppFunction( extern(C++) ref int function()  fp) { }
 void takesCppFunction((extern(C++) ref int function()) fp) { }
@@ -387,6 +388,8 @@ In the *`Declarator`* of the added clause,
 *`TypeSuffixes`* would be required (not optional)
 and exactly one of them would have to be starting with `function` or `delegate`.
 The case without a parameter name is already handled by *`Type`*.
+If this change were rejected, leaving the *`Type`* rule as-is would lead to an inconsistency:
+Unnamed parameters would be allowed to omit parentheses, but not named ones.
 
 > [!NOTE]
 > The [provided implementation][impl-pr] already parses this.
