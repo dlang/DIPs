@@ -194,7 +194,7 @@ as such a provision can be expected.
 
 > [!NOTE]
 > Implementations are encouraged, but not required,
-> to offer all possible ways add clarifying parentheses.
+> to offer all possible ways clarifying parentheses could be added.
 > For example:
 > ```
 > Error: `ref` could refer to more than one `function` or `delegate` here.
