@@ -338,7 +338,7 @@ if (extern(C) int function() fp = null) { }
 foreach (extern(C) int function() fp; [ ]) { }
 ```
 
-The underlying idea is that at those places,
+The underlying idea is that in those places,
 because linkage is currently invalid
 and would stay invalid given the proposed changes up to this point,
 linkage can be explicitly allowed to introduce a type,
