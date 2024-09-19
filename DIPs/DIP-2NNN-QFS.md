@@ -333,16 +333,16 @@ some changes proposed by this DIP are for linkage only.
 #### Parameters
 
 A function pointer type with non-default linkage
-can not be expressed by the type grammar,
-and contrary to `ref` return, cannot even be specified for a literal.
+cannot be expressed by the type grammar,
+and contrary to `ref` return, linkage cannot even be specified for a lambda expression.
 
 > [!WARNING]
-> While the [provided implementation][impl-pr] can *parse* linkages as part of function pointer and delegate types and literals,
+> While the [provided implementation][impl-pr] can *parse* linkages as part of function pointer and delegate types and lambda expressions,
 > it does not semantically apply them to the type yet.
 >
 > Help is needed on this.
 
-The proposed grammar rules formally do not allow linkage as the first tokens of a function pointer or delegate type,
+The proposed grammar rules up to this point do not allow linkage as the first tokens of a function pointer or delegate type,
 however, the provided implementation allows omitting parentheses for function pointer or delegate types with linkage,
 so that e.g. the first of the two following declarations is accepted, too, and equivalent to the second:
 ```d
