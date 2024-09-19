@@ -436,8 +436,8 @@ auto fp = (S) => 0; // Error: […] type `void` is inferred from initializer [�
 auto fp = ((S)) => 0;
 // typeof(fp) == int function(S __param_0) pure nothrow @nogc @safe
 ```
-This is because in `(S)`, `S` does not refer to the struct type, but is a fresh variable name,
-but in `((S))` the part `(S)` cannot be a variable name, thus it’s treated as a parameter type,
+This is because in `(S) => 0`, `S` does not refer to the struct type, but is a fresh variable name.
+In `((S)) => 0`, however, the part `(S)` cannot be a variable name, thus it’s treated as a parameter type,
 and as such, refers to the struct `S`.
 
 ### Drawbacks
