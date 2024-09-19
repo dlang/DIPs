@@ -325,22 +325,31 @@ the `const` only applies to `int`.
 
 ### Linkage
 
-The discussion about `ref` is much more relevant than that of linkage as pass-by-reference is commonplace,
-whereas linkage is niche in comparison.
-While many problems regard `ref` return and linkage equally,
-some changes proposed by this DIP are for linkage only.
+In short, the changes proposed in this subsection make the following valid syntax:
+```d
+void f(extern(C) int function() fp) { }
+if (extern(C) int function() fp = null) { }
+foreach (extern(C) int function() fp; [ ]) { }
+```
 
-#### Parameters
+The underlying idea is that at those places,
+because linkage is currently invalid
+and would stay invalid given the proposed changes up to this point,
+linkage can be explicitly allowed to introduce a type,
+even if a general type is not allowed and cannot be allowed
+because `ref` already has meaning in these contexts.
 
-A function pointer type with non-default linkage
-cannot be expressed by the type grammar,
-and contrary to `ref` return, linkage cannot even be specified for a lambda expression.
+These proposed changes are not needed for the primary goal of the DIP,
+which is to make these types canonically expressible,
+and can instead be considered as convenience and, in fact, consistency features.
 
 > [!WARNING]
 > While the [provided implementation][impl-pr] can *parse* linkages as part of function pointer and delegate types and lambda expressions,
 > it does not semantically apply them to the type yet.
 >
 > Help is needed on this.
+
+#### Parameters
 
 The proposed grammar rules up to this point do not allow linkage as the first tokens of a function pointer or delegate type,
 however, the provided implementation allows omitting parentheses for function pointer or delegate types with linkage,
