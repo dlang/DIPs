@@ -38,16 +38,16 @@ Currently, the type constructs that lack such a representation are function poin
 
 Not every type that the compiler can represent internally is expressible using existing D syntax.
 For instance, when `pragma(msg)`, `stringof`, or diagnostics serialize a type,
-the programmer should be able to copy and paste this type and not get parsing errors.
-Semantic problems may still arise, e.g. due to visibility.
+the programmer should be able to copy and paste this type without getting parse errors.
+Semantic problems may still arise, e.g., due to visibility.
 
 The main culprits are function pointers and delegates that return by reference.
-To use those as function parameter or return types,
+To use these as function parameter or return types,
 programmers are compelled to use a separate alias declaration.
 Alias declarations only support them by special-casing them.
 This has been filed as [Issue 2753][issue-2753] *(Cannot declare pointer to function returning `ref`).*
 
-Another point of contention is an asymmetry between types and expressions:
+Another point of contention is this asymmetry between types and expressions:
 For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is functionally identical,
 but for a type <code>*T*</code>, the token sequence <code>(*T*)</code> does not denote a type.
 For expressions, the grammar rule stating that if <code>*e*</code> is an expression, so is <code>(*e*)</code>,
@@ -109,7 +109,7 @@ Possibly, something like this solution was conceptualized in-passing by Jonathan
 > [!NOTE]
 > Optional grammar entities are represented by `?` here.
 
-Because this DIP is aimed at the grammar primarily,
+Because this DIP is focused primarily on the grammar,
 contrary to as is customary in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
@@ -161,7 +161,7 @@ The following addresses the [type grammar](https://dlang.org/spec/type.html#Type
 
 After a *`LinkageAttribute`* and/or a `ref`,
 exactly one of the *`TypeSuffixes`* must start with `function` or `delegate`.
-Expressing this in the grammar is possible,
+Expressing this formally in the grammar is possible,
 but makes it harder to understand with little benefit,
 as such a provision can be expected.
 
