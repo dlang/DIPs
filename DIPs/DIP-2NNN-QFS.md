@@ -5,8 +5,8 @@
 |-----------------|---------------------------------------------------------|
 | DIP:            | *TBD*                                                   |
 | Review Count:   | 0                                                       |
-| Author:         | Quirin F. Schroll ([@Bolpat](github.com/Bolpat))        |
-| Implementation: | [dlang.org PR 3616][spec-pr] • [DMD PR 15269](impl-pr)  |
+| Author:         | Quirin F. Schroll ([@Bolpat](https://github.com/Bolpat))|
+| Implementation: | [dlang.org PR 3616][spec-pr] • [DMD PR 15269][impl-pr]  |
 | Status:         | Draft                                                   |
 
 ## Abstract
