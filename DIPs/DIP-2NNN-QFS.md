@@ -528,7 +528,7 @@ that no deprecation is proposed.
 
 ## Copyright & License
 
-Copyright © 2024 by Quirin F. Schroll
+Copyright © 2024 by the D Language Foundation
 
 Licensed under [Creative Commons Zero 1.0][cc-0]
 
