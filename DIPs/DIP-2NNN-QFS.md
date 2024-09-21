@@ -90,12 +90,6 @@ Another related issue is [24007][issue-24007] *(Function/&ZeroWidthSpace;delegat
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
-> [!WARNING]
-> While the [provided implementation][impl-pr] can *parse* linkages as part of lambda expressions,
-> it does not semantically apply them to the type yet.
->
-> Help is needed on this.
-
 ## Prior Work
 
 This DIP addresses specific shortcomings of D’s syntax.
