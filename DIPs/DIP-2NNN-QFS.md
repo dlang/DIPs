@@ -90,6 +90,23 @@ Another related issue is [24007][issue-24007] *(Function/&ZeroWidthSpace;delegat
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
+> [!NOTE]
+> The [proof-of-concept implementation][impl-pr] includes almost all of the proposed changes.
+> The only proposed feature the author did not implement as of now is linkage of template lambda expressions
+> that are not the right-hand side of an alias declaration.
+> The implementation could *parse* those linkages,
+> but the author found no way to semantically apply them to the type of the lambda.
+> Therefore, the implementation makes this a compile error for the time being.
+>
+> Example:
+> ```d
+> algo!(function extern(C) (x) => x);
+> //             ~~~~~~~~~
+> // error: Explicit linkage not supported for template lambda, except for alias.
+> ```
+>
+> Help is needed on this.
+
 ## Prior Work
 
 This DIP addresses specific shortcomings of D’s syntax.
@@ -204,7 +221,7 @@ as such a provision can be expected.
 >           `ref (int function()) function()`
 >        or `(ref int function()) function()`
 > ```
-> The implementation in [DMD PR 15269][impl-pr] produces this error message
+> The [proof-of-concept implementation][impl-pr] produces this error message
 > on `ref int function() function()`.
 
 Initial type qualifiers refer to the whole type produced,
@@ -225,7 +242,7 @@ no parentheses are needed.
 This is outlined in [§ Linkage](#linkage) below.
 
 > [!NOTE]
-> The [provided implementation][impl-pr] does this correctly,
+> The [proof-of-concept implementation][impl-pr] does this correctly,
 > however, it also inserts parentheses in some places where they are optional.
 
 ### Basic Examples
@@ -331,7 +348,7 @@ In short, the changes proposed in this subsection make the following valid synta
 ```d
 void f(extern(C) int function() fp) { }
 if (extern(C) int function() fp = null) { }
-foreach (extern(C) int function() fp; [ ]) { }
+foreach (extern(C) int function() fp; [ ]) { }
 ```
 
 The underlying idea is that in those places,
@@ -446,7 +463,7 @@ The author expects this to be somewhat controversial.
 Some programmers will prefer the more consistent new style to the old style,
 leading to something like the [east-const vs west-const style](https://hackingcpp.com/cpp/design/east_vs_west_const.html) discussions in C++.
 
-#### Function pointer and member function declaration discrapancy
+#### Function pointer and member function declaration discrepancy
 
 There will be a discrepancy between function pointer and delegate type declarations and member function declarations.
 On a member function declaration, type qualifiers and `ref` commute and qualifiers refer to the implicit `this` parameter,
@@ -457,7 +474,7 @@ and any qualifiers after `ref` refer to the return type of the function pointer 
 #### Parameter storage class `extern`
 
 The keyword `extern` will not be available as a parameter storage class.
-Introducing it will likely require another excpetion to Maximum Munch to distinguish linkage from sole `extern`.
+Introducing it will likely require another exception to Maximum Munch to distinguish linkage from sole `extern`.
 
 #### Lambdas with unnamed parameters
 
@@ -491,10 +508,10 @@ because the `isSame` trait preferentially parses its arguments as types.
 This can be remedied using a cast to unambiguously force parsing as an expression:
 <code>cast(typeof(*s*)) *s*</code>.
 
-The same does not apply to template alias and squence parameters bound to <code>(*s*)</code>
+The same does not apply to template alias and sequence parameters bound to <code>(*s*)</code>
 with <code>*s*</code> a symbol that holds a value of some type.
 That is because there, <code>(*s*)</code> is treated identical to <code>*s*</code>.
-It is noteworthy, though, that for template alias and squence parameters,
+It is noteworthy, though, that for template alias and sequence parameters,
 the expression <code>cast(typeof(*s*)) *s*</code> is identical to the symbol <code>*s*</code>,
 and that non-symbol expressions do not bind to template sequence parameters,
 and the only reliable way to force binding a template alias parameter to the value of a symbol,
@@ -517,8 +534,8 @@ static assert(int function() function().stringof == "int function() function()")
 This passes with the present-day implementation,
 but fails with the provided implementation,
 as it serializes the type as `"(int function()) function()"`.
-However, the D Language Specification does not mandate specific string representations of types:
-[“The string representation for a type or expression can vary.”](https://dlang.org/spec/property.html#stringof)
+However, the [D Language Specification](https://dlang.org/spec/property.html#stringof) does not mandate specific string representations of types:
+“The string representation for a type or expression can vary.”
 
 ### Deprecations
 
