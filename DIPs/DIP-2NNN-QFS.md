@@ -119,8 +119,10 @@ The following addresses the [function literal](https://dlang.org/spec/expression
     FunctionLiteral:
 -       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody
 -       delegate RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody
-+       function LinkageAttribute? RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody
-+       delegate LinkageAttribute? RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody
++       function LinkageAttribute? RefOrAutoRef? BasicType? ParameterWithAttributes? FunctionLiteralBody
++       delegate LinkageAttribute? RefOrAutoRef? BasicType? ParameterWithMemberAttributes? FunctionLiteralBody
++       function LinkageAttribute? RefOrAutoRef? BasicType TypeSuffixes? ParameterWithAttributes? FunctionLiteralBody
++       delegate LinkageAttribute? RefOrAutoRef? BasicType TypeSuffixes? ParameterWithMemberAttributes? FunctionLiteralBody
 ```
 
 The following addresses the [type grammar](https://dlang.org/spec/type.html#Type).
