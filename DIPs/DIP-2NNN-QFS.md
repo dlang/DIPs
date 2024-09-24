@@ -128,12 +128,10 @@ The following addresses the [function literal](https://dlang.org/spec/expression
 
 ```diff
     FunctionLiteral:
--       function RefOrAutoRef? Type? ParameterWithAttributes? FunctionLiteralBody
--       delegate RefOrAutoRef? Type? ParameterWithMemberAttributes? FunctionLiteralBody
-+       function LinkageAttribute? RefOrAutoRef? BasicType? ParameterWithAttributes? FunctionLiteralBody
-+       delegate LinkageAttribute? RefOrAutoRef? BasicType? ParameterWithMemberAttributes? FunctionLiteralBody
-+       function LinkageAttribute? RefOrAutoRef? BasicType TypeSuffixes? ParameterWithAttributes? FunctionLiteralBody
-+       delegate LinkageAttribute? RefOrAutoRef? BasicType TypeSuffixes? ParameterWithMemberAttributes? FunctionLiteralBody
+-       function RefOrAutoRef? BasicTypeWithSuffixes? ParameterWithAttributes? FunctionLiteralBody
+-       delegate RefOrAutoRef? BasicTypeWithSuffixes? ParameterWithMemberAttributes? FunctionLiteralBody
++       function LinkageAttribute? RefOrAutoRef? BasicTypeWithSuffixes? ParameterWithAttributes? FunctionLiteralBody
++       delegate LinkageAttribute? RefOrAutoRef? BasicTypeWithSuffixes? ParameterWithMemberAttributes? FunctionLiteralBody
 ```
 
 The following addresses the [type grammar](https://dlang.org/spec/type.html#Type).
