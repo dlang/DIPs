@@ -24,7 +24,7 @@ Currently, the type constructs that lack such a representation are function poin
     * [Grammar Changes](#grammar-changes)
     * [String Representation](#string-representation)
     * [Basic Examples](#basic-examples)
-    * [Maximal Munch Exception](#maximal-munch-exception)
+    * [Maximal Munch Exceptions](#maximal-munch-exceptions)
     * [Linkage](#linkage)
 * [Possible Problems](#possible-problems)
     * [Side-effects](#side-effects)
@@ -299,7 +299,7 @@ Without the parentheses around the type of `f`,
 the second `ref` would also be parsed as part of the parameter storage classes of `f`,
 and the redundant `ref` is an error.
 
-### Maximal Munch Exception
+### Maximal Munch Exceptions
 
 Lexing and parsing, for the most part, follow the maximal munch principle.
 Maximal munch is the following general rule:
@@ -312,7 +312,10 @@ Maximal munch is the following general rule:
 The only currently-existing exception the author is aware of is [lexing floating point numbers][max-munch-exception].
 As of this writing, there is [an open Pull Request][deprecate-trailing-dot] to deprecate this exception.
 
-For backwards compatibility, this DIP proposes to add another exception to maximal munch:
+The following excpetions to Maximal Munch are being proposed for backwards compatibility.
+
+#### Qualifiers stick to open parentheses
+
 Whenever an opening parenthesis follows a type qualifier,
 this is considered effectively one token and refers to the *`BasicType`* rule.
 
@@ -339,6 +342,67 @@ In a type denoted as `const int[]`, the `const` applies to everything that comes
 extending as far to the right as possible,
 but in `const(int)[]`, because an opening parenthesis immediately follows,
 the `const` only applies to `int`.
+
+#### Lambda return type versus parameter list
+
+In function literal expressions starting with `function` or `delegate`,
+both the return type (the `BasicTypeWithSuffixes`) and the parameter list are optional.
+
+With the changes proposed by this DIP,
+because a basic type can start with an opening parenthesis,
+this would render some lambda expressions ambiguous,
+and if Maximum Munch were used to disambiguate,
+existing code may change meaning.
+
+For example:
+```d
+auto fp = function (int) => 0;
+```
+
+Currently, `(int)` is an argument list,
+but with the proposed changes without the following exception,
+it would become the return type.
+
+Therefore, another exception to Maximum Munch is proposed:
+In function literal expressions starting with `function` or `delegate`,
+if there is exactly one set of same-level parentheses between the introductory keyword
+and the first contract or (if no contracts are given) the function literal body,
+those parentheses denote the parameter list.
+
+If a programmer intends to specify a return type that starts with an opening parenthesis,
+a parameter list must be specified, even if it is empty and would be optional otherwise.
+
+For example:
+```d
+auto fp1 = function (ref int function())    => null;
+auto fp2 = function (ref int function()) () => null;
+```
+
+The function pointer `fp1` takes one parameter by reference; the parameter is of function pointer type.
+its return type is `typeof(null)` by inference.  
+The function pointer `fp2` takes takes no parameters and returns a function pointer;
+the returned function pointer returns an `int` by reference.
+
+The author was made aware of this by the D Forum user named Tim in [this thread](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
+and thanks Tim for his help.
+
+#### Anonymous nested classes
+
+Similar to the aforementioned situation with function literals,
+with the changes proposed by this DIP,
+anonymous nested class expressions could have two optional constructs surrounded by parentheses:
+The arguments passed to the anonymous nested class’s constructor
+and the first base class or implemented interface.
+
+The situation is different, however, because the order is reversed.
+Applying Maximum Munch, the first parentheses still denotes the argument list.
+Therefore, no excpetion is needed.
+Yet, similar to the case of function literals,
+if a programmer wanted to enclose the first base class or interface with parentheses,
+an explicit argument list must be provided.
+
+The author was made aware of this by the D Forum user named Tim in [this thread](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
+and thanks Tim for his help.
 
 ### Linkage
 
