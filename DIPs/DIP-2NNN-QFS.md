@@ -378,8 +378,9 @@ auto fp1 = function (ref int function())    => null;
 auto fp2 = function (ref int function()) () => null;
 ```
 
-The function pointer `fp1` takes one parameter by reference; the parameter is of function pointer type.
-its return type is `typeof(null)` by inference.  
+The function pointer `fp1` takes one parameter by reference which is of function pointer type.
+Its return type is `typeof(null)` by inference.
+
 The function pointer `fp2` takes takes no parameters and returns a function pointer;
 the returned function pointer returns an `int` by reference.
 
