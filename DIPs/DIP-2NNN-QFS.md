@@ -313,7 +313,7 @@ Maximal munch is the following general rule:
 The only currently-existing exception the author is aware of is [lexing floating point numbers][max-munch-exception].
 As of this writing, there is [an open Pull Request][deprecate-trailing-dot] to deprecate this exception.
 
-The following excpetions to Maximal Munch are being proposed for backwards compatibility.
+The following exceptions to Maximal Munch are being proposed for backwards compatibility.
 
 #### Qualifiers stick to open parentheses
 
@@ -398,7 +398,7 @@ and the first base class or implemented interface.
 
 The situation is different, however, because the order is reversed.
 Applying Maximum Munch, the first parentheses still denotes the argument list.
-Therefore, no excpetion is needed.
+Therefore, no exception is needed.
 Yet, similar to the case of function literals,
 if a programmer wanted to enclose the first base class or interface with parentheses,
 an explicit argument list must be provided.
