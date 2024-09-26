@@ -307,6 +307,7 @@ Maximal munch is the following general rule:
 > it will.
 > Only if it can’t,
 > it considers that the end of the current match if possible,
+> backtracks,
 > or issues an error.
 
 The only currently-existing exception the author is aware of is [lexing floating point numbers][max-munch-exception].
