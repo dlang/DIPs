@@ -39,7 +39,7 @@
 |[1027](./rejected/DIP1027.md)|                  String Interpolation|
 |[1028](./rejected/DIP1028.md)|                Make @safe the Default|
 |[1044](./rejected/DIP1044.md)|                   Enum Type Inference|
-|[1047](./rejected/DIP1027.md)|     Add `@gc` as a Function Attribute|
+|[1047](./rejected/DIP1047.md)|     Add `@gc` as a Function Attribute|
 
 ## Postponed DIPs
 |                           ID|                                 Title|
