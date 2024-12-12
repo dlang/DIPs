@@ -30,7 +30,7 @@ Although D was written as a language that had learned the mistakes
 made by other languages, it of course ended up making a few of its
 own. There are many things that we would like to change about the
 language but are not allowed to given the likelihood, or in some cases
-the certainty, that existing code will no longer compiler. Worse still
+the certainty, that existing code will no longer compile. Worse still
 is code that compiles under the new language rules but that behaves
 differently.
 
