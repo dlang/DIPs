@@ -107,6 +107,12 @@ compatibility are made. All code, old and new, must be compiled with
 the same version of the compiler. Only one version will be supplied of
 druntime which must support all existing editions.
 
+It is possible that later editions will fix `@safe`ty issues that
+cannot be fixed in earlier editions for fear of breaking existing
+code. In that case, this DIP recommends that functions from previous
+editions be treated as `@system`. Another way to get around this is
+to introduce  `@trusted` imports.
+
 What could editions do?
 
 ### Deleting existing features
