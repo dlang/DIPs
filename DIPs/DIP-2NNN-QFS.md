@@ -413,7 +413,7 @@ scope guards conflict with declarations of `scope` variables
 whose type is expressed starting with an opening parenthesis,
 in particular the ones that require parentheses to be expressed.
 
-The goal of the following design is to allow the this code with the annotated meaning:
+The goal of the following design is to allow the this code with the noted meaning:
 ```d
 // scope variable:
 scope (ref int delegate()) dg = &obj.foo;
@@ -422,7 +422,7 @@ scope (ref int delegate()) dg = &obj.foo;
 scope(exit) dg = null;
 
 // scope guard (hypothetical future example):
-scope(failure, FormatException e) { e.msg = "Some fmt ex"; }
+scope(failure, FormatException e) { log(e.msg); }
 ```
 
 Conceptually, distinguish between *simple* scope guards and *elaborate* scope guards.
@@ -438,44 +438,43 @@ This DIP proposes they require a [*`BlockStatement`*](https://dlang.org/spec/sta
 This removes no design space with respect to arguments of future elaborate scope guards,
 only the option to use a [*`NonEmptyStatementNoCaseNoDefault`*](https://dlang.org/spec/statement.html#NonEmptyStatement).
 
-This compromise works because no single-token type requires parentheses (and likely none ever will),
-and because <code>scope(*Tokens*) { … }</code> is not meaningful as a statement other than a scope guard.
+This compromise works because no single-token type requires parentheses (and likely none ever will)
+and <code>scope(*Tokens*) { … }</code> is not meaningful as a statement other than a scope guard.
 
 > [!NOTE]
 > The restriction to a *`NonEmptyStatement`* is to make the implementation easier.
 > A more thorough analysis yields the following list of *`NonEmptyStatementNoCaseNoDefault`* cases
 > that cannot be a declaration and are unlikely to ever be:
->
-> * *`IfStatement`*,
-> * *`WhileStatement`*,
-> * *`DoStatement`*,
-> * *`ForStatement`*,
-> * *`ForeachStatement`*,
-> * *`SwitchStatement`*,
-> * *`FinalSwitchStatement`*,
-> * *`WithStatement`*,
-> * *`SynchronizedStatement`*,
-> * *`TryStatement`*,
-> * *`AsmStatement`*,
-> * *`ForeachRangeStatement`*,
-> * *`ConditionalStatement`*,
-> * *`StaticForeachStatement`*, and
-> * *`ImportDeclaration`*
+> *`IfStatement`*,
+> *`WhileStatement`*,
+> *`DoStatement`*,
+> *`ForStatement`*,
+> *`ForeachStatement`*,
+> *`SwitchStatement`*,
+> *`FinalSwitchStatement`*,
+> *`WithStatement`*,
+> *`SynchronizedStatement`*,
+> *`TryStatement`*,
+> *`AsmStatement`*,
+> *`ForeachRangeStatement`*,
+> *`ConditionalStatement`*,
+> *`StaticForeachStatement`*, and
+> *`ImportDeclaration`*
 >
 > These begin with certain keywords that can easily be recognized.
 > However, actually recognizing them makes the language more complicated.
 >
 > Absent are:
-> * *`LabeledStatement`* leads to weird syntax.
-> * *`ExpressionStatement`* is possibly ambiguous.
-> * *`DeclarationStatement`* is possibly ambiguous.
-> * *`ContinueStatement`* / *`BreakStatement`* / *`ReturnStatement`* / *`GotoStatement`* are not allowed in a scope guard.
-> * *`ScopeGuardStatement`* makes no sense.
-> * *`MixinStatement`* closes a gap possibly useful for future proposals.
-> * *`PragmaStatement`* closes a gap possibly useful for future proposals.
+> *`LabeledStatement`* leads to weird syntax.
+> *`ExpressionStatement`* is possibly ambiguous.
+> *`DeclarationStatement`* is possibly ambiguous.
+> *`ContinueStatement`* / *`BreakStatement`* / *`ReturnStatement`* / *`GotoStatement`* are not allowed in a scope guard.
+> *`ScopeGuardStatement`* makes no sense.
+> *`MixinStatement`* closes a gap possibly useful for future proposals.
+> *`PragmaStatement`* closes a gap possibly useful for future proposals.
 >
 > Should an elaborate scope guard be proposed,
-> that proposal can address adding e.g. <code>scope(*Tokens*) if (…) …</code>
+> that proposal can address adding e.g. <code>scope(*Tokens*) if (…) …</code>
 > for its convenience.
 
 ### Linkage
