@@ -388,24 +388,6 @@ the returned function pointer returns an `int` by reference.
 The author was made aware of this by the D Forum user named Tim in [this thread](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
 and thanks Tim for his help.
 
-#### Anonymous nested classes
-
-Similar to the aforementioned situation with function literals,
-with the changes proposed by this DIP,
-anonymous nested class expressions could have two optional constructs surrounded by parentheses:
-The arguments passed to the anonymous nested class’s constructor
-and the first base class or implemented interface.
-
-The situation is different, however, because the order is reversed.
-Applying Maximum Munch, the first parentheses still denotes the argument list.
-Therefore, no exception is needed.
-Yet, similar to the case of function literals,
-if a programmer wanted to enclose the first base class or interface with parentheses,
-an explicit argument list must be provided.
-
-The author was made aware of this by the D Forum user named Tim in [this thread](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
-and thanks Tim for his help.
-
 #### Scope guards
 
 As statements,
