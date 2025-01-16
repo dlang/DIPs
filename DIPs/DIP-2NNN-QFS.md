@@ -410,8 +410,7 @@ and thanks Tim for his help.
 
 As statements,
 scope guards conflict with declarations of `scope` variables
-whose type is expressed starting with an opening parenthesis,
-in particular the ones that require parentheses to be expressed.
+whose type is expressed starting with an opening parenthesis.
 
 The goal of the following design is to allow the this code with the noted meaning:
 ```d
@@ -596,7 +595,7 @@ This is a list of otherwise unrelated observations that the author made when dev
 With the changes proposed by this DIP, `(const int)` denotes a basic type.
 The author expects this to be somewhat controversial.
 Some programmers will prefer the more consistent new style to the old style,
-leading to something like the [east-const vs west-const style](https://hackingcpp.com/cpp/design/east_vs_west_const.html) discussions in C++.
+possibly leading to something like the [east-const vs west-const style](https://hackingcpp.com/cpp/design/east_vs_west_const.html) discussions in C++.
 
 #### Function pointer and member function declaration discrepancy
 
@@ -608,7 +607,7 @@ and any qualifiers after `ref` refer to the return type of the function pointer 
 
 #### Parameter storage class `extern`
 
-The keyword `extern` will not be available as a parameter storage class.
+The keyword `extern` will not be easily available as a parameter storage class.
 Introducing it will likely require another exception to Maximum Munch to distinguish linkage from sole `extern`.
 
 #### Lambdas with unnamed parameters
@@ -621,8 +620,8 @@ auto fp = (S) => 0; // Error: […] type `void` is inferred from initializer [�
 auto fp = ((S)) => 0;
 // typeof(fp) == int function(S __param_0) pure nothrow @nogc @safe
 ```
-This is because in `(S) => 0`, `S` does not refer to the struct type, but is a fresh variable name.
-In `((S)) => 0`, however, the part `(S)` cannot be a variable name, thus it’s treated as a parameter type,
+This is because in `(S) => 0`, the identifier `S` does not refer to the struct type, but is a fresh variable name.
+In `((S)) => 0`, however, the part `(S)` cannot be a variable name, thus it is treated as a parameter type,
 and as such, refers to the struct `S`.
 
 ### Drawbacks
