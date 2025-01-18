@@ -518,7 +518,7 @@ a storage class (e.g. `static`) must be present to allow for type deduction.
 Storage classes and attributes can be interchanged.
 If the storage class is lexically behind the attribute,
 e.g. `align (…) static` or `extern (…) static`,
-the programmer cannot have inteded the parentheses denote a type,
+the programmer cannot have intended the parentheses denote a type,
 as types must be behind the last storage class or attribute.
 
 In case the storage class is first,
