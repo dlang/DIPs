@@ -46,7 +46,7 @@ The main culprits are function pointers and delegates that return by reference.
 To use these as function parameter or return types,
 programmers are compelled to use a separate alias declaration.
 Alias declarations only support them by special-casing them.
-This has been filed as [Issue 2753][issue-2753] *(Cannot declare pointer to function returning `ref`).*
+This has been filed as [Bugzilla Issue 2753][issue-2753] *(Cannot declare pointer to function returning `ref`).*
 
 Another point of contention is this asymmetry between types and expressions:
 For an expression <code>*e*</code>, also <code>(*e*)</code> is an expression and is functionally identical,
@@ -67,7 +67,7 @@ If the type qualifier in this rule were optional,
 D would already have primary types.
 
 While these issues may seem unrelated,
-adding primary types to the D grammar allows a particularly pleasant resolution of [Issue 2753][issue-2753]:
+adding primary types to the D grammar allows a particularly pleasant resolution of [Bugzilla Issue 2753][issue-2753]:
 If <code>(*T*)</code> were a basic type for every type *`T`*
 and <code>ref *R* function(…)</code> were a type (albeit no basic type),
 <code>(ref *R* function(…))</code> could be used anywhere a basic type is required;
@@ -87,7 +87,7 @@ Of course, everything said about `function` types also applies to `delegate` typ
 Also, everything said about `ref` here also applies to linkage,
 except that linkage has no ambiguity problem for function parameters.
 
-Another related issue is [24007][issue-24007] *(Function/&ZeroWidthSpace;delegate literals cannot specify linkage).*
+Another related issue is [Bugzilla Issue 24007][issue-24007] *(Function/&ZeroWidthSpace;delegate literals cannot specify linkage).*
 It can be solved with a simple addition to the grammar,
 which is in the same spirit as the primary proposal.
 
@@ -529,7 +529,7 @@ but type inference requires one.
 
 What remains is something like <code>static align (*Tokens*) x = …;</code>,
 where *`Tokens`* parse as an *`AssignExpression`* and a *`Type`*.
-It is unlikely that code like already exists because of [issue 20727](https://github.com/dlang/dmd/issues/20727):
+It is unlikely that code like already exists because of [GitHub Issue 20727][issue-20727]:
 For a local variable, the alignment is not applied,
 and for any other variable, it is a parse error.
 Lastly, that *`Tokens`* is valid as an *`AssignExpression`* and a *`Type`* semantically
@@ -764,8 +764,9 @@ The DIP Manager will supplement this section with links to forum discussions and
 [spec-pr]: https://github.com/dlang/dlang.org/pull/3616
 [impl-pr]: https://github.com/dlang/dmd/pull/15269
 
-[issue-2753]: https://issues.dlang.org/show_bug.cgi?id=2753
-[issue-24007]: https://issues.dlang.org/show_bug.cgi?id=24007
+[issue-2753]: https://github.com/dlang/dmd/issues/17505
+[issue-24007]: https://github.com/dlang/dmd/issues/20304
+[issue-20727]: https://github.com/dlang/dmd/issues/20727
 
 [ref-var-dip]: https://github.com/dlang/DIPs/blob/master/DIPs/accepted/DIP1046.md
 [max-munch-exception]: https://dlang.org/spec/lex.html#source_text
