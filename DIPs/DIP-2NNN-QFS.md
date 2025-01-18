@@ -25,6 +25,7 @@ Currently, the type constructs that lack such a representation are function poin
     * [String Representation](#string-representation)
     * [Basic Examples](#basic-examples)
     * [Maximal Munch Exceptions](#maximal-munch-exceptions)
+    * [Ambiguities Left to Maximum Munch](#ambiguities-left-to-maximum-munch)
     * [Linkage](#linkage)
 * [Possible Problems](#possible-problems)
     * [Side-effects](#side-effects)
@@ -457,6 +458,96 @@ and <code>scope(*Tokens*) { … }</code> is not meaningful as a statement othe
 > Should an elaborate scope guard be proposed,
 > that proposal can address adding e.g. <code>scope(*Tokens*) if (…) …</code>
 > for its convenience.
+
+### Ambiguities Left to Maximum Munch
+
+The following are observed consequences of the proposed changes.
+
+#### Anonymous nested classes
+
+Anonymous nested class expressions have two optional constructs possibly surrounded by parentheses:
+The arguments passed to the anonymous nested class’s constructor
+and the first base class or implemented interface.
+
+Applying Maximum Munch, the first parentheses denote the argument list.
+Yet, similar to the case of function literals,
+if a programmer wanted to enclose the first base class or interface with parentheses,
+an explicit argument list must be provided.
+
+In practice, this is not a problem because no base class requires parentheses around it.
+It is very unlikely that programmers actually write `new class (MyBaseClass) {}`,
+and even if they do, the code likely ends up being semantically invalid.
+
+The author suggests to disallow <code>(*Type*)</code>
+for the list of base class and interfaces.
+This is, however, not part of what this DIP proposes.
+
+The author was made aware of this ambiguity by the D Forum user named Tim in [this thread](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
+and thanks Tim for his help.
+
+#### Align and Extern
+
+The `align` keyword always introduces the `align` attribute that sets alignment.
+The alignment can be optionally stated in parentheses, e.g. `align(8)`,
+and without arguments, `align` is equivalent to `align(default)` specifying to use default alignment.
+
+The `extern` keyword can be the `extern` attribute which is used to mark (variable) declarations as declarations that are not also definitions and has no arguments.
+It is also used to introduce linkage, and in that case, has an opening parenthesis following it.
+
+The ambiguous parses are:
+* <code>align ( *Tokens* )</code> when *`Tokens`* could both be an *`AssignExpression`* or a *`Type`*.
+* <code>extern ( *Tokens* )</code> when *`Tokens`* could both be a linkage or a *`Type`*.
+
+Maximum Munch dictates that if a parenthesis follows `align`, that is the alignment argument,
+and if a parenthesis follows `extern`, it is a linkage specification.
+
+When `align` is followed by what the programmer intended to be a type that happens to start with a in parenthesis,
+a possible solution is to use `align(default)` instead.
+
+When `extern` is followed by what the programmer intended to be a type that happens to start with a in parenthesis,
+a possible solution is to add explicit linkage, e.g. `extern extern(D)`.
+All entities that support `extern` naturally have a linkage.
+
+The `align`, `extern`, and linkage attributes are not storage classes,
+therefore if they treat what was intended as a type as their argument,
+that means to the parser expects a *`BasicType`* later,
+but none is found; usually for `align` and definitely for `extern`.
+
+For the code to be unintentionally semantically valid,
+a storage class (e.g. `static`) must be present to allow for type deduction.
+Storage classes and attributes can be interchanged.
+If the storage class is lexically behind the attribute,
+e.g. `align (…) static` or `extern (…) static`,
+the programmer cannot have inteded the parentheses denote a type,
+as types must be behind the last storage class or attribute.
+
+In case the storage class is first,
+e.g. `static align (…)` or `static extern (…)`,
+only `align` succeeds.
+That is because an `extern` variable must not have an initializer,
+but type inference requires one.
+
+What remains is something like <code>static align (*Tokens*) x = …;</code>,
+where *`Tokens`* parse as an *`AssignExpression`* and a *`Type`*.
+It is unlikely that code like already exists because of [issue 20727](https://github.com/dlang/dmd/issues/20727):
+For a local variable, the alignment is not applied,
+and for any other variable, it is a parse error.
+Lastly, that *`Tokens`* is valid as an *`AssignExpression`* and a *`Type`* semantically
+is unlikely to begin with.
+One would have to use a type that has a `static` indexing operator
+that returns an integral value;
+the evaluation must succeed at compile-time and result in a valid argument to `align`,
+and the argument to that indexing operator (if any) must therefore be known at compile-time
+or semantically be valid as a type itself.
+
+The most simple looks is this:
+```d
+struct MyType { static size_t opIndex() => 4; }
+void f()
+{
+    static align (MyType[]) x = [MyType()];
+}
+```
 
 ### Linkage
 
