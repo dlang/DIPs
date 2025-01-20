@@ -83,7 +83,7 @@ Edition:
 
 To aid in transitioning existing code to a new edition, it will also
 be possible to change the default edition being used with a compiler
-flag such as `-edition=2024`. This would only affect modules that have
+flag such as `-edition=2025`. This would only affect modules that have
 a module declaration but no edition.
 
 Another compiler switch to aid transitioning that this DIP recommends
@@ -111,7 +111,11 @@ It is possible that later editions will fix `@safe`ty issues that
 cannot be fixed in earlier editions for fear of breaking existing
 code. In that case, this DIP recommends that functions from previous
 editions be treated as `@system`. Another way to get around this is
-to introduce  `@trusted` imports.
+to introduce `@trusted` imports.
+
+To aid in edition-specific APIs, this DIP proposes the introduction of
+`__EDITION__` which, similar to `__FILE__` and `__LINE__`, is
+evaluated at the "call site".
 
 What could editions do?
 
