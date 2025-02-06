@@ -11,10 +11,12 @@
 
 ## Abstract
 
-The objective of this proposal is to ensure that every type
-that can be expressed within the D programming language’s type system
+This proposal aims to ensure that every type
+expressible in the D programming language's type system
 has a corresponding representation as a sequence of D tokens.
-Currently, the type constructs that lack such a representation are function pointer types and delegate types that return by reference or possess non-default linkage.
+Currently, the type constructs that lack such a representation
+are function pointer types and delegate types that return by reference
+or possess non-default linkage.
 
 ## Contents
 
@@ -25,7 +27,7 @@ Currently, the type constructs that lack such a representation are function poin
     * [String Representation](#string-representation)
     * [Basic Examples](#basic-examples)
     * [Maximal Munch Exceptions](#maximal-munch-exceptions)
-    * [Ambiguities Left to Maximum Munch](#ambiguities-left-to-maximum-munch)
+    * [Ambiguities Left to Maximal Munch](#ambiguities-left-to-maximal-munch)
     * [Linkage](#linkage)
 * [Possible Problems](#possible-problems)
     * [Side-effects](#side-effects)
@@ -39,10 +41,10 @@ Currently, the type constructs that lack such a representation are function poin
 
 Not every type that the compiler can represent internally is expressible using existing D syntax.
 For instance, when `pragma(msg)`, `stringof`, or diagnostics serialize a type,
-the programmer should be able to copy and paste this type without getting parse errors.
+programmers should be able to copy and paste this type without encountering parse errors.
 Semantic problems may still arise, e.g., due to visibility.
 
-The main culprits are function pointers and delegates that return by reference.
+The primary concern are function pointers and delegates that return by reference.
 To use these as function parameter or return types,
 programmers are compelled to use a separate alias declaration.
 Alias declarations only support them by special-casing them.
@@ -122,7 +124,7 @@ Possibly, something like this solution was conceptualized in-passing by Jonathan
 > Optional grammar entities are represented by `?` here.
 
 Because this DIP is focused primarily on the grammar,
-contrary to as is customary in DIPs that propose grammar changes,
+contrary to what is customary in DIPs that propose grammar changes,
 the grammar changes are given primary focus.
 
 The following addresses the [function literal](https://dlang.org/spec/expression.html#FunctionLiteral) syntax.
@@ -262,8 +264,8 @@ A reference variable of type `ref int function() @safe` would be declared like t
 ref (ref int function() @safe) fp = *null;
 ```
 
-The parentheses are required in this case as well;
-otherwise, the second `ref` would be considered referring to the variable like the first,
+The parentheses are also required here.;
+Otherwise, the second `ref` would be interpreted as referring to the variable like the first,
 and redundant storage classes are an error in D.
 
 #### Declaring a function that returns a function pointer
@@ -353,7 +355,7 @@ both the return type (the `BasicTypeWithSuffixes`) and the parameter list are op
 With the changes proposed by this DIP,
 because a basic type can start with an opening parenthesis,
 this would render some lambda expressions ambiguous,
-and if Maximum Munch were used to disambiguate,
+and if Maximal Munch were used to disambiguate,
 existing code may change meaning.
 
 For example:
@@ -365,7 +367,7 @@ Currently, `(int)` is an argument list,
 but with the proposed changes without the following exception,
 it would become the return type.
 
-Therefore, another exception to Maximum Munch is proposed:
+Therefore, another exception to Maximal Munch is proposed:
 In function literal expressions starting with `function` or `delegate`,
 if there is exactly one set of same-level parentheses between the introductory keyword
 and the first contract or (if no contracts are given) the function literal body,
@@ -469,7 +471,7 @@ Anonymous nested class expressions have two optional constructs possibly surroun
 The arguments passed to the anonymous nested class’s constructor
 and the first base class or implemented interface.
 
-Applying Maximum Munch, the first parentheses denote the argument list.
+Applying maximum munch, the first parentheses denote the argument list.
 Yet, similar to the case of function literals,
 if a programmer wanted to enclose the first base class or interface with parentheses,
 an explicit argument list must be provided.
@@ -498,7 +500,7 @@ The ambiguous parses are:
 * <code>align ( *Tokens* )</code> when *`Tokens`* could both be an *`AssignExpression`* or a *`Type`*.
 * <code>extern ( *Tokens* )</code> when *`Tokens`* could both be a linkage or a *`Type`*.
 
-Maximum Munch dictates that if a parenthesis follows `align`, that is the alignment argument,
+Maximum munch dictates that if a parenthesis follows `align`, that is the alignment argument,
 and if a parenthesis follows `extern`, it is a linkage specification.
 
 When `align` is followed by what the programmer intended to be a type that happens to start with a in parenthesis,
@@ -518,8 +520,8 @@ a storage class (e.g. `static`) must be present to allow for type deduction.
 Storage classes and attributes can be interchanged.
 If the storage class is lexically behind the attribute,
 e.g. `align (…) static` or `extern (…) static`,
-the programmer cannot have intended the parentheses denote a type,
-as types must be behind the last storage class or attribute.
+the programmer cannot have intended the parentheses denote a type
+because types are denoted after the last storage class or attribute.
 
 In case the storage class is first,
 e.g. `static align (…)` or `static extern (…)`,
@@ -539,8 +541,7 @@ that returns an integral value;
 the evaluation must succeed at compile-time and result in a valid argument to `align`,
 and the argument to that indexing operator (if any) must therefore be known at compile-time
 or semantically be valid as a type itself.
-
-The most simple looks is this:
+This is simplest way to trigger this oddity:
 ```d
 struct MyType { static size_t opIndex() => 4; }
 void f()
@@ -549,9 +550,12 @@ void f()
 }
 ```
 
+The author found no type that *requires* an initial parenthesis
+*and* is valid as an *`AssignExpression`*.
+
 ### Linkage
 
-In short, the changes proposed in this subsection make the following valid syntax:
+In short, the changes proposed in this subsection make the following syntax valid:
 ```d
 void f(extern(C) int function() fp) { }
 if (extern(C) int function() fp = null) { }
@@ -681,7 +685,7 @@ and any qualifiers after `ref` refer to the return type of the function pointer 
 #### Parameter storage class `extern`
 
 The keyword `extern` will not be easily available as a parameter storage class.
-Introducing it will likely require another exception to Maximum Munch to distinguish linkage from sole `extern`.
+Introducing it will likely require another exception to maximum munch to distinguish linkage from sole `extern`.
 
 #### Lambdas with unnamed parameters
 
@@ -699,7 +703,8 @@ and as such, refers to the struct `S`.
 
 ### Drawbacks
 
-A naïve programmer might assume that `const (shared int)*` is equivalent to `const ((shared int)*)`, but it really is equivalent to `(const shared int)*`.
+A naïve programmer might think that `const (shared int)*` is the same as `const ((shared int)*)`,
+but it actually equals `(const shared int)*`.
 This is intentional due to the requirement that the changes in syntax be backwards compatible.
 
 ### Breaking Changes
