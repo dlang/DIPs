@@ -316,7 +316,7 @@ Maximal munch is the following general rule:
 The only currently-existing exception the author is aware of is [lexing floating point numbers][max-munch-exception].
 As of this writing, there is [an open Pull Request][deprecate-trailing-dot] to deprecate this exception.
 
-The following exceptions to Maximal Munch are being proposed for backwards compatibility.
+The following exceptions to maximal munch are being proposed for backwards compatibility.
 
 #### Qualifiers stick to open parentheses
 
@@ -461,7 +461,7 @@ and <code>scope(*Tokens*) { … }</code> is not meaningful as a statement othe
 > that proposal can address adding e.g. <code>scope(*Tokens*) if (…) …</code>
 > for its convenience.
 
-### Ambiguities Left to Maximum Munch
+### Ambiguities Left to Maximal Munch
 
 The following are observed consequences of the proposed changes.
 
@@ -471,7 +471,7 @@ Anonymous nested class expressions have two optional constructs possibly surroun
 The arguments passed to the anonymous nested class’s constructor
 and the first base class or implemented interface.
 
-Applying maximum munch, the first parentheses denote the argument list.
+Applying maximal munch, the first parentheses denote the argument list.
 Yet, similar to the case of function literals,
 if a programmer wanted to enclose the first base class or interface with parentheses,
 an explicit argument list must be provided.
@@ -500,7 +500,7 @@ The ambiguous parses are:
 * <code>align ( *Tokens* )</code> when *`Tokens`* could both be an *`AssignExpression`* or a *`Type`*.
 * <code>extern ( *Tokens* )</code> when *`Tokens`* could both be a linkage or a *`Type`*.
 
-Maximum munch dictates that if a parenthesis follows `align`, that is the alignment argument,
+Maximal munch dictates that if a parenthesis follows `align`, that is the alignment argument,
 and if a parenthesis follows `extern`, it is a linkage specification.
 
 When `align` is followed by what the programmer intended to be a type that happens to start with a in parenthesis,
@@ -685,7 +685,7 @@ and any qualifiers after `ref` refer to the return type of the function pointer 
 #### Parameter storage class `extern`
 
 The keyword `extern` will not be easily available as a parameter storage class.
-Introducing it will likely require another exception to maximum munch to distinguish linkage from sole `extern`.
+Introducing it will likely require another exception to maximal munch to distinguish linkage from sole `extern`.
 
 #### Lambdas with unnamed parameters
 
