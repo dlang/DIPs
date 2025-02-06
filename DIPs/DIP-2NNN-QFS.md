@@ -264,7 +264,7 @@ A reference variable of type `ref int function() @safe` would be declared like t
 ref (ref int function() @safe) fp = *null;
 ```
 
-The parentheses are also required here.;
+The parentheses are also required here.
 Otherwise, the second `ref` would be interpreted as referring to the variable like the first,
 and redundant storage classes are an error in D.
 
