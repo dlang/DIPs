@@ -95,7 +95,7 @@ which is in the same spirit as the primary proposal.
 
 > [!NOTE]
 > The [proof-of-concept implementation][impl-pr] includes almost all of the proposed changes.
-> The only proposed feature the author did not implement as of now is linkage of template lambda expressions
+> The only proposed feature the author did not implement is linkage of template lambda expressions
 > that are not the right-hand side of an alias declaration.
 > The implementation could *parse* those linkages,
 > but the author found no way to semantically apply them to the type of the lambda.
