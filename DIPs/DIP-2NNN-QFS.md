@@ -12,7 +12,7 @@
 ## Abstract
 
 This proposal aims to ensure that every type
-expressible in the D programming language’s type system
+expressible in D’s type system
 has a corresponding representation as a sequence of D tokens.
 Currently, the type constructs that lack such a representation
 are function pointer types and delegate types that return by reference
