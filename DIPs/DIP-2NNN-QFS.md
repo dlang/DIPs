@@ -312,6 +312,8 @@ Maximal munch is the following general rule:
 > it considers that the end of the current match if possible,
 > backtracks,
 > or issues an error.
+>
+> See also: [Wikipedia on *Maximal munch*](https://en.wikipedia.org/wiki/Maximal_munch) 
 
 The only currently-existing exception the author is aware of is [lexing floating point numbers][max-munch-exception].
 As of this writing, there is [an open Pull Request][deprecate-trailing-dot] to deprecate this exception.
