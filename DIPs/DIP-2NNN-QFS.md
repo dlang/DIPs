@@ -463,6 +463,9 @@ and <code>scope(*Tokens*) { … }</code> is not meaningful as a statement othe
 > that proposal can address adding e.g. <code>scope(*Tokens*) if (…) …</code>
 > for its convenience.
 
+The author was made aware of possible problems with `scope` by the D Forum user named Tim in [this Forum post](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
+and thanks Tim for his help.
+
 ### Ambiguities Left to Maximal Munch
 
 The following are observed consequences of the proposed changes.
@@ -486,7 +489,7 @@ The author suggests to disallow <code>(*Type*)</code>
 for the list of base class and interfaces.
 This is, however, not part of what this DIP proposes.
 
-The author was made aware of this ambiguity by the D Forum user named Tim in [this thread](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
+The author was made aware of this ambiguity by the D Forum user named Tim in [this Forum post](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
 and thanks Tim for his help.
 
 #### Align and Extern
@@ -554,6 +557,9 @@ void f()
 
 The author found no type that *requires* an initial parenthesis
 *and* is valid as an *`AssignExpression`*.
+
+The author was made aware of these ambiguities by the D Forum user named Tim in [this Forum post](https://forum.dlang.org/post/gitxzhsdymuehuakdvew@forum.dlang.org)
+and thanks Tim for his help.
 
 ### Linkage
 
