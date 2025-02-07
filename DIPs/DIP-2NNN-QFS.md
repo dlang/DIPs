@@ -357,7 +357,7 @@ both the return type (the [*`BasicTypeWithSuffixes`*](https://dlang.org/spec/exp
 With the changes proposed by this DIP,
 because a basic type can start with an opening parenthesis,
 this would render some lambda expressions ambiguous,
-and if Maximal Munch were used to disambiguate,
+and if maximal munch were used to disambiguate,
 existing code may change meaning.
 
 For example:
@@ -369,7 +369,7 @@ Currently, `(int)` is an argument list,
 but with the proposed changes without the following exception,
 it would become the return type.
 
-Therefore, another exception to Maximal Munch is proposed:
+Therefore, another exception to maximal munch is proposed:
 In function literal expressions starting with `function` or `delegate`,
 if there is exactly one set of same-level parentheses between the introductory keyword
 and the first contract or (if no contracts are given) the function literal body,
