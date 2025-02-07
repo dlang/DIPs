@@ -352,7 +352,7 @@ the `const` only applies to `int`.
 #### Lambda return type versus parameter list
 
 In function literal expressions starting with `function` or `delegate`,
-both the return type (the `BasicTypeWithSuffixes`) and the parameter list are optional.
+both the return type (the [*`BasicTypeWithSuffixes`*](https://dlang.org/spec/expression.html#BasicTypeWithSuffixes)) and the parameter list are optional.
 
 With the changes proposed by this DIP,
 because a basic type can start with an opening parenthesis,
