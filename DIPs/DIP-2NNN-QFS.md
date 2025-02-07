@@ -623,6 +623,7 @@ and exactly one of them would have to be starting with `function` or `delegate`.
 The case without a parameter name is already handled by *`Type`*.
 If this change were rejected, leaving the *`Type`* rule as-is would lead to an inconsistency:
 Unnamed parameters would be allowed to omit parentheses, but not named ones.
+This is why the proposed change was referred to as a “consistency feature” earlier.
 
 #### Conditions
 
@@ -690,6 +691,11 @@ On a member function declaration, type qualifiers and `ref` commute and qualifie
 whereas on function pointer and delegate types,
 any qualifiers before `ref` refer to the whole type
 and any qualifiers after `ref` refer to the return type of the function pointer or delegate type.
+
+Such a discrepancy is not entirely new, though.
+On delegate types, qualifiers referring to the context (as well as function attributes) must be suffixed,
+whereas for a member function declaration,
+they can be prefixed.
 
 #### Parameter storage class `extern`
 
