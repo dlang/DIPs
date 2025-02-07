@@ -399,7 +399,7 @@ As statements,
 scope guards conflict with declarations of `scope` variables
 whose type is expressed starting with an opening parenthesis.
 
-The goal of the following design is to allow the this code with the noted meaning:
+The goal of the following design is to allow this code with the noted meaning:
 ```d
 // scope variable:
 scope (ref int delegate()) dg = &obj.foo;
