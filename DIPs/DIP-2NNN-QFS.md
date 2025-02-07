@@ -585,7 +585,8 @@ and can instead be considered as convenience and, in fact, consistency features.
 
 The proposed grammar up to this point does not allow linkage as the first tokens of a function pointer or delegate type parameter,
 and requires explicit parentheses to form a basic type,
-however, the provided implementation allows omitting those parentheses,
+but the meaning is unambiguous even without parentheses.
+It is proposed to make them optional,
 so that the first of the two following declarations is accepted, too, and equivalent to the second:
 ```d
 void takesCppFunction( extern(C++) ref int function()  fp) { }
@@ -593,8 +594,8 @@ void takesCppFunction((extern(C++) ref int function()) fp) { }
 ```
 Unlike with `ref`, this possible for linkage because linkages are not parameter storage classes and in all likelihood never will be.
 If the linkage is followed up by a `ref`,
-because linkage starts a type,
-it’s clear that `ref` must be part of the function pointer type syntax,
+because linkage intorduces a type,
+it’s clear that such a `ref` must be part of the function pointer type syntax,
 and isn’t a parameter storage class.
 
 This kind of handling of linkage is derived from how linkage is serialized in the current state of the language.
