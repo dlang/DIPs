@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|            Status|
 |--------------------|-----------------------------------------------|------------------|
+|[1048](./DIP1049.md)|                            Primary Type Syntax| Formal Assessment|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types| Formal Assessment|
 |[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
 
