@@ -24,11 +24,9 @@ Goals of this step:
 
 Allow two to three weeks for discussion before proceeding. The feedback should inform your decision to continue and assist in preparing a robust initial draft.
 
-## Step 2 - Point of Contact and Notifying the DIP Manager
+## Step 2 - Notify the DIP Manager
 
-If proceeding, appoint a Point of Contact (POC). For single authors, the author is the POC. For multiple authors, choose one among yourselves.
-
-The POC will handle forum postings, communication with the DIP manager, and other necessary interactions. Notify the DIP manager at social@dlang.org that DIP development is underway.
+If you decide to move forward, please notify the DIP manager via social@dlang.org of your intent. The DIP manager will ensure that the language maintainers have provided initial feedback in the idea forum. Their feedback may impact your decision to move forward. For example, you might choose not to spend time on a DIP if their feedback is negative.
 
 ## Step 3 - Fork the DIP Repository
 
