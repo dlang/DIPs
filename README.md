@@ -1,6 +1,4 @@
 # D Improvement Proposals
-__NOTICE__: _The DIP queue is currently closed. Please do not submit pull requests for new DIPs. We intend to implement a new DIP process. Until then, only DIPs that have already been submitted will be considered under a shortened review process (no more Final Review round)._
-
 This repository is intended for the storage and management of improvement proposals for the D programming language. A D Improvement Proposal (DIP) is a formal document that details a potential feature or enhancement to the language, or the official tooling, and the rationale behind it.
 
 Each DIP is steered through a process of public review by the DIP manager. Each stage of the process is intended to prepare the DIP for its ultimate evaluation by the language maintainers (Walter Bright and Átila Neves). The process and the responsibilities of DIP authors and reviewers are laid out in the following documents:
