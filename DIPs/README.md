@@ -1,11 +1,12 @@
 # DIP Status
 
 ## DIPs in review
-|                  ID|                                          Title|            Status|
-|--------------------|-----------------------------------------------|------------------|
-|[1049](./DIP1049.md)|                            Primary Type Syntax| Formal Assessment|
-|[1048](./DIP1048.md)|                   Callbacks For Matching Types| Formal Assessment|
-|[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|  Post-Community 1|
+|                  ID|                                          Title|
+|--------------------|-----------------------------------------------|
+|[1049](./DIP1051.md)|                             Add Bitfields to D|
+|[1049](./DIP1049.md)|                            Primary Type Syntax|
+|[1048](./DIP1048.md)|                   Callbacks For Matching Types|
+|[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
