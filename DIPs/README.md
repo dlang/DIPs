@@ -6,7 +6,6 @@
 |[1049](./DIP1051.md)|                             Add Bitfields to D|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
-|[1040](./DIP1040.md)|                Copying, Moving, and Forwarding|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
@@ -60,6 +59,7 @@
 |[1006](./other/DIP1006.md)   |Providing More Selective Control Over Contracts|
 |[1019](./other/DIP1019.md)   |                  Named Arguments Lite|
 |[1020](./other/DIP1020.md)   |                      Named Parameters|
+|[1040](./other/DIP1040.md)   |       Copying, Moving, and Forwarding|
 
 ## Abandoned DIPS
 |                           ID|                                 Title|
