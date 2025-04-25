@@ -3,7 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|
 |--------------------|-----------------------------------------------|
-|[1049](./DIP1051.md)|                             Add Bitfields to D|
+|[1051](./DIP1051.md)|                             Add Bitfields to D|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
 
