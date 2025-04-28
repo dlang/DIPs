@@ -189,9 +189,11 @@ little benefit: users can use an explicit lambda instead.
 
 ### No more `alias this`
 
-`alias this` can be used with classes to implement multiple inheritance,
-which the language otherwise expressly forbids. A future edition could
-remove this feature.
+`alias this` can be used with classes to implement multiple
+inheritance, which adds all of the problems associated with such a
+feature. As an added "bonus", multiple inheritance is not defined
+under the current language rules. A future edition could remove this
+feature.
 
 ### Change class ABI (monitor) and/or hierarchy
 
