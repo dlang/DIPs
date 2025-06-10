@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|
 |--------------------|-----------------------------------------------|
-|[1051](./DIP1051.md)|                             Add Bitfields to D|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
 
@@ -26,6 +25,7 @@
 |[1038](./accepted/DIP1038.md)|                              @mustuse|              |
 |[1043](./accepted/DIP1043.md)|               Shortened Method Syntax| 2.100.0      |
 |[1046](./accepted/DIP1046.md)|       `ref` For Variable Declarations| 2.111.0      |
+|[1051](./accepted/DIP1051.md)|                    Add Bitfields to D|              |
 
 (* The feature is not enabled by default, but can be enabled by a preview switch.)
 
