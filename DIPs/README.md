@@ -19,7 +19,7 @@
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls| 2.092.0      |
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics| 2.080.1      |
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute| 2.100.0      |
-|[1030](./accepted/DIP1030.md)|                       Named Arguments| 2.103.0      |
+|[1030](./accepted/DIP1030.md)|                       Named Arguments| 2.103.0†     |
 |[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)| 2.096.1      |
 |[1035](./accepted/DIP1035.md)|                   `@system` Variables| 2.102.0*     |
 |[1038](./accepted/DIP1038.md)|                            `@mustuse`| 2.099.1†     |
