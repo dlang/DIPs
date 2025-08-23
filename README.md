@@ -6,7 +6,6 @@ Each DIP is steered through a process of public review by the DIP manager. Each 
 * [The DIP Authoring Process](./docs/process-authoring.md)
 * [The DIP Review Process](./docs/process-reviews.md)
 * [DIP Author Guidelines](./docs/guidelines-authors.md)
-* [DIP Reviewer Guidelines](./docs/guidelines-reviewers.md)
 
 Questions about the DIP process should be directed to the current DIP Manager, Mike Parker (aldacron@gmail.com). The following lists show DIPs that have been submitted in the current process and DIPs that were approved before this repository existed:
 
