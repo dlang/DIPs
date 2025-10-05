@@ -9,8 +9,8 @@
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
 |-----------------------------|--------------------------------------|--------------|
-|[1003](./accepted/DIP1003.md)|            Remove `body` as a Keyword| 2.075.0      |
-|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept| 2.076.0      |
+|[1003](./accepted/DIP1003.md)|            Remove `body` as a Keyword| 2.075.1      |
+|[1007](./accepted/DIP1007.md)|      "future symbol" Compiler Concept| 2.076.1      |
 |[1009](./accepted/DIP1009.md)|  Add Expression-Based Contract Syntax| 2.081.0      |
 |[1010](./accepted/DIP1010.md)|                      `static foreach`| 2.076.0      |
 |[1013](./accepted/DIP1013.md)|               The Deprecation Process| &mdash;      |
@@ -19,11 +19,11 @@
 |[1021](./accepted/DIP1021.md)| Argument Ownership and Function Calls| 2.092.0      |
 |[1024](./accepted/DIP1024.md)|                        Shared Atomics| 2.080.1      |
 |[1029](./accepted/DIP1029.md)|     Add `throw` as Function Attribute| 2.100.0      |
-|[1030](./accepted/DIP1030.md)|                       Named Arguments| 2.103.0†     |
+|[1030](./accepted/DIP1030.md)|                       Named Arguments| 2.103.1†     |
 |[1034](./accepted/DIP1034.md)|            Add a Bottom Type (reboot)| 2.096.1      |
 |[1035](./accepted/DIP1035.md)|                   `@system` Variables| 2.102.0*     |
 |[1038](./accepted/DIP1038.md)|                            `@mustuse`| 2.099.1†     |
-|[1043](./accepted/DIP1043.md)|               Shortened Method Syntax| 2.100.0      |
+|[1043](./accepted/DIP1043.md)|               Shortened Method Syntax| 2.096.1*<br/>2.101.2 |
 |[1046](./accepted/DIP1046.md)|       `ref` For Variable Declarations| 2.111.0      |
 |[1051](./accepted/DIP1051.md)|                    Add Bitfields to D| 2.101.2*     |
 
