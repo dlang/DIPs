@@ -5,6 +5,7 @@
 |--------------------|-----------------------------------------------|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
+|[1052](./DIP1052.md)|                                       Editions|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
