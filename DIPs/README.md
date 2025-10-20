@@ -5,7 +5,6 @@
 |--------------------|-----------------------------------------------|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
-|[1052](./DIP1052.md)|                                       Editions|
 
 ## Accepted DIPs
 |                           ID|                                 Title| DMD version  |
@@ -27,6 +26,7 @@
 |[1043](./accepted/DIP1043.md)|               Shortened Method Syntax| 2.096.1*<br/>2.101.2 |
 |[1046](./accepted/DIP1046.md)|       `ref` For Variable Declarations| 2.111.0      |
 |[1051](./accepted/DIP1051.md)|                    Add Bitfields to D| 2.101.2*     |
+|[1052](./accepted/DIP1052.md)|                              Editions|              |
 
 (* The feature is not enabled by default, but can be enabled by a preview switch.) \
 († The feature is implemented partially and a significant part of the proposed changes are missing.)
