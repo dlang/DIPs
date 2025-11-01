@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|
 |--------------------|-----------------------------------------------|
+|[1053](./DIP1053.md)|                         Tuple Unpacking Syntax|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
 
