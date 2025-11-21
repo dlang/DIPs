@@ -3,7 +3,6 @@
 ## DIPs in review
 |                  ID|                                          Title|
 |--------------------|-----------------------------------------------|
-|[1053](./DIP1053.md)|                         Tuple Unpacking Syntax|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
 
@@ -28,6 +27,7 @@
 |[1046](./accepted/DIP1046.md)|       `ref` For Variable Declarations| 2.111.0      |
 |[1051](./accepted/DIP1051.md)|                    Add Bitfields to D| 2.101.2*     |
 |[1052](./accepted/DIP1052.md)|                              Editions|              |
+|[1053](./accepted/DIP1053.md)|                Tuple Unpacking Syntax|              |
 
 (* The feature is not enabled by default, but can be enabled by a preview switch.) \
 († The feature is implemented partially and a significant part of the proposed changes are missing.)
