@@ -3,6 +3,7 @@
 ## DIPs in review
 |                  ID|                                          Title|
 |--------------------|-----------------------------------------------|
+|[1054](./DIP1054.md)|                           Uncallable Delegates|
 |[1049](./DIP1049.md)|                            Primary Type Syntax|
 |[1048](./DIP1048.md)|                   Callbacks For Matching Types|
 
