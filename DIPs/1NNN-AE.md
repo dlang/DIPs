@@ -1,0 +1,436 @@
+# Uncallable delegates
+
+|Field|Value|
+|-----|-----|
+|DIP|not assigned yet|
+|Review count|1|
+|Author|Ate Eskola|
+|Implementation|none yet|
+|Status|Submitted to repository|
+
+
+## Abstract
+
+This DIP proposes disallowing calls on delegates whose context qualifier is incompatible with the top-level qualifier. It also proposes an overhaul over qualifier conversion rules of the delegates in order to eliminate existing memory safety issues.
+
+In short, qualifiers can always be removed from, but not added to the context of the delegate. Top-level qualifiers can be added freely and removed freely if they are also found on the context, otherwise the usual rules for values with indirections apply (e.g. mutable and `immutable` are convertible to `const`).
+
+## Rationale
+
+Interaction of delegates and type qualifiers (hereafter `qual` in code examples) is currently handled by the language in an ad-hoc manner. The exact rules are undocumented in the spec and allow breaking the assumptions the language is allowed to make even in `@safe` code. On top of that, the dangerous conversions do not require using the cast operator, they are implicit, making the dangerous operations difficult to spot when reading code.
+
+### Current rules and their shortcomings
+
+The spec does not tell what qualifier casts between delegate types should be allowed, so the intended design was deciphered by testing and reading the compiler source code. It is as follows:
+
+For all type qualifier sets `qual1` and `qual2`, `R delegate(A) qual1` is convertible to `R delegate(A) qual2` iff `R function(A) qual1` if convertible to `R function(A) qual2`. Adding and removing of top-level qualifiers is always allowed, e.g. for all type qualifier sets `qual1`, `qual2` and `qual3`, `qual2(R delegate(A) qual1)` will implicitly convert to `qual3(R delegate(A) qual1)`.
+
+The problem is that the type system assumes that for any object reference qualified with any set of type qualifiers, the references contained in the memory object are also under the protection of that qualifier set. In other words, type qualifiers are transitive. This assumption is badly broken by how the language treats qualifiers on delegates.
+
+The easiest way this is demonstrated is by calling a `const` delegate that actually mutates it's context:
+
+```D
+@safe pure fun(const int delegate() @safe pure d)
+	=> d();
+
+@safe main()
+{
+	import std.stdio;
+
+	int i = 0;
+	// Delegate is qualified as const but the context
+	// pointer argument isn't which is why this
+	// is allowed.
+	const int delegate() @safe pure callback = () => i++;
+
+	callback.fun.writeln();
+	// The compiler may assume that callback, context
+	// included, is unchanged since it is passed
+	// as const. Since fun is pure, the compiler
+	// is also allowed to cache the result of the
+	// first call of callback and elide the second call.
+	// If this optimisation is done, this prints
+	// "0", but if not "1" is printed.
+	callback.fun.writeln();
+}
+```
+
+This isn't the only problem though. Even if we use only types that are qualified to be safely called (e.g. `const(R delegate() const)` as opposed to `const(R delegate())`), the language allows some unsafe converting between them.
+
+```D
+struct S
+{
+	int field;
+	@safe pure int constFun() const => field;
+}
+
+@safe main()
+{
+	import std.stdio;
+
+	S var;
+	// Delegate mutable, this-reference assumed
+	// to be immutable even though it isn't!
+	int delegate() @safe pure immutable del1
+		= &var.constFun;
+	// Both the delegate and the this pointer
+	// typed as immutable
+	immutable int delegate() @safe pure immutable del2
+		= del1;
+
+
+	del2().writeln();
+	// mutating the "immutable" context of del2.
+	var.field++;
+	// del2 is immutable and pure so result of it's
+	// call may or may not be cached.
+	del2().writeln();
+}
+```
+
+### Alternatives
+
+It has been discussed whether the outer qualifier could transitively apply also to the inner qualifier. For example, `const(float delegate())` would be the same as `const(float delegate() const)`. This would make uncallable delegate types impossible to specify and simplify the type system.
+
+The author of this DIP was originally proponent of this. The idea had to be rejected because it would break almost all use of virtual classes with `const` qualification. A mutable class instance of an abstract type could not be implicitly nor safely converted to its `const` equivalent, because the concrete class of the object might contains a mutable delegate that couldn't safely convert to a delegate with a top-level `const` qualification. Uncallable delegate types solve this problem.
+
+There could reasonably be warnings or no warnings emitted for legacy operations in legacy modules. The author chose to specify warnings for those in safe code but not for those in unsafe code. For safe code, the legacy rules create a fault in existing langauge feature, memory safety checks. A warning is needed to alert the user that the checks in their code might be malfunctioning. For unsafe code, while the legacy rules are more error prone than proposed ones they do not break any language features, so a warning was considered excessive.
+
+## Description
+
+### Terminology
+
+There are three qualifier sets in a delegate type: The context qualifier set (`shared` in this example), the outer qualifier set (`immutable`) and the return value qualifier set (`const`) (not discussed):
+
+```D
+alias example = immutable(const(ReturnType) delegate() shared);
+```
+
+In context of this DIP, a type qualifier set containing `immutable` is always considered to also contain the other type qualifiers, namely `const`, `inout` and `shared`. Therefore, it is a superset of every qualifier set currently allowed in D. Adding `immutable` to a qualifier set is considered to also add other qualifiers to it, and removing any qualifier from a set is considered to also remove `immutable` from it if there is one.
+
+### Disallowing unsafe delegate calls
+
+A delegate will be callable if either:
+
+1. It's outer qualifier set is covariant with the context qualifier set by normal [qualifier conversion rules](https://dlang.org/spec/const3.html#implicit_qualifier_conversions).
+2. It is possible to satisfy the previous condition by adding, but not removing qualifiers from the outer qualifier set.
+
+If neither of these conditions pass, the delegate is considered uncallable. An uncallable delegate may be instanced and otherwise used as normal, but an attempt to call it must fail to compile.
+An uncallable delegate may be manually cast to another delegate type to override this restricition, but this must be considered an unsafe operation. The compiler may assume that any calls to the converted delegate that are actually made will respect the qualifiers of both the original type - callable or not - and the converted type. If this isn't the case the result is undefined behaviour.
+
+This change will fully apply only to language editions of DIP approval year (assumed 2026 in examples) and onward. In modules under older editions, all delegate calls will continue compiling indefinitely. For each call that would be illegal in new edition, a warning shall be issued in `@safe` code, but not in non-`@safe` code.
+
+```D
+module future 2026;
+
+// Callable, outer qualifier matches context
+shared(int delegate() shared @safe)  del1;
+// Callable, adding immutable to outer set makes it match
+shared(int delegate() immutable @safe) del2;
+// Callable, immutable can be added which converts to const
+shared(int delegate() const @safe) del3;
+// Not callable, no qualifier set with shared converts to inout
+shared(int delegate() inout @safe) del4;
+
+@safe fun1()
+{
+    del1(); // ok
+    del4(); // fail, uncallable
+    // fail, unsafe cast
+    (cast(int delegate() inout @safe) del4)();
+}
+
+@system fun2()
+{
+    del1(); // ok
+    del4(); // fail, uncallable
+    // ok, but potential race condition
+    (cast(int delegate() inout @safe) del4)();
+}
+
+@safe main()
+{
+    import std.stdio;
+}
+```
+
+```D
+module legacy 2025;
+import future : del1, del2, del3, del4;
+
+@safe fun1()
+{
+	del1(); // ok
+	// warning, uncallable
+	// also potential race condition
+	del4();
+	// warning, unsafe cast
+	// also potential race condition
+	(cast(int delegate() inout @safe) del4)(); 
+}
+
+@system fun2()
+{
+	del1(); // ok
+	del4(); // ok, but potential race condition
+	// ok, but potential race condition
+	(cast(int delegate() inout @safe) del4)(); 
+}
+```
+
+### Context qualifier type conversions
+
+Any delegate type shall be covariant with another that has any or all qualifiers removed from context qualifier set of the original type. Any conversion adding qualifiers to the inner set shall be permitted only with an explicit cast. The cast operation shall be considered safe if the original type is covariant with the tagret type, unsafe otherwise.
+
+In modules under legacy editions, implicit and explicit conversion rules shall remain as before. All conversions permitted under old rules that are `@safe` under new edition shall be `@safe` regardless if they were before. A warning shall be given for conversions in `@safe` code that are `@safe` under the legacy rules but unsafe under the new rules. No warnings shall be emitted for conversions in `@system` code.
+
+```D
+module future 2026;
+
+string delegate() const shared del;
+
+@safe fun1()
+{
+	// ok, removing a qualifier
+	string delegate() shared a = del;
+	// ok, removing both qualifiers
+	string delegate() b = del;
+	// error, adding immutable (and by extension inout)
+	string delegate() immutable c = del;
+	
+	// ok, would work as implicit cast
+	a = cast(string delegate() shared) del;
+	// ok
+	b = cast(string delegate()) del;
+	// error, unsafe cast
+	c = cast(string delegate() immutable) del;
+}
+
+@system fun2()
+{
+	string delegate() shared a = del; // ok
+	string delegate() b = del; // ok
+	// error, this needs explicit cast
+	string delegate() immutable c = del;
+	
+	a = cast(string delegate() shared) del; // ok
+	b = cast(string delegate()) del; // ok
+	c = cast(string delegate() immutable) del; // ok
+}
+```
+
+```D
+module legacy 2025;
+
+string delegate() const shared del;
+
+@safe fun1()
+{
+	string delegate() shared a = del; // ok
+	// error, needs explicit cast by old rules
+	string delegate() b = del;
+	// warning, would be unsafe and need an explicit
+	// cast under new rules
+	string delegate() immutable c = del;
+	
+	a = cast(string delegate() shared) del; // ok
+	// ok, is safe under new rules so also safe
+	// under old ones
+	b = cast(string delegate()) del;
+	c = cast(string delegate() immutable) del; // warning
+}
+
+@system fun2()
+{
+	string delegate() shared a = del; // ok
+	// error, needs explicit cast by old rules
+	string delegate() b = del;
+	string delegate() immutable c = del; // ok
+	
+	a = cast(string delegate() shared) del; // ok
+	b = cast(string delegate()) del; // ok
+	c = cast(string delegate() immutable) del; // ok
+}
+```
+
+### Outer qualifier type conversions
+
+A delegate type differing from another only by the outer qualifier set shall be covariant with it iff any of the following apply:
+
+1. Outer qualifiers of the target are a subset of outer qualifiers of the source, and the source type is callable. Stated another way, any and all outer qualifiers can be removed from a callable delegate, but not from an uncallable one.
+
+2. Outer qualifiers of the source are a superset of outer qualifiers of the target, and the difference is a subset of the context qualifier set. In other words, any and all qualifiers from the context set can be copied to the outer set.
+
+3. A delegate is always covariant on it's outer qualifier set. This means the usual implicit qualifier conversion rules that are allowed for values also apply for outer qualifiers of delegates.
+
+4. The preceding rules can be chained to allow the conversion via one or more intermediate types.
+
+All qualifiers can be freely added or removed with an explicit cast, but this operation must be considered unsafe if the source type is not covariant with the target type.
+
+The rules for legacy editions are the same as with context qualifier conversions.
+
+```D
+module future 2026;
+
+void outerFunc(inout int param)
+{
+	inout string delegate() const shared callable;
+	inout string delegate() shared uncallable;
+	
+	@safe fun1()
+	{
+		// ok, removing a qualifier from a callable
+		string delegate() const shared a = callable;
+		// error, can't remove a qualifier
+		// from an uncallable
+		string delegate() shared b = uncallable;
+		// ok, copying qualifier from context 
+		inout shared string delegate() const shared c
+			= callable;
+		// ok, doing the same
+		inout shared string delegate() shared d
+			= uncallable;
+		// error, immutable not in context qualifier set
+		immutable string delegate() const shared e
+			= callable;
+		// ok, inout implicitly converts to const
+		const string delegate() shared f
+			= uncallable;
+		// ok, first removing a inout from a callable
+		// and then copying shared from context
+		shared string delegate() const shared g
+			= callable;
+			
+		// ok, similar implicit cast compiles.
+		auto a2 = cast(string delegate() const shared)
+			callable;
+		auto b2 = cast(string delegate() shared)
+			uncallable; // error, unsafe cast
+		auto c2 = cast(inout shared string
+				delegate() const shared)
+			callable; // ok
+		auto d2 = cast(inout shared string delegate()
+				shared)
+			uncallable; // ok
+		auto e2 = cast(immutable string delegate()
+				const shared)
+			callable; // error, unsafe cast
+		auto f2 = cast(const string delegate() shared)
+			uncallable; // ok
+		auto g2 = cast(shared string delegate()
+				const shared)
+			callable; // ok
+	}
+	
+	@system fun2()
+	{
+		// ok
+		string delegate() const shared a = callable;
+		// error, needs explicit cast
+		string delegate() shared b = uncallable;
+		inout shared string delegate() const shared c
+			= callable; // ok
+		inout shared string delegate() shared d
+			= uncallable; // ok
+		immutable string delegate() const shared e
+			= callable; // error, needs explicit cast
+		const string delegate() shared f
+			= uncallable; // ok
+		shared string delegate() const shared g
+			= callable; // ok
+			
+		auto a2 = cast(string delegate() const shared)
+			callable; // ok
+		auto b2 = cast(string delegate() shared)
+			uncallable; // ok
+		auto c2 = cast(inout shared string delegate()
+				const shared)
+			callable; // ok
+		auto d2 = cast(inout shared string delegate()
+				shared)
+			uncallable; // ok
+		auto e2 = cast(immutable string delegate()
+				const shared)
+			callable; // ok
+		auto f2 = cast(const string delegate() shared)
+			uncallable; // ok
+		auto g2 = cast(shared string delegate()
+				const shared)
+			callable; // ok
+	}
+}
+```
+
+```D
+module legacy 2025;
+
+void outerFunc(inout int param)
+{
+	inout string delegate() const shared callable;
+	inout string delegate() shared uncallable;
+	
+	@safe fun1()
+	{
+		// ok
+		string delegate() const shared a = callable;
+		// warning, unsafe under new rules
+		string delegate() shared b = uncallable;
+		inout shared string delegate() const shared c
+			= callable; // ok
+		inout shared string delegate() shared d
+			= uncallable; // ok
+		immutable string delegate() const shared e
+			= callable; // warning
+		const string delegate() shared f
+			= uncallable; // ok
+		shared string delegate() const shared g
+			= callable; // ok
+			
+		auto a2 = cast(string delegate() const shared)
+			callable; // ok
+		auto b2 = cast(string delegate() shared)
+			uncallable; // warning
+		auto c2 = cast(inout shared string delegate()
+				const shared)
+			callable; // ok
+		auto d2 = cast(inout shared string delegate()
+				shared)
+			uncallable; // ok
+		auto e2 = cast(immutable string delegate()
+				const shared)
+			callable; // warning
+		auto f2 = cast(const string delegate() shared)
+			uncallable; // ok
+		auto g2 = cast(shared string delegate()
+				const shared)
+			callable; // ok
+	}
+	
+	// all statements in fun1 would be ok here
+	// with no warning emitted
+	@system fun2(){}
+}
+```
+
+## Breaking Changes
+
+Calls of uncallable delegates in code under edition of approval year will stop functioning. So will unsafe implicit conversions between them, and some casts presently considered safe will become unsafe. If code cannot be redesigned to eliminate those operations, corrective action is to use explicit casts override the compiler errors. This must be done in unsafe code. In `@safe` code, an appropriate `@trusted` wrapper needs to be created.
+
+`@safe` code under legacy edition will start emitting warnings for calls of uncallable delegates and unsafe qualifier conversions, although the code will keep compiling. To satisfy those warnings, the code has to be redesigned to eliminate unsafe operations. If this is infeasible to do, code in question should be marked as `@trusted`. It should be manually checked whether the highlighted operations cause the calling function to have an unsafe API. If this is the case it should be marked `@system` instead unless fixed.
+
+Some functions that can potentially be `@trusted` currently will have to be `@system` under the new rules. For example,
+
+```D
+@trusted fun(R delegate() del)
+{
+	if(del.funcptr == &SomeClass.memberFun)
+        (cast(SomeClass) del.ptr).field = something;
+
+    return del;
+}
+```
+is currently valid but invalidated by this DIP if the context pointer of `SomeKnownClass` is qualified as `shared`, `immutable` and/or `inout`. However, if this is the case there is no reason to not qualify `del` similarily, as without those qualifiers the client code will, under the present rules, have to do an unsafe cast in order to pass a delegate referring to `SomeClass.memberFun` to `fun`. Therefore, very few functions are expected to be affected by this issue.
+
+## Copyright & License
+
+Copyright (c) 2026 by the D language foundation
